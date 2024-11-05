@@ -28,3 +28,4 @@ finetune/finetune_4k_filtered_samples
 finetune/finetune_4k_filtered_samples_CLIP_orig_197dim_wolora
 
 wandb/
+annotation/
