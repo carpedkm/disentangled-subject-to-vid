@@ -26,3 +26,5 @@ amlt/
 finetune/cogvideox-lora-single-node_test_new_deepspeed
 finetune/finetune_4k_filtered_samples
 finetune/finetune_4k_filtered_samples_CLIP_orig_197dim_wolora
+
+wandb/
