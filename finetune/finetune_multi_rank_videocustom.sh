@@ -1,17 +1,22 @@
 #!/bin/bash
-
+NODES=$1
 export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/preprocessed_subset4000/background_only_boxes"
 export ANNO_PATH="../annotation/video_dict_fullset400k.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/finetune4000_custom_debug"
-export VALIDATION_REF_PATH="./val_samples/"
+export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/finetune4000_check_multi_node"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
-export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
+export NCCL_IB_DISABLE=0
+export NCCL_IB_PCI_RELAXED_ORDERING=1
+export NCCL_SOCKET_IFNAME=ib0
+export NCCL_NET_GDR_LEVEL=5
+export NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml
+export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
+
 # if you are not using wth 8 gus, change `accelerate_config_machine_single.yaml` num_processes as your gpu number
-accelerate launch --config_file accelerate_config_machine_single.yaml --multi_gpu \
+accelerate launch --config_file accelerate_config_machine_multi.yaml --multi_gpu --machine_rank ${NODES} \
   train_cogvideox_for_videocustom_inf_fix.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
@@ -20,8 +25,7 @@ accelerate launch --config_file accelerate_config_machine_single.yaml --multi_gp
   --enable_slicing \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
-  --validation_epochs 1 \
-  --validation_reference_image $VALIDATION_REF_PATH \
+  --validation_epochs 2 \
   --seed 42 \
   --rank 128 \
   --lora_alpha 64 \
@@ -33,7 +37,7 @@ accelerate launch --config_file accelerate_config_machine_single.yaml --multi_gp
   --max_num_frames 49 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 4 \
+  --train_batch_size 6 \
   --num_train_epochs 30 \
   --checkpointing_steps 100 \
   --gradient_accumulation_steps 1 \
