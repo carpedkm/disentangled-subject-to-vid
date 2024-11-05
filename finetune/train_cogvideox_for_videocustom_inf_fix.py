@@ -159,7 +159,7 @@ def get_args():
     parser.add_argument(
         "--validation_prompt",
         type=str,
-        default='A girl is riding a bike',
+        default='True',
         help="One or more prompt(s) that is used during validation to verify that the model is learning. Multiple validation prompts should be separated by the '--validation_prompt_seperator' string.",
     )
     parser.add_argument(
@@ -171,7 +171,7 @@ def get_args():
     parser.add_argument(
         "--num_validation_videos",
         type=int,
-        default=1,
+        default=2,
         help="Number of videos that should be generated during validation per `validation_prompt`.",
     )
     parser.add_argument(
@@ -185,7 +185,7 @@ def get_args():
     parser.add_argument(
         '--validation_reference_image',
         type=str,
-        default='/root/daneul/projects/refactored/CogVideo/val_sample.jpg',
+        default='val_samples/',
         help='The path of the reference image for validation'
     )
     parser.add_argument(
@@ -480,15 +480,19 @@ class VideoDataset(Dataset):
         
         file_list = os.listdir(ref_img_paths)
         ref_img_ids = [file.split('_')[0] for file in file_list]
+        orig_ref_img_ids = ref_img_ids
+        ref_img_ids = ref_img_ids[:4]
         self.num_instance_videos = len(ref_img_ids)
         video_ids = set(ref_img_ids)
         video_ids = list(video_ids)
+        orig_video_ids = list(set(orig_ref_img_ids))
         
         with open(anno_path, 'r') as f:
             video_dict = json.load(f)
         self.instance_video_paths = [video_dict[video_id]['video_path'] for video_id in video_ids]
         self.instance_video_paths = [video.replace('/root/mnt/', '/mnt/') for video in self.instance_video_paths]
         self.instance_prompts = [video_dict[video_id]['text'] for video_id in video_ids]
+        self.instance_prompt_dict = {str(video_id): video_dict[video_id]['text'] for video_id in orig_video_ids}
         self.instance_ref_image_paths = [os.path.join(ref_img_paths, f"{video_id}_background_boxes.jpg") for video_id in video_ids]
         # if dataset_name is not None:
         #     self.instance_prompts, self.instance_video_paths = self._load_dataset_from_hub()
@@ -692,6 +696,7 @@ def log_validation(
     pipeline_args,
     epoch,
     is_final_validation: bool = False,
+    # prompt: dict = None,
 ):
     logger.info(
         f"Running validation... \n Generating {args.num_validation_videos} videos with prompt: {pipeline_args['prompt']}."
@@ -726,6 +731,9 @@ def log_validation(
                     
                     # Load and preprocess the reference image
                     ref_image = Image.open(pipeline_args['validation_reference_image']).convert('RGB')
+                    # vid_id = p.split('_')[0]
+                    # prompt = prompt_list_train[vid_id]
+                    # current_pipeline_args['prompt'] = prompt
                     # ref_image = ref_image.resize((224, 224))
                     # Process image using CLIP processor
                     processed_image = clip_processor.image_processor(
@@ -793,32 +801,32 @@ def log_validation(
             logger.error(f"Pipeline arguments: {current_pipeline_args}")
             raise
 
-        # Log to wandb if enabled
-        for tracker in accelerator.trackers:
-            phase_name = "test" if is_final_validation else "validation"
-            if tracker.name == "wandb":
-                video_filenames = []
-                for i, video in enumerate(videos):
-                    prompt = (
-                        pipeline_args["prompt"][:25]
-                        .replace(" ", "_")
-                        .replace("'", "_")
-                        .replace('"', "_")
-                        .replace("/", "_")
-                    )
-                    filename = os.path.join(args.output_dir, f"{epoch}_{phase_name}_video_{i}_{prompt}.mp4")
-                    export_to_video(video, filename, fps=args.fps)
-                    video_filenames.append(filename)
-
-                tracker.log(
-                    {
-                        phase_name: [
-                            wandb.Video(filename, caption=f"{i}: {pipeline_args['prompt']}")
-                            for i, filename in enumerate(video_filenames)
-                        ],
-                        f"{phase_name}_epoch": epoch,
-                    }
+    # Log to wandb if enabled
+    for tracker in accelerator.trackers:
+        phase_name = "test" if is_final_validation else "validation"
+        if tracker.name == "wandb":
+            video_filenames = []
+            for i, video in enumerate(videos):
+                prompt = (
+                    pipeline_args["prompt"][:25]
+                    .replace(" ", "_")
+                    .replace("'", "_")
+                    .replace('"', "_")
+                    .replace("/", "_")
                 )
+                filename = os.path.join(args.output_dir, f"{epoch}_{phase_name}_video_{i}_{prompt}.mp4")
+                export_to_video(video, filename, fps=args.fps)
+                video_filenames.append(filename)
+
+            tracker.log(
+                {
+                    phase_name: [
+                        wandb.Video(filename, caption=f"{i}: {pipeline_args['prompt']}")
+                        for i, filename in enumerate(video_filenames)
+                    ],
+                    f"{phase_name}_epoch": epoch,
+                }
+            )
 
     # Clean up
     free_memory()
@@ -1800,13 +1808,18 @@ def main(args):
                     customization=True,
                 )
 
-                validation_prompts = args.validation_prompt.split(args.validation_prompt_separator)
-                for validation_prompt in validation_prompts:
+                # validation_prompts = args.validation_prompt.split(args.validation_prompt_separator)
+                # for validation_prompt in validation_prompts:
+                val_len = len(os.listdir(args.validation_reference_image))
+                for i in range(val_len):
+                    validation_ref_img = os.path.join(args.validation_reference_image, os.listdir(args.validation_reference_image)[i])
+                    vid_id = os.listdir(args.validation_reference_image)[i].split('_')[0]
+                    validation_prompt = train_dataset.instance_prompt_dict[vid_id]
                     pipeline_args = {
                         "prompt": validation_prompt,
                         "guidance_scale": args.guidance_scale,
                         "use_dynamic_cfg": args.use_dynamic_cfg,
-                        "validation_reference_image": args.validation_reference_image,
+                        "validation_reference_image": validation_ref_img,
                         "height": args.height,
                         "width": args.width,
                         "eval" : True
