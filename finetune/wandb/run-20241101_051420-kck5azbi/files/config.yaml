@@ -1,0 +1,163 @@
+_wandb:
+    value:
+        cli_version: 0.18.5
+        m: []
+        python_version: 3.10.14
+        t:
+            "1":
+                - 1
+                - 11
+                - 41
+                - 49
+                - 55
+                - 71
+                - 83
+                - 98
+                - 105
+            "2":
+                - 1
+                - 11
+                - 41
+                - 49
+                - 55
+                - 71
+                - 83
+                - 98
+                - 105
+            "3":
+                - 23
+                - 55
+                - 61
+            "4": 3.10.14
+            "5": 0.18.5
+            "6": 4.46.1
+            "8":
+                - 5
+            "12": 0.18.5
+            "13": linux-x86_64
+adam_beta1:
+    value: 0.9
+adam_beta2:
+    value: 0.95
+adam_epsilon:
+    value: 1e-08
+adam_weight_decay:
+    value: 0.0001
+allow_tf32:
+    value: true
+anno_root:
+    value: ../annotation/video_dict_fullset400k.json
+cache_dir:
+    value: ~/.cache
+checkpointing_steps:
+    value: 1
+checkpoints_total_limit:
+    value: null
+dataloader_num_workers:
+    value: 4
+dataset_config_name:
+    value: null
+dataset_name:
+    value: customization
+enable_slicing:
+    value: true
+enable_tiling:
+    value: true
+fps:
+    value: 8
+gradient_accumulation_steps:
+    value: 1
+gradient_checkpointing:
+    value: true
+guidance_scale:
+    value: 6
+height:
+    value: 480
+hub_model_id:
+    value: null
+hub_token:
+    value: null
+id_token:
+    value: null
+instance_data_root:
+    value: /mnt/carpedkm_data/preprocessed_subset4000/background_only_boxes
+learning_rate:
+    value: 0.0001
+logging_dir:
+    value: logs
+lora_alpha:
+    value: 64
+lr_num_cycles:
+    value: 1
+lr_power:
+    value: 1
+lr_scheduler:
+    value: cosine_with_restarts
+lr_warmup_steps:
+    value: 200
+max_grad_norm:
+    value: 1
+max_num_frames:
+    value: 49
+max_train_steps:
+    value: 30
+mixed_precision:
+    value: bf16
+num_train_epochs:
+    value: 30
+num_validation_videos:
+    value: 1
+optimizer:
+    value: adamw
+output_dir:
+    value: /mnt/carpedkm_data/finetune_result/finetune_25_filtered_samples_vanilla_state_2b_1e-4_debug
+pretrained_model_name_or_path:
+    value: THUDM/CogVideoX-2b
+prodigy_beta3:
+    value: null
+prodigy_decouple:
+    value: false
+prodigy_safeguard_warmup:
+    value: false
+prodigy_use_bias_correction:
+    value: false
+push_to_hub:
+    value: false
+random_flip:
+    value: false
+rank:
+    value: 128
+report_to:
+    value: wandb
+resume_from_checkpoint:
+    value: null
+revision:
+    value: null
+scale_lr:
+    value: false
+seed:
+    value: 42
+skip_frames_end:
+    value: 0
+skip_frames_start:
+    value: 0
+tracker_name:
+    value: null
+train_batch_size:
+    value: 12
+use_8bit_adam:
+    value: false
+use_dynamic_cfg:
+    value: false
+validation_epochs:
+    value: 1
+validation_prompt:
+    value: A girl is riding a bike
+validation_prompt_separator:
+    value: ':::'
+validation_referecne_image:
+    value: /root/daneul/projects/refactored/CogVideo/val_sample.jpg
+variant:
+    value: null
+width:
+    value: 720

@@ -1,0 +1,93 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "inference",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/inference/cli_demo.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--prompt", "A girl riding a bike.",
+                "--model_path", "THUDM/CogVideoX-5b", 
+                "--generate_type", "t2v"
+            ]
+        },
+        {
+            "name": "custom_inference_debug",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/inference/cli_demo_fix.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--prompt", "A girl running on the beach",
+                "--reference_image_path", "/root/daneul/projects/CogVideo/inference/sample.jpg", 
+                "--lora_path", "/root/daneul/projects/CogVideo/finetune/finetune_4k_filtered_samples_CLIP_orig_197dim_wolora/checkpoint-1800"
+            ]
+        },
+        {
+            "name": "gpt_preprocess",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/Grounded-SAM-2/gpt_preprocess_video_dict.py",
+            "console": "integratedTerminal",
+            "args": [
+                    // "--result_dir", "output/subset100",
+                    // "--dataset", "dataset.json",
+                    // "--GPU_IDX", "1",
+                    
+            ]
+        },
+        {
+            "name": "accel_finetune",
+            "type": "python",
+            "request": "launch",
+            "module": "accelerate.commands.launch",
+            "args": [
+                "--config_file", "/root/daneul/projects/refactored/CogVideo/finetune/accelerate_config_machine_single.yaml",
+                "--multi_gpu",
+                "/root/daneul/projects/refactored/CogVideo/finetune/train_cogvideox_for_videocustom_inf_fix.py",
+                "--gradient_checkpointing",
+                "--pretrained_model_name_or_path", "THUDM/CogVideoX-5b",
+                "--cache_dir", "~/.cache",
+                "--enable_tiling",
+                "--enable_slicing",
+                "--instance_data_root", "/mnt/carpedkm_data/preprocessed_subset4000/background_only_boxes",
+                "--anno_root", "/root/daneul/projects/refactored/CogVideo/annotation/video_dict_fullset400k.json",
+                "--validation_epochs", "1",
+                "--seed", "42",
+                "--rank", "128",
+                "--lora_alpha", "64",
+                "--mixed_precision", "bf16",
+                "--output_dir", "/mnt/carpedkm_data/finetune_result/finetune_debug_with_inference_without_customization_reverse_order",
+                "--height", "480",
+                "--width", "720",
+                "--fps", "8",
+                "--max_num_frames", "49",
+                "--skip_frames_start", "0",
+                "--skip_frames_end", "0",
+                "--train_batch_size", "6",
+                "--num_train_epochs", "30",
+                "--checkpointing_steps", "1",
+                "--gradient_accumulation_steps", "1",
+                "--learning_rate", "1e-4",
+                "--lr_scheduler", "cosine_with_restarts",
+                "--lr_warmup_steps", "200",
+                "--lr_num_cycles", "1",
+                "--enable_slicing",
+                "--enable_tiling",
+                "--gradient_checkpointing",
+                "--optimizer", "AdamW",
+                "--adam_beta1", "0.9",
+                "--adam_beta2", "0.95",
+                "--max_grad_norm", "1.0",
+                "--allow_tf32",
+                "--report_to", "wandb"
+            ],
+            "console": "integratedTerminal"
+        }
+    ]
+}
