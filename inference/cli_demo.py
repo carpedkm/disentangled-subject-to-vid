@@ -81,7 +81,7 @@ def generate_video(
 
     # If you're using with lora, add this code
     if lora_path:
-        pipe.load_lora_weights(lora_path, weight_name="pytorch_lora_weights.safetensors", adapter_name="test_1")
+        pipe.load_lora_weights(lora_path, weight_name="pytorch_lora_weights_transformer.safetensors", adapter_name="test_1")
         pipe.fuse_lora(lora_scale=1 / lora_rank)
 
     # 2. Set Scheduler.
