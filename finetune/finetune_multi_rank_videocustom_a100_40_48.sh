@@ -26,7 +26,7 @@ accelerate launch --config_file accelerate_config_machine_multi_48gpu.yaml --mul
   --enable_slicing \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
-  --validation_epochs 2 \
+  --validation_epochs 10000 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
   --rank 128 \
