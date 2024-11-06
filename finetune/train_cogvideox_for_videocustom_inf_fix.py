@@ -439,7 +439,7 @@ class ProjectionLayer(nn.Module):
         self.projection = nn.Linear(in_features, out_features)
 
     def forward(self, x):
-        return self.projection(x)
+        return x + self.projection(x)
 
 class VideoDataset(Dataset):
     def __init__(
@@ -1194,7 +1194,7 @@ def main(args):
         torch_dtype=load_dtype,
         revision=args.revision,
         variant=args.variant,
-        customization=True,
+        customization=False,
     )
     print("Done - CogVideoX Transformer model loaded")
     # Initialize submodules
@@ -1202,9 +1202,9 @@ def main(args):
 
     transformer.T5ProjectionLayer = ProjectionLayer(in_features=4096, out_features=4096)
     with torch.no_grad():
-        transformer.T5ProjectionLayer.projection.weight.fill_(1.0)
+        transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
         if transformer.T5ProjectionLayer.projection.bias is not None:
-            transformer.T5ProjectionLayer.projection.bias.fill_(1.0)
+            transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
     transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=512, out_features=4096)
     with torch.no_grad():
         transformer.CLIPTextProjectionLayer.projection.weight.fill_(0.0)
@@ -1728,7 +1728,7 @@ def main(args):
                     timestep=timesteps,
                     image_rotary_emb=image_rotary_emb,
                     return_dict=False,
-                    customization=True,
+                    customization=False,
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
@@ -1805,7 +1805,7 @@ def main(args):
                     revision=args.revision,
                     variant=args.variant,
                     torch_dtype=weight_dtype,
-                    customization=True,
+                    customization=False,
                 )
 
                 # validation_prompts = args.validation_prompt.split(args.validation_prompt_separator)
@@ -1870,7 +1870,7 @@ def main(args):
             revision=args.revision,
             variant=args.variant,
             torch_dtype=weight_dtype,
-            customization=True
+            customization=False
         )
         pipe.scheduler = CogVideoXDPMScheduler.from_config(pipe.scheduler.config)
 
