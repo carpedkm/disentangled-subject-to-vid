@@ -6,7 +6,6 @@ master_ip
 logs/
 *.DS_Store
 .idea
-output*
 test*
 
 *.pt
