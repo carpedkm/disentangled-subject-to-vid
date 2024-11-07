@@ -1307,105 +1307,178 @@ def main(args):
         model = accelerator.unwrap_model(model)
         model = model._orig_mod if is_compiled_module(model) else model
         return model
+    
+    from safetensors.torch import save_file
 
-    # create custom saving & loading hooks so that `accelerator.save_state(...)` serializes in a nice format
     def save_model_hook(models, weights, output_dir):
         if accelerator.is_main_process:
-
-            transformer_lora_layers_to_save = None
-            vision_model_lora_layers_to_save = None
-
             for model in models:
-                # Use 'unwrap_model' to handle any wrapped model cases
                 unwrapped_model = unwrap_model(model)
-                print(f"Unwrapped model class: {unwrapped_model.__class__}")  # Add this line for debugging
-                # Check for CogVideoX transformer
-                if isinstance(unwrapped_model, type(unwrap_model(transformer))):
+                if hasattr(unwrapped_model, 'config') and unwrapped_model.config.__class__.__name__ == 'CogVideoXTransformerConfig':
+                    # Save transformer LoRA layers using safetensors
                     transformer_lora_layers_to_save = get_peft_model_state_dict(model)
+                    if transformer_lora_layers_to_save:
+                        lora_save_path = os.path.join(output_dir, "pytorch_lora_weights_transformer.safetensors")
+                        save_file(transformer_lora_layers_to_save, lora_save_path)
                     
-                    # Save ProjectionLayer state_dicts
+                    # Save ProjectionLayer state_dicts using safetensors
                     projection_layers_state_dict = {
                         "T5ProjectionLayer": unwrapped_model.T5ProjectionLayer.state_dict(),
                         "CLIPTextProjectionLayer": unwrapped_model.CLIPTextProjectionLayer.state_dict(),
                         "CLIPVisionProjectionLayer": unwrapped_model.CLIPVisionProjectionLayer.state_dict(),
                     }
-                    # Save CLIPVisionModel state_dict
+                    for name, state_dict in projection_layers_state_dict.items():
+                        save_path = os.path.join(output_dir, f"{name}.safetensors")
+                        save_file(state_dict, save_path)
+                    
+                    # Save CLIPVisionModel weights using safetensors
                     vision_model_state_dict = unwrapped_model.reference_vision_encoder.state_dict()
+                    vision_save_path = os.path.join(output_dir, "pytorch_clip_vision_model.safetensors")
+                    save_file(vision_model_state_dict, vision_save_path)
+
+    # # create custom saving & loading hooks so that `accelerator.save_state(...)` serializes in a nice format
+    # def save_model_hook(models, weights, output_dir):
+    #     if accelerator.is_main_process:
+
+    #         transformer_lora_layers_to_save = None
+    #         vision_model_lora_layers_to_save = None
+
+    #         for model in models:
+    #             # Use 'unwrap_model' to handle any wrapped model cases
+    #             unwrapped_model = unwrap_model(model)
+    #             print(f"Unwrapped model class: {unwrapped_model.__class__}")  # Add this line for debugging
+    #             # Check for CogVideoX transformer
+    #             if isinstance(unwrapped_model, type(unwrap_model(transformer))):
+    #                 transformer_lora_layers_to_save = get_peft_model_state_dict(model)
+                    
+    #                 # Save ProjectionLayer state_dicts
+    #                 projection_layers_state_dict = {
+    #                     "T5ProjectionLayer": unwrapped_model.T5ProjectionLayer.state_dict(),
+    #                     "CLIPTextProjectionLayer": unwrapped_model.CLIPTextProjectionLayer.state_dict(),
+    #                     "CLIPVisionProjectionLayer": unwrapped_model.CLIPVisionProjectionLayer.state_dict(),
+    #                 }
+    #                 # Save CLIPVisionModel state_dict
+    #                 vision_model_state_dict = unwrapped_model.reference_vision_encoder.state_dict()
                 
-                # Raise an error for unexpected models
-                else:
-                    raise ValueError(f"Unexpected save model: {unwrapped_model.__class__}")
+    #             # Raise an error for unexpected models
+    #             else:
+    #                 raise ValueError(f"Unexpected save model: {unwrapped_model.__class__}")
 
-                # Ensure to pop weight so that the corresponding model is not saved again
-                weights.pop()
+    #             # Ensure to pop weight so that the corresponding model is not saved again
+    #             weights.pop()
 
-            # Save LoRA weights for CogVideoX
-            if transformer_lora_layers_to_save:
-                CogVideoXPipeline.save_lora_weights(
-                    output_dir,
-                    weight_name="pytorch_lora_weights_transformer.safetensors",
-                    transformer_lora_layers=transformer_lora_layers_to_save,
-                )
+    #         # Save LoRA weights for CogVideoX
+    #         if transformer_lora_layers_to_save:
+    #             CogVideoXPipeline.save_lora_weights(
+    #                 output_dir,
+    #                 weight_name="pytorch_lora_weights_transformer.safetensors",
+    #                 transformer_lora_layers=transformer_lora_layers_to_save,
+    #             )
             
-            # Save Projection Layer weights
-            for name, state_dict in projection_layers_state_dict.items():
-                save_path = os.path.join(output_dir, f"{name}.safetensors")
-                torch.save(state_dict, save_path)
+    #         # Save Projection Layer weights
+    #         for name, state_dict in projection_layers_state_dict.items():
+    #             save_path = os.path.join(output_dir, f"{name}.safetensors")
+    #             torch.save(state_dict, save_path)
             
-            # Save CLIPVisionModel weights
-            if vision_model_state_dict is not None:
-                save_path = os.path.join(output_dir, "pytorch_clip_vision_model.bin")
-                torch.save(vision_model_state_dict, save_path)
-
+    #         # Save CLIPVisionModel weights
+    #         if vision_model_state_dict is not None:
+    #             save_path = os.path.join(output_dir, "pytorch_clip_vision_model.bin")
+    #             torch.save(vision_model_state_dict, save_path)
+    from safetensors.torch import load_file
 
     def load_model_hook(models, input_dir):
-        """Load LoRA weights for transformer and vision models"""
-        transformer_ = None
-        
-        # Extract models while emptying the list
-        while len(models) > 0:
-            model = models.pop()
-            if isinstance(model, type(unwrap_model(transformer))):
-                transformer_ = model
-            else:
-                raise ValueError(f"Unexpected save model: {model.__class__}")
-        
-        # Load the combined lora state dict
-        lora_state_dict = CogVideoXPipeline.lora_state_dict(input_dir)
-        
-        # Handle transformer model weights
-        if transformer_ is not None:
-            transformer_state_dict = {
-                f'{k.replace("transformer.", "")}': v 
-                for k, v in lora_state_dict.items() 
-                if k.startswith("transformer.")
-            }
-            # For transformer, keep the UNet conversion if needed
-            transformer_state_dict = convert_unet_state_dict_to_peft(transformer_state_dict)
-            
-            incompatible_keys = set_peft_model_state_dict(
-                transformer_, 
-                transformer_state_dict, 
-                adapter_name="default"
-            )
-            
-            # Load ProjectionLayer weights
-            transformer_.T5ProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "T5ProjectionLayer.pth")))
-            transformer_.CLIPTextProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPTextProjectionLayer.pth")))
-            transformer_.CLIPVisionProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPVisionProjectionLayer.pth")))
-            
-            # Load CLIPVisionModel weights
-            vision_model_state_dict = torch.load(os.path.join(input_dir, "pytorch_clip_vision_model.bin"))
-            transformer_.reference_vision_encoder.load_state_dict(vision_model_state_dict)
+        for model in models:
+            unwrapped_model = unwrap_model(model)
+            if hasattr(unwrapped_model, 'config') and unwrapped_model.config.__class__.__name__ == 'CogVideoXTransformerConfig':
+                # Load transformer LoRA layers using safetensors
+                lora_load_path = os.path.join(input_dir, "pytorch_lora_weights_transformer.safetensors")
+                lora_state_dict = load_file(lora_load_path)
+                
+                transformer_state_dict = {
+                    f'{k.replace("transformer.", "")}': v 
+                    for k, v in lora_state_dict.items() 
+                    if k.startswith("transformer.")
+                }
+                transformer_state_dict = convert_unet_state_dict_to_peft(transformer_state_dict)
+                
+                incompatible_keys = set_peft_model_state_dict(
+                    model, 
+                    transformer_state_dict, 
+                    adapter_name="default"
+                )
+                
+                # Load ProjectionLayer weights using safetensors
+                state_dict = load_file(os.path.join(input_dir, "T5ProjectionLayer.safetensors"))
+                unwrapped_model.T5ProjectionLayer.load_state_dict(state_dict)
+                
+                state_dict = load_file(os.path.join(input_dir, "CLIPTextProjectionLayer.safetensors"))
+                unwrapped_model.CLIPTextProjectionLayer.load_state_dict(state_dict)
+                
+                state_dict = load_file(os.path.join(input_dir, "CLIPVisionProjectionLayer.safetensors"))
+                unwrapped_model.CLIPVisionProjectionLayer.load_state_dict(state_dict)
+                
+                # Load CLIPVisionModel weights using safetensors
+                vision_load_path = os.path.join(input_dir, "pytorch_clip_vision_model.safetensors")
+                vision_model_state_dict = load_file(vision_load_path)
+                unwrapped_model.reference_vision_encoder.load_state_dict(vision_model_state_dict)
 
-            if incompatible_keys is not None:
-                # check only for unexpected keys
-                unexpected_keys = getattr(incompatible_keys, "unexpected_keys", None)
-                if unexpected_keys:
-                    logger.warning(
-                        f"Loading adapter weights from state_dict led to unexpected keys not found in the model: "
-                        f" {unexpected_keys}. "
-                    )
+                if incompatible_keys is not None:
+                    unexpected_keys = getattr(incompatible_keys, "unexpected_keys", None)
+                    if unexpected_keys:
+                        logger.warning(
+                            f"Loading adapter weights from state_dict led to unexpected keys not found in the model: "
+                            f" {unexpected_keys}. "
+                        )
+
+
+    # def load_model_hook(models, input_dir):
+    #     """Load LoRA weights for transformer and vision models"""
+    #     transformer_ = None
+        
+    #     # Extract models while emptying the list
+    #     while len(models) > 0:
+    #         model = models.pop()
+    #         if isinstance(model, type(unwrap_model(transformer))):
+    #             transformer_ = model
+    #         else:
+    #             raise ValueError(f"Unexpected save model: {model.__class__}")
+        
+    #     # Load the combined lora state dict
+    #     lora_state_dict = CogVideoXPipeline.lora_state_dict(input_dir)
+        
+    #     # Handle transformer model weights
+    #     if transformer_ is not None:
+    #         transformer_state_dict = {
+    #             f'{k.replace("transformer.", "")}': v 
+    #             for k, v in lora_state_dict.items() 
+    #             if k.startswith("transformer.")
+    #         }
+    #         # For transformer, keep the UNet conversion if needed
+    #         transformer_state_dict = convert_unet_state_dict_to_peft(transformer_state_dict)
+            
+    #         incompatible_keys = set_peft_model_state_dict(
+    #             transformer_, 
+    #             transformer_state_dict, 
+    #             adapter_name="default"
+    #         )
+            
+    #         # Load ProjectionLayer weights
+    #         transformer_.T5ProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "T5ProjectionLayer.pth")))
+    #         transformer_.CLIPTextProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPTextProjectionLayer.pth")))
+    #         transformer_.CLIPVisionProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPVisionProjectionLayer.pth")))
+            
+    #         # Load CLIPVisionModel weights
+    #         vision_model_state_dict = torch.load(os.path.join(input_dir, "pytorch_clip_vision_model.bin"))
+    #         transformer_.reference_vision_encoder.load_state_dict(vision_model_state_dict)
+
+    #         if incompatible_keys is not None:
+    #             # check only for unexpected keys
+    #             unexpected_keys = getattr(incompatible_keys, "unexpected_keys", None)
+    #             if unexpected_keys:
+    #                 logger.warning(
+    #                     f"Loading adapter weights from state_dict led to unexpected keys not found in the model: "
+    #                     f" {unexpected_keys}. "
+    #                 )
         
     print("Registering save and load hooks")
     accelerator.register_save_state_pre_hook(save_model_hook)
@@ -1846,6 +1919,9 @@ def main(args):
     # Save the lora layers
     accelerator.wait_for_everyone()
     # Modified final inference section
+    from safetensors.torch import save_file
+
+    # Save LoRA weights and additional components
     if accelerator.is_main_process:
         transformer = unwrap_model(transformer)
         dtype = (
@@ -1858,21 +1934,21 @@ def main(args):
         transformer = transformer.to(dtype)
         transformer_lora_layers = get_peft_model_state_dict(transformer)
 
-        # Save LoRA weights and additional components
         CogVideoXPipeline.save_lora_weights(
             save_directory=args.output_dir,
             transformer_lora_layers=transformer_lora_layers,
         )
 
-        # Save projection layers and vision encoder separately
-        torch.save(transformer.T5ProjectionLayer.state_dict(), 
+        # Save projection layers and vision encoder separately using safetensors
+        save_file(transformer.T5ProjectionLayer.state_dict(), 
                 os.path.join(args.output_dir, "T5ProjectionLayer.safetensors"))
-        torch.save(transformer.CLIPTextProjectionLayer.state_dict(), 
+        save_file(transformer.CLIPTextProjectionLayer.state_dict(), 
                 os.path.join(args.output_dir, "CLIPTextProjectionLayer.safetensors"))
-        torch.save(transformer.CLIPVisionProjectionLayer.state_dict(), 
+        save_file(transformer.CLIPVisionProjectionLayer.state_dict(), 
                 os.path.join(args.output_dir, "CLIPVisionProjectionLayer.safetensors"))
-        torch.save(transformer.reference_vision_encoder.state_dict(), 
+        save_file(transformer.reference_vision_encoder.state_dict(), 
                 os.path.join(args.output_dir, "reference_vision_encoder.safetensors"))
+
 
         # Final test inference
         pipe = CustomCogVideoXPipeline.from_pretrained(
@@ -1891,18 +1967,22 @@ def main(args):
 
         # Load LoRA weights
         lora_scaling = args.lora_alpha / args.rank
+        from safetensors.torch import load_file
+
+        # Load LoRA weights
         pipe.load_lora_weights(args.output_dir, adapter_name="cogvideox-lora")
         pipe.set_adapters(["cogvideox-lora"], [lora_scaling])
 
-        # Load additional components
+        # Load additional components using safetensors
         pipe.transformer.T5ProjectionLayer.load_state_dict(
-            torch.load(os.path.join(args.output_dir, "T5ProjectionLayer.safetensors")))
+            load_file(os.path.join(args.output_dir, "T5ProjectionLayer.safetensors")))
         pipe.transformer.CLIPTextProjectionLayer.load_state_dict(
-            torch.load(os.path.join(args.output_dir, "CLIPTextProjectionLayer.safetensors")))
+            load_file(os.path.join(args.output_dir, "CLIPTextProjectionLayer.safetensors")))
         pipe.transformer.CLIPVisionProjectionLayer.load_state_dict(
-            torch.load(os.path.join(args.output_dir, "CLIPVisionProjectionLayer.safetensors")))
+            load_file(os.path.join(args.output_dir, "CLIPVisionProjectionLayer.safetensors")))
         pipe.transformer.reference_vision_encoder.load_state_dict(
-            torch.load(os.path.join(args.output_dir, "reference_vision_encoder.safetensors")))
+            load_file(os.path.join(args.output_dir, "reference_vision_encoder.safetensors")))
+
 
         # Run inference
         validation_outputs = []
