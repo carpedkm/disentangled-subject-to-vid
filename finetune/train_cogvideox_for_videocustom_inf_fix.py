@@ -433,13 +433,21 @@ def get_args():
     return parser.parse_args()
 
     
-class ProjectionLayer(nn.Module):
+class SkipProjectionLayer(nn.Module):
     def __init__(self, in_features, out_features):
         super().__init__()
         self.projection = nn.Linear(in_features, out_features)
 
     def forward(self, x):
         return x + self.projection(x)
+    
+class ProjectionLayer(nn.Module):
+    def __init__(self, in_features, out_features):
+        super().__init__()
+        self.projection = nn.Linear(in_features, out_features)
+
+    def forward(self, x):
+        return self.projection(x)
 
 class VideoDataset(Dataset):
     def __init__(
@@ -1194,13 +1202,13 @@ def main(args):
         torch_dtype=load_dtype,
         revision=args.revision,
         variant=args.variant,
-        customization=False,
+        customization=True,
     )
     print("Done - CogVideoX Transformer model loaded")
     # Initialize submodules
     transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
 
-    transformer.T5ProjectionLayer = ProjectionLayer(in_features=4096, out_features=4096)
+    transformer.T5ProjectionLayer = SkipProjectionLayer(in_features=4096, out_features=4096)
     with torch.no_grad():
         transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
         if transformer.T5ProjectionLayer.projection.bias is not None:
@@ -1655,8 +1663,10 @@ def main(args):
     # from tqdm import tqdm
     for epoch in range(first_epoch, args.num_train_epochs):
         transformer.train()
-
+        # update random seed
+        set_seed(args.seed + epoch)
         for step, batch in enumerate(train_dataloader):
+            
             models_to_accumulate = [transformer]
 
             with accelerator.accumulate(models_to_accumulate):
@@ -1728,7 +1738,7 @@ def main(args):
                     timestep=timesteps,
                     image_rotary_emb=image_rotary_emb,
                     return_dict=False,
-                    customization=False,
+                    customization=True,
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
@@ -1805,7 +1815,7 @@ def main(args):
                     revision=args.revision,
                     variant=args.variant,
                     torch_dtype=weight_dtype,
-                    customization=False,
+                    customization=True,
                 )
 
                 # validation_prompts = args.validation_prompt.split(args.validation_prompt_separator)
@@ -1870,7 +1880,7 @@ def main(args):
             revision=args.revision,
             variant=args.variant,
             torch_dtype=weight_dtype,
-            customization=False
+            customization=True
         )
         pipe.scheduler = CogVideoXDPMScheduler.from_config(pipe.scheduler.config)
 
