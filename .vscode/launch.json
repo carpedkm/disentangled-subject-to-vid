@@ -20,12 +20,12 @@
             "name": "custom_inference_debug",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/inference/cli_demo_fix.py",
+            "program": "${workspaceFolder}/finetune/cli_demo_fix.py",
             "console": "integratedTerminal",
             "args": [
-                "--prompt", "A girl running on the beach",
-                "--reference_image_path", "/root/daneul/projects/CogVideo/inference/sample.jpg", 
-                "--lora_path", "/root/daneul/projects/CogVideo/finetune/finetune_4k_filtered_samples_CLIP_orig_197dim_wolora/checkpoint-1800"
+                "--prompt", "Two dogs one with a black and tan coat and another with a black and white coat appear to be playing on a lush green lawn with trees and a building in the background",
+                "--reference_image_path", "/root/daneul/projects/refactored/CogVideo/finetune/val_samples/854179_background_boxes.jpg", 
+                "--lora_path", "/mnt/carpedkm_data/finetune_result/finetune4000_custom_zero_init_t5_full_custom_with_clip/checkpoint-800"
             ]
         },
         {

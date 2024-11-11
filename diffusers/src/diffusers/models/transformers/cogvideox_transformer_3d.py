@@ -442,8 +442,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         if customization:
             ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
             enc_hidden_states0 = self.T5ProjectionLayer(encoder_hidden_states)
-            enc_hidden_states1 = self.CLIPTextProjectionLayer(clip_prompt_embeds)
-            enc_hidden_states2 = self.CLIPVisionProjectionLayer(ref_img_states)
+            enc_hidden_states1 = self.CLIPTextProjectionLayer(clip_prompt_embeds.to(dtype=torch.bfloat16))
+            enc_hidden_states2 = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16))
             # if in eval mode , match shape of CFG on enc_hidden_states2
             if eval:
                 enc_hidden_states2 = torch.cat([enc_hidden_states2, enc_hidden_states2], dim=0)

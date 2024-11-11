@@ -73,8 +73,23 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
             truncation=True,
             return_tensors="pt",
         )
+        # text_input_ids = text_inputs.input_ids.to(device)
+        # prompt_embeds = self.text_encoder(text_input_ids.to(device))[0]
+            # Move inputs to the device
+        ## CUSTOMIZATION ## # FIXME
         text_input_ids = text_inputs.input_ids.to(device)
-        prompt_embeds = self.text_encoder(text_input_ids.to(device))[0]
+        attention_mask = text_inputs.attention_mask.to(device)
+
+        # Add print statements to check devices
+        print("Device of text_input_ids:", text_input_ids.device)
+        print("Device of attention_mask:", attention_mask.device)
+        print("Device of text_encoder:", next(self.text_encoder.parameters()).device)
+
+        # Pass both input_ids and attention_mask to the text_encoder
+        prompt_embeds = self.text_encoder(
+            input_ids=text_input_ids, attention_mask=attention_mask
+        )[0]
+        ### CUSOMIZATION ### END
         # duplicate text embeddings for each generation per prompt, using mps friendly method
         _, seq_len, _ = prompt_embeds.shape
         prompt_embeds = prompt_embeds.repeat(1, num_videos_per_prompt, 1)
@@ -197,7 +212,8 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
 
         # 2. Default call parameters
         device = self._execution_device
-
+        print('>> PROMPT: ', prompt)
+        print('>> PROMPT TYPE: ', type(prompt))
         # Determine batch size
         if prompt is not None and isinstance(prompt, str):
             batch_size = 1
@@ -208,7 +224,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
 
         # Check if guidance is needed
         do_classifier_free_guidance = guidance_scale > 1.0
-
+        # print('>> PROMPT: ', prompt)
         # 3. Encode prompt and CLIP prompt embeddings
         prompt_embeds, clip_prompt_embeds = self.encode_prompt( # FIXME Do negative prompt embed
             prompt,
@@ -350,3 +366,430 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
             return (video,)
 
         return CogVideoXPipelineOutput(frames=video)
+
+# custom_cogvideox_pipe.py
+
+# from typing import Optional, Union, List, Dict, Any, Tuple, Callable
+# import math
+# import torch
+# import torch.nn as nn
+
+# from diffusers import CogVideoXPipeline
+# from diffusers.pipelines.cogvideo.pipeline_cogvideox import CogVideoXPipelineOutput
+
+# from transformers import AutoTokenizer, CLIPTextModel
+
+# class SkipProjectionLayer(nn.Module):
+#     def __init__(self, in_features, out_features):
+#         super().__init__()
+#         self.projection = nn.Linear(in_features, out_features)
+
+#     def forward(self, x):
+#         return x + self.projection(x)
+    
+# class ProjectionLayer(nn.Module):
+#     def __init__(self, in_features, out_features):
+#         super().__init__()
+#         self.projection = nn.Linear(in_features, out_features)
+
+#     def forward(self, x):
+#         return self.projection(x)
+
+# class CustomCogVideoXPipeline(CogVideoXPipeline):
+#     def __init__(
+#         self,
+#         tokenizer,
+#         text_encoder,
+#         transformer,
+#         vae,
+#         scheduler,
+#         clip_tokenizer=None,
+#         clip_text_encoder=None,
+#         customization=False,
+#     ):
+#         super().__init__(tokenizer, text_encoder, vae, transformer, scheduler)
+#         # Initialize additional attributes
+#         self.customization = customization
+#         if customization:
+#             # Initialize CLIP tokenizer and CLIP text encoder
+#             if clip_tokenizer is None:
+#                 self.clip_tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch16")
+#             else:
+#                 self.clip_tokenizer = clip_tokenizer
+
+#             if clip_text_encoder is None:
+#                 self.clip_text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch16")
+#             else:
+#                 self.clip_text_encoder = clip_text_encoder
+
+#             # Move CLIP text encoder to the same device as text_encoder
+#             self.clip_text_encoder.to(self.text_encoder.device)
+
+#     # def encode_prompt(
+#     #     self,
+#     #     prompt,
+#     #     negative_prompt=None,
+#     #     do_classifier_free_guidance=True,
+#     #     num_videos_per_prompt=1,
+#     #     prompt_embeds=None,
+#     #     negative_prompt_embeds=None,
+#     #     max_sequence_length=77,
+#     #     device=None,
+#     # ):
+#     #     prompt = [prompt] if isinstance(prompt, str) else prompt
+#     #     batch_size = len(prompt)
+
+#     #     if prompt_embeds is not None:
+#     #         # Assume clip_prompt_embeds are also provided if prompt_embeds are
+#     #         return prompt_embeds, None
+
+#     #     # Compute prompt embeddings using the text_encoder
+#     #     text_inputs = self.tokenizer(
+#     #         prompt,
+#     #         padding="max_length",
+#     #         max_length=max_sequence_length,
+#     #         truncation=True,
+#     #         return_tensors="pt",
+#     #     )
+#     #     text_input_ids = text_inputs.input_ids.to(device)
+#     #     prompt_embeds = self.text_encoder(text_input_ids)[0]
+
+#     #     # Compute CLIP prompt embeddings using the CLIP text encoder
+#     #     clip_text_inputs = self.clip_tokenizer(
+#     #         prompt,
+#     #         padding="max_length",
+#     #         max_length=77,
+#     #         truncation=True,
+#     #         return_tensors="pt",
+#     #     )
+#     #     clip_text_input_ids = clip_text_inputs.input_ids.to(device)
+#     #     clip_prompt_embeds = self.clip_text_encoder(clip_text_input_ids)[0]
+
+#     #     # Duplicate embeddings for each num_videos_per_prompt
+#     #     prompt_embeds = prompt_embeds.repeat_interleave(num_videos_per_prompt, dim=0)
+#     #     clip_prompt_embeds = clip_prompt_embeds.repeat_interleave(num_videos_per_prompt, dim=0)
+
+#     #     # Handle negative prompts if classifier-free guidance is used
+#     #     if do_classifier_free_guidance:
+#     #         if negative_prompt is None:
+#     #             negative_prompt = [""] * batch_size
+#     #         elif isinstance(negative_prompt, str):
+#     #             negative_prompt = [negative_prompt]
+
+#     #         # Compute negative prompt embeddings
+#     #         negative_text_inputs = self.tokenizer(
+#     #             negative_prompt,
+#     #             padding="max_length",
+#     #             max_length=max_sequence_length,
+#     #             truncation=True,
+#     #             return_tensors="pt",
+#     #         )
+#     #         negative_text_input_ids = negative_text_inputs.input_ids.to(device)
+#     #         negative_prompt_embeds = self.text_encoder(negative_text_input_ids)[0]
+
+#     #         negative_clip_text_inputs = self.clip_tokenizer(
+#     #             negative_prompt,
+#     #             padding="max_length",
+#     #             max_length=77,
+#     #             truncation=True,
+#     #             return_tensors="pt",
+#     #         )
+#     #         negative_clip_text_input_ids = negative_clip_text_inputs.input_ids.to(device)
+#     #         negative_clip_prompt_embeds = self.clip_text_encoder(negative_clip_text_input_ids)[0]
+
+#     #         # Duplicate negative embeddings
+#     #         negative_prompt_embeds = negative_prompt_embeds.repeat_interleave(num_videos_per_prompt, dim=0)
+#     #         negative_clip_prompt_embeds = negative_clip_prompt_embeds.repeat_interleave(num_videos_per_prompt, dim=0)
+
+#     #         # Concatenate embeddings
+#     #         prompt_embeds = torch.cat([negative_prompt_embeds, prompt_embeds], dim=0)
+#     #         clip_prompt_embeds = torch.cat([negative_clip_prompt_embeds, clip_prompt_embeds], dim=0)
+
+#     def encode_prompt(
+#         self,
+#         prompt,
+#         negative_prompt=None,
+#         do_classifier_free_guidance=True,
+#         num_videos_per_prompt=1,
+#         prompt_embeds=None,
+#         negative_prompt_embeds=None,
+#         max_sequence_length=77,
+#         device=None,
+#     ):
+#         if device is None:
+#             device = self._execution_device
+
+#         # Move tokenizers to the same device if they have device attributes
+#         if hasattr(self.tokenizer, "to"):
+#             self.tokenizer.to(device)
+#         if hasattr(self.clip_tokenizer, "to"):
+#             self.clip_tokenizer.to(device)
+
+#         if prompt_embeds is not None:
+#             if isinstance(prompt_embeds, (list, tuple)):
+#                 prompt_embeds = torch.cat(prompt_embeds, dim=0)
+#             return prompt_embeds.to(device), None
+
+#         if isinstance(prompt, str):
+#             prompt = [prompt]
+        
+#         # Process T5 embeddings
+#         text_inputs = self.tokenizer(
+#             prompt,
+#             padding="max_length",
+#             max_length=max_sequence_length,
+#             truncation=True,
+#             return_tensors="pt",
+#         )
+#         text_input_ids = text_inputs.input_ids.to(device)
+        
+#         with torch.no_grad():
+#             prompt_embeds = self.text_encoder(text_input_ids)[0].to(device)
+
+#         # Process CLIP embeddings
+#         clip_text_inputs = self.clip_tokenizer(
+#             prompt,
+#             padding="max_length",
+#             max_length=77,
+#             truncation=True,
+#             return_tensors="pt",
+#         )
+#         clip_text_input_ids = clip_text_inputs.input_ids.to(device)
+        
+#         with torch.no_grad():
+#             clip_prompt_embeds = self.clip_text_encoder(clip_text_input_ids)[0].to(device)
+
+#         bs_embed = prompt_embeds.shape[0]
+
+#         # Duplicate embeddings for each num_videos_per_prompt
+#         prompt_embeds = prompt_embeds.repeat(1, num_videos_per_prompt, 1)
+#         prompt_embeds = prompt_embeds.view(bs_embed * num_videos_per_prompt, -1, prompt_embeds.shape[-1])
+        
+#         clip_prompt_embeds = clip_prompt_embeds.repeat(1, num_videos_per_prompt, 1)
+#         clip_prompt_embeds = clip_prompt_embeds.view(bs_embed * num_videos_per_prompt, -1, clip_prompt_embeds.shape[-1])
+
+#         # Handle negative prompts for classifier-free guidance
+#         if do_classifier_free_guidance:
+#             if negative_prompt is None:
+#                 negative_prompt = [""] * len(prompt)
+#             elif isinstance(negative_prompt, str):
+#                 negative_prompt = [negative_prompt] * len(prompt)
+
+#             # Process negative T5 embeddings
+#             uncond_tokens = self.tokenizer(
+#                 negative_prompt,
+#                 padding="max_length",
+#                 max_length=max_sequence_length,
+#                 truncation=True,
+#                 return_tensors="pt",
+#             )
+#             negative_prompt_embeds = self.text_encoder(uncond_tokens.input_ids.to(device))[0]
+
+#             # Process negative CLIP embeddings
+#             uncond_clip_tokens = self.clip_tokenizer(
+#                 negative_prompt,
+#                 padding="max_length",
+#                 max_length=77,
+#                 truncation=True,
+#                 return_tensors="pt",
+#             )
+#             negative_clip_prompt_embeds = self.clip_text_encoder(uncond_clip_tokens.input_ids.to(device))[0]
+
+#             # Duplicate negative embeddings for each num_videos_per_prompt
+#             negative_prompt_embeds = negative_prompt_embeds.repeat(1, num_videos_per_prompt, 1)
+#             negative_prompt_embeds = negative_prompt_embeds.view(bs_embed * num_videos_per_prompt, -1, negative_prompt_embeds.shape[-1])
+            
+#             negative_clip_prompt_embeds = negative_clip_prompt_embeds.repeat(1, num_videos_per_prompt, 1)
+#             negative_clip_prompt_embeds = negative_clip_prompt_embeds.view(bs_embed * num_videos_per_prompt, -1, negative_clip_prompt_embeds.shape[-1])
+
+#             # Concatenate negative and positive embeddings
+#             prompt_embeds = torch.cat([negative_prompt_embeds, prompt_embeds], dim=0)
+#             clip_prompt_embeds = torch.cat([negative_clip_prompt_embeds, clip_prompt_embeds], dim=0)
+
+#         return prompt_embeds, clip_prompt_embeds.to(prompt_embeds.dtype)#     return prompt_embeds, clip_prompt_embeds
+        
+
+#     @torch.no_grad()
+#     def __call__(
+#         self,
+#         prompt: Optional[Union[str, List[str]]] = None,
+#         ref_img_states: Optional[torch.FloatTensor] = None,
+#         negative_prompt: Optional[Union[str, List[str]]] = None,
+#         height: int = 480,
+#         width: int = 720,
+#         num_frames: int = 49,
+#         num_inference_steps: int = 50,
+#         timesteps: Optional[List[int]] = None,
+#         guidance_scale: float = 6,
+#         use_dynamic_cfg: bool = False,
+#         num_videos_per_prompt: int = 1,
+#         eta: float = 0.0,
+#         generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
+#         latents: Optional[torch.FloatTensor] = None,
+#         prompt_embeds: Optional[torch.FloatTensor] = None,
+#         negative_prompt_embeds: Optional[torch.FloatTensor] = None,
+#         output_type: str = "pil",
+#         return_dict: bool = True,
+#         attention_kwargs: Optional[Dict[str, Any]] = None,
+#         callback_on_step_end: Optional[Callable[[int, int, Dict], None]] = None,
+#         callback_on_step_end_tensor_inputs: List[str] = ["latents"],
+#         max_sequence_length: int = 226,
+#         eval: bool = False,
+#     ) -> Union[CogVideoXPipelineOutput, Tuple]:
+#         if num_frames > 49:
+#             raise ValueError(
+#                 "The number of frames must be less than or equal to 49 due to static positional embeddings."
+#             )
+
+#         # 1. Check inputs
+#         self.check_inputs(
+#             prompt,
+#             height,
+#             width,
+#             negative_prompt,
+#             callback_on_step_end_tensor_inputs,
+#             prompt_embeds,
+#             negative_prompt_embeds,
+#         )
+
+#         # 2. Default call parameters
+#         device = self._execution_device
+
+#         # Determine batch size
+#         if prompt is not None and isinstance(prompt, str):
+#             batch_size = 1
+#         elif prompt is not None and isinstance(prompt, list):
+#             batch_size = len(prompt)
+#         else:
+#             batch_size = prompt_embeds.shape[0]
+
+#         # Check if guidance is needed
+#         do_classifier_free_guidance = guidance_scale > 1.0
+
+#         # 3. Encode prompt and CLIP prompt embeddings
+#         prompt_embeds, clip_prompt_embeds = self.encode_prompt(
+#             prompt,
+#             negative_prompt=negative_prompt,
+#             do_classifier_free_guidance=do_classifier_free_guidance,
+#             num_videos_per_prompt=num_videos_per_prompt,
+#             prompt_embeds=prompt_embeds,
+#             negative_prompt_embeds=negative_prompt_embeds,
+#             max_sequence_length=max_sequence_length,
+#             device=device,
+#         )
+
+#         # 4. Prepare timesteps
+#         if timesteps is None:
+#             self.scheduler.set_timesteps(num_inference_steps, device=device)
+#             timesteps = self.scheduler.timesteps
+#         else:
+#             self.scheduler.timesteps = torch.tensor(timesteps, device=device)
+#         self._num_timesteps = len(timesteps)
+
+#         # 5. Prepare latents
+#         latent_channels = self.transformer.config.in_channels
+#         latents = self.prepare_latents(
+#             batch_size * num_videos_per_prompt,
+#             latent_channels,
+#             num_frames,
+#             height,
+#             width,
+#             prompt_embeds.dtype,
+#             device,
+#             generator,
+#             latents,
+#         )
+
+#         # 6. Prepare extra step kwargs
+#         extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
+
+#         # 7. Create rotary embeddings if required
+#         image_rotary_emb = (
+#             self._prepare_rotary_positional_embeddings(height, width, latents.size(1), device)
+#             if getattr(self.transformer.config, "use_rotary_positional_embeddings", False)
+#             else None
+#         )
+
+#         # 8. Denoising loop
+#         num_warmup_steps = max(len(timesteps) - num_inference_steps * self.scheduler.order, 0)
+
+#         with self.progress_bar(total=num_inference_steps) as progress_bar:
+#             old_pred_original_sample = None
+#             for i, t in enumerate(timesteps):
+#                 if getattr(self, 'interrupt', False):
+#                     break
+
+#                 # Expand latents for classifier-free guidance
+#                 latent_model_input = (
+#                     torch.cat([latents] * 2) if do_classifier_free_guidance else latents
+#                 )
+#                 latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
+
+#                 # Broadcast timestep
+#                 timestep = t.expand(latent_model_input.shape[0])
+
+#                 # Predict the noise residual
+#                 noise_pred = self.transformer(
+#                     hidden_states=latent_model_input,
+#                     encoder_hidden_states=prompt_embeds.to(latent_model_input.dtype),
+#                     clip_prompt_embeds=clip_prompt_embeds.to(latent_model_input.dtype) if clip_prompt_embeds is not None else None,
+#                     ref_img_states=ref_img_states.to(latent_model_input.dtype) if ref_img_states is not None else None,
+#                     timestep=timestep,
+#                     image_rotary_emb=image_rotary_emb,
+#                     attention_kwargs=attention_kwargs,
+#                     customization=self.customization,
+#                     return_dict=False,
+#                     eval=True,
+#                 )[0]
+#                 noise_pred = noise_pred.float()
+
+#                 # Perform dynamic classifier-free guidance
+#                 if use_dynamic_cfg:
+#                     self._guidance_scale = 1 + guidance_scale * (
+#                         (1 - math.cos(math.pi * ((num_inference_steps - i) / num_inference_steps) ** 5.0)) / 2
+#                     )
+#                 else:
+#                     self._guidance_scale = guidance_scale
+
+#                 # Apply classifier-free guidance
+#                 if do_classifier_free_guidance:
+#                     noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
+#                     noise_pred = noise_pred_uncond + self._guidance_scale * (noise_pred_text - noise_pred_uncond)
+
+#                 # Compute the previous noisy sample x_t -> x_t-1
+#                 if not isinstance(self.scheduler, CogVideoXDPMScheduler):
+#                     latents = self.scheduler.step(
+#                         noise_pred, t, latents, **extra_step_kwargs, return_dict=False
+#                     )[0]
+#                 else:
+#                     latents, old_pred_original_sample = self.scheduler.step(
+#                         noise_pred,
+#                         old_pred_original_sample,
+#                         t,
+#                         timesteps[i - 1] if i > 0 else None,
+#                         latents,
+#                         **extra_step_kwargs,
+#                         return_dict=False,
+#                     )
+#                 latents = latents.to(prompt_embeds.dtype)
+
+#                 # Update progress bar
+#                 if i == len(timesteps) - 1 or (
+#                     (i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0
+#                 ):
+#                     progress_bar.update()
+
+#         # 9. Decode latents
+#         if output_type != "latent":
+#             video = self.decode_latents(latents)
+#             video = self.video_processor.postprocess_video(video=video, output_type=output_type)
+#         else:
+#             video = latents
+
+#         # 10. Offload all models
+#         self.maybe_free_model_hooks()
+
+#         if not return_dict:
+#             return (video,)
+
+#         return CogVideoXPipelineOutput(frames=video)

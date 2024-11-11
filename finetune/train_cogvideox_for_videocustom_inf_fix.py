@@ -489,7 +489,7 @@ class VideoDataset(Dataset):
         file_list = os.listdir(ref_img_paths)
         ref_img_ids = [file.split('_')[0] for file in file_list]
         orig_ref_img_ids = ref_img_ids
-        ref_img_ids = ref_img_ids[:8]
+        ref_img_ids = ref_img_ids[:144]
         self.num_instance_videos = len(ref_img_ids)
         video_ids = set(ref_img_ids)
         video_ids = list(video_ids)
@@ -1660,13 +1660,13 @@ def main(args):
 
     # For DeepSpeed training
     model_config = transformer.module.config if hasattr(transformer, "module") else transformer.config
-    # from tqdm import tqdm
+    from tqdm import tqdm
     for epoch in range(first_epoch, args.num_train_epochs):
         transformer.train()
         # update random seed
-        set_seed(args.seed + epoch)
+        # set_seed(args.seed + epoch)
         for step, batch in enumerate(train_dataloader):
-            
+            # set_seed(args.seed + epoch)
             models_to_accumulate = [transformer]
 
             with accelerator.accumulate(models_to_accumulate):
@@ -1801,7 +1801,9 @@ def main(args):
             if global_step >= args.max_train_steps:
                 break
 
-        if accelerator.is_main_process:
+        if accelerator.is_main_process: ## FIXME (indent back done)
+            # print('saving now')
+            # epoch = 1
             if args.validation_prompt is not None and (epoch + 1) % args.validation_epochs == 0:
                 # Create pipeline
                 pipe = CustomCogVideoXPipeline.from_pretrained(
