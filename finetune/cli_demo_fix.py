@@ -1,3 +1,4 @@
+import os
 import argparse
 from typing import Literal, Optional
 
@@ -6,6 +7,8 @@ from transformers import (
     AutoTokenizer,
     T5EncoderModel,
     CLIPProcessor,
+    CLIPTokenizer,
+    CLIPTextModel,
     CLIPVisionModel,
 )
 from diffusers import (
@@ -13,17 +16,23 @@ from diffusers import (
     CogVideoXDPMScheduler,
 )
 from diffusers.utils import export_to_video, load_image, load_video
-from peft import LoraConfig, get_peft_model, set_peft_model_state_dict
+from safetensors.torch import load_file as safetensors_load_file
 
 # Import your modified transformer model
 from custom_cogvideox import CustomCogVideoXTransformer3DModel  # Adjust the import as necessary
 from custom_cogvideox_pipe import CustomCogVideoXPipeline  # Adjust the import as necessary
 
-from safetensors.torch import load_file as safetensors_load_file
-
-# Define the ProjectionLayer class
+# Define the custom layers
 import torch.nn as nn
 
+class SkipProjectionLayer(nn.Module):
+    def __init__(self, in_features, out_features):
+        super().__init__()
+        self.projection = nn.Linear(in_features, out_features)
+
+    def forward(self, x):
+        return x + self.projection(x)
+        
 class ProjectionLayer(nn.Module):
     def __init__(self, in_features, out_features):
         super().__init__()
@@ -39,93 +48,119 @@ def generate_video(
     lora_rank: int = 128,
     lora_alpha: int = 64,
     output_path: str = "./output.mp4",
-    image_or_video_path: Optional[str] = None,
     reference_image_path: Optional[str] = None,
     num_inference_steps: int = 50,
     guidance_scale: float = 6.0,
     num_videos_per_prompt: int = 1,
-    dtype: torch.dtype = torch.bfloat16,
-    generate_type: Literal["t2v", "i2v", "v2v"] = "t2v",
+    dtype: torch.dtype = torch.bfloat16,  # Default to torch.float32 for compatibility
+    generate_type: Literal["t2v"] = "t2v",  # Only "t2v" is supported in this script
     seed: int = 42,
+    negative_prompt: Optional[str] = None,
 ):
     # Initialize variables
-    image = None
-    video = None
-    reference_image = None
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("Using device:", device)
 
-    # Load components
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_path, subfolder="tokenizer"
-    )
+    # Load models and processors
+    print("Loading models and processors...")
+    tokenizer = AutoTokenizer.from_pretrained(model_path, subfolder="tokenizer")
     text_encoder = T5EncoderModel.from_pretrained(
         model_path, subfolder="text_encoder", torch_dtype=dtype
     ).to(device)
     vae = AutoencoderKLCogVideoX.from_pretrained(
         model_path, subfolder="vae", torch_dtype=dtype
     ).to(device)
-    print(">>> VAE CONFIG <<<")
-    print(vae.config)
-    # vae.config = dict(vae.config)
-    # Extracting the block_out_channels from the VAE config
-    # block_out_channels = list(vae.config['block_out_channels'])
-    # block_out_channels = vae.config.get('block_out_channels', [128, 256, 256, 512])
-   
+    scheduler = CogVideoXDPMScheduler.from_pretrained(model_path, subfolder="scheduler")
+    clip_tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch16")
+    clip_text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch16").to(device)
+    clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
 
-    # Load the base transformer model
+    print("Loading transformer...")
     transformer = CustomCogVideoXTransformer3DModel.from_pretrained(
         model_path,
         subfolder="transformer",
         torch_dtype=dtype,
-        customization=False,
+        customization=True,
     ).to(device)
 
-    # Initialize custom components if not initialized in from_pretrained
+    print("Initializing additional components...")
+    # Initialize additional components before loading their state dictionaries
+    transformer.T5ProjectionLayer = SkipProjectionLayer(4096, 4096).to(device) 
+    transformer.CLIPTextProjectionLayer = ProjectionLayer(512, 4096).to(device)
+    transformer.CLIPVisionProjectionLayer = ProjectionLayer(768, 4096).to(device)
+    with torch.no_grad():
+        transformer.CLIPTextProjectionLayer.projection.weight.fill_(0.0)
+        if transformer.CLIPTextProjectionLayer.projection.bias is not None:
+            transformer.CLIPTextProjectionLayer.projection.bias.fill_(0.0)
+    transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=768, out_features=4096)
+    with torch.no_grad():
+        transformer.CLIPVisionProjectionLayer.projection.weight.fill_(0.0)
+        if transformer.CLIPVisionProjectionLayer.projection.bias is not None:
+            transformer.CLIPVisionProjectionLayer.projection.bias.fill_(0.0)
     transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained(
-        "openai/clip-vit-base-patch16",
-        torch_dtype=dtype,
+        "openai/clip-vit-base-patch16"
     ).to(device)
+    # dtype to bfloat16
+    # transformer.T5ProjectionLayer.projection.weight = transformer.T5ProjectionLayer.projection.weight.to(dtype=dtype)
+    # transformer.T5ProjectionLayer.projection.bias = transformer.T5ProjectionLayer.projection.bias.to(dtype=dtype)
+    # transformer.CLIPTextProjectionLayer.projection.weight = transformer.CLIPTextProjectionLayer.projection.weight.to(dtype=dtype)
+    # transformer.CLIPTextProjectionLayer.projection.bias = transformer.CLIPTextProjectionLayer.projection.bias.to(dtype=dtype)
+    # transformer.CLIPVisionProjectionLayer.projection.weight = transformer.CLIPVisionProjectionLayer.projection.weight.to(dtype=dtype)
+    # transformer.CLIPVisionProjectionLayer.projection.bias = transformer.CLIPVisionProjectionLayer.projection.bias.to(dtype=dtype)
 
-    transformer.T5ProjectionLayer = ProjectionLayer(in_features=4096, out_features=4096).to(device=device, dtype=dtype)
-    transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=512, out_features=4096).to(device=device, dtype=dtype)
-    transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=768, out_features=4096).to(device=device, dtype=dtype)
 
-    # Load weights for custom components
-    # Load weights for custom components (projection layers) using torch.load
-    state_dict = torch.load(f"{lora_path}/T5ProjectionLayer.safetensors", map_location=device)
-    transformer.T5ProjectionLayer.load_state_dict(state_dict)
+    print("Loading additional components...")
+    # Load additional components
+    component_files = {
+        "T5ProjectionLayer": ["T5ProjectionLayer.pth", "T5ProjectionLayer.safetensors"],
+        # "CLIPTextProjectionLayer": [
+        #     "CLIPTextProjectionLayer.pth",
+        #     "CLIPTextProjectionLayer.safetensors",
+        # ],
+        # "CLIPVisionProjectionLayer": [
+        #     "CLIPVisionProjectionLayer.pth",
+        #     "CLIPVisionProjectionLayer.safetensors",
+        # ],
+        "reference_vision_encoder": [
+            "pytorch_clip_vision_model.bin",
+            "reference_vision_encoder.safetensors",
+        ],
+    }
 
-    state_dict = torch.load(f"{lora_path}/CLIPTextProjectionLayer.safetensors", map_location=device)
-    transformer.CLIPTextProjectionLayer.load_state_dict(state_dict)
-
-    state_dict = torch.load(f"{lora_path}/CLIPVisionProjectionLayer.safetensors", map_location=device)
-    transformer.CLIPVisionProjectionLayer.load_state_dict(state_dict)
-
-    # Load weights for reference_vision_encoder (clip_vision_model)
-    state_dict = torch.load(f"{lora_path}/pytorch_clip_vision_model.bin", map_location=device)
-    transformer.reference_vision_encoder.load_state_dict(state_dict)
-
-    # Add LoRA layers using PEFT
-    # lora_config = LoraConfig(
-    #     r=lora_rank,
-    #     lora_alpha=lora_alpha,
-    #     target_modules=["to_k", "to_q", "to_v", "to_out.0"],
-    #     bias="none",
-    #     task_type="UNET3D",  # Adjust based on your model
-    # )
-
-    # transformer = get_peft_model(transformer, lora_config)
-    
+    for component_name, filenames in component_files.items():
+        loaded = False
+        for filename in filenames:
+            filepath = os.path.join(lora_path, filename)
+            if os.path.exists(filepath):
+                try:
+                    if filename.endswith(".safetensors"):
+                        state_dict = safetensors_load_file(filepath)
+                    else:
+                        state_dict = torch.load(filepath, map_location=device)
+                    component = getattr(transformer, component_name)
+                    component.load_state_dict(state_dict)
+                    component.to(dtype=dtype)
+                    print(f"Successfully loaded {component_name} from {filename}")
+                    loaded = True
+                    break
+                except Exception as e:
+                    print(f"Error loading {component_name} from {filename}: {e}")
+        if not loaded:
+            print(f"Warning: Could not load {component_name} from any of the attempted files")
 
     # Load LoRA weights, if provided
-    # Load LoRA weights using safetensors_load_file
-
-        # lora_state_dict = safetensors_load_file(f"{lora_path}/pytorch_lora_weights_transformer.safetensors")
-        # lora_state_dict = {k: v.to(device) for k, v in lora_state_dict.items()}
-        # set_peft_model_state_dict(transformer, lora_state_dict)
-
-    scheduler = CogVideoXDPMScheduler.from_pretrained(model_path, subfolder="scheduler")
+    if lora_path:
+        lora_weights_path = os.path.join(lora_path, "pytorch_lora_weights_transformer.safetensors")
+        if os.path.exists(lora_weights_path):
+            state_dict = safetensors_load_file(lora_weights_path)
+            transformer.load_state_dict(state_dict, strict=False)
+            print(f"Successfully loaded LoRA weights from {lora_weights_path}")
+        else:
+            print(f"Warning: Could not find LoRA weights in {lora_path}")
+            print("Available files:", os.listdir(lora_path))
+            raise FileNotFoundError("LoRA weights not found")
+    
+    print("Creating pipeline...")
     # Create the pipeline
     pipe = CustomCogVideoXPipeline(
         tokenizer=tokenizer,
@@ -133,73 +168,80 @@ def generate_video(
         transformer=transformer,
         vae=vae,
         scheduler=scheduler,
-        customization=False,
-        # dynamic_cfg=True,
-        # guidance_scale=guidance_scale,
+        clip_tokenizer=clip_tokenizer,
+        clip_text_encoder=clip_text_encoder,
+        customization=True,
     ).to(device)
-    
-    if lora_path:
-        lora_scaling =1. # FIXME
-        pipe.load_lora_weights(args.lora_path, weight_name='pytorch_lora_weights_transformer.safetensors', adapter_name="cogvideox-lora")
-        pipe.set_adapters(["cogvideox-lora"], [lora_scaling])
-    # pipe.scheduler = CogVideoXDPMScheduler.from_config(pipe.scheduler.config, timestep_spacing="trailing")
-    # pipe.dtype = dtype  # Set the dtype for the pipeline
+
+    # Move pipeline components to device and set data types
+    pipe.transformer.to(device=device)
+    pipe.text_encoder.to(device=device)
+    pipe.vae.to(device=device) 
+    pipe.clip_text_encoder.to(device=device)
+    pipe.transformer.reference_vision_encoder.to(device=device)
+    pipe.transformer.T5ProjectionLayer.to(device=device)
+    pipe.transformer.CLIPTextProjectionLayer.to(device=device)
+    pipe.transformer.CLIPVisionProjectionLayer.to(device=device)
+    # # Apply dtype setting to each component after initialization
+    pipe.transformer.T5ProjectionLayer.projection.weight.data = transformer.T5ProjectionLayer.projection.weight.data.to(dtype=dtype)
+    pipe.transformer.T5ProjectionLayer.projection.bias.data = transformer.T5ProjectionLayer.projection.bias.data.to(dtype=dtype)
+    pipe.transformer.CLIPTextProjectionLayer.projection.weight.data = transformer.CLIPTextProjectionLayer.projection.weight.data.to(dtype=dtype)
+    pipe.transformer.CLIPTextProjectionLayer.projection.bias.data = transformer.CLIPTextProjectionLayer.projection.bias.data.to(dtype=dtype)
+    pipe.transformer.CLIPVisionProjectionLayer.projection.weight.data = transformer.CLIPVisionProjectionLayer.projection.weight.data.to(dtype=dtype)
+    pipe.transformer.CLIPVisionProjectionLayer.projection.bias.data = transformer.CLIPVisionProjectionLayer.projection.bias.data.to(dtype=dtype)
+
+    # Set models to eval mode
+    pipe.transformer.eval()
+    pipe.text_encoder.eval()
+    pipe.vae.eval()
+    pipe.clip_text_encoder.eval()
+    pipe.transformer.reference_vision_encoder.eval()
 
     # Prepare the reference image
-    image_input = None
     if generate_type == "t2v":
         if reference_image_path is not None:
             reference_image = load_image(reference_image_path)
             # Process the reference image
-            clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
-            images = clip_processor(images=reference_image, return_tensors="pt")
-            image_input = images['pixel_values'].to(device).to(dtype)
-        # else:
-            # raise ValueError("A reference image must be provided for t2v generation.")
+            processed_image = clip_processor(images=reference_image, return_tensors="pt")
+            image_input = processed_image["pixel_values"].to(device=device)
+        else:
+            raise ValueError("A reference image must be provided for t2v generation.")
+    else:
+        raise ValueError("Only 't2v' generation type is supported in this code.")
 
     # Generate the video
     generator = torch.Generator(device=device).manual_seed(seed)
-    if generate_type == "t2v":
-        video_generate = pipe(
-            prompt=prompt,
-            num_videos_per_prompt=num_videos_per_prompt,
-            num_inference_steps=num_inference_steps,
-            num_frames=49,
-            use_dynamic_cfg=True,
-            guidance_scale=guidance_scale,
-            generator=generator,
-            ref_img_states=image_input,  # Pass the reference image embeddings
-        ).frames[0]
-    elif generate_type == "i2v":
-        # Load the image for image-to-video generation
-        image = load_image(image_or_video_path)
-        video_generate = pipe(
-            prompt=prompt,
-            image=image,
-            num_videos_per_prompt=num_videos_per_prompt,
-            num_inference_steps=num_inference_steps,
-            num_frames=49,
-            use_dynamic_cfg=True,
-            guidance_scale=guidance_scale,
-            generator=generator,
-        ).frames[0]
-    elif generate_type == "v2v":
-        # Load the video for video-to-video generation
-        video = load_video(image_or_video_path)
-        video_generate = pipe(
-            prompt=prompt,
-            video=video,
-            num_videos_per_prompt=num_videos_per_prompt,
-            num_inference_steps=num_inference_steps,
-            use_dynamic_cfg=True,
-            guidance_scale=guidance_scale,
-            generator=generator,
-        ).frames[0]
-    else:
-        raise ValueError("Invalid generate_type. Choose from 't2v', 'i2v', or 'v2v'.")
+
+    with torch.no_grad():
+        # Exclude text_encoder from autocast if necessary
+        # text_input_ids = tokenizer(prompt, return_tensors="pt", padding="max_length", max_length=77).input_ids.to(device)
+        # text_embeds = text_encoder(text_input_ids).last_hidden_state
+
+        # negative_text_embeds = None
+        # if negative_prompt is not None:
+        #     negative_input_ids = tokenizer(negative_prompt, return_tensors="pt", padding="max_length", max_length=77).input_ids.to(device)
+        #     negative_text_embeds = text_encoder(negative_input_ids).last_hidden_state
+
+        # with torch.cuda.amp.autocast(device_type="cuda", dtype=dtype):
+        output = pipe(
+                prompt=prompt,
+                negative_prompt=negative_prompt,
+                ref_img_states=image_input,
+                height=480,
+                width=720,
+                num_frames=49,
+                num_inference_steps=num_inference_steps,
+                guidance_scale=guidance_scale,
+                use_dynamic_cfg=True,
+                generator=generator,
+                output_type="pil",
+            )
+
+    video_generate = output.frames[0]
 
     # Export the generated frames to a video file
     export_to_video(video_generate, output_path, fps=8)
+    print(f"Video saved to {output_path}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -209,15 +251,12 @@ if __name__ == "__main__":
         "--prompt", type=str, required=True, help="The description of the video to be generated"
     )
     parser.add_argument(
-        "--image_or_video_path",
-        type=str,
-        default=None,
-        help="The path of the image or video to be used (for i2v and v2v)",
+        "--negative_prompt", type=str, default=None, help="Negative prompt to guide the generation"
     )
     parser.add_argument(
         "--reference_image_path",
         type=str,
-        default=None,
+        required=True,
         help="The path of the reference image to be used (for t2v)",
     )
     parser.add_argument(
@@ -227,18 +266,12 @@ if __name__ == "__main__":
         help="The path of the pre-trained model to be used",
     )
     parser.add_argument(
-        "--lora_path", type=str, default=None, help="The path of the LoRA weights to be used"
-    )
-    parser.add_argument(
-        "--lora_rank", type=int, default=128, help="The rank of the LoRA weights"
-    )
-    parser.add_argument(
-        "--lora_alpha", type=int, default=64, help="The lora_alpha used during finetuning"
+        "--lora_path", type=str, required=True, help="The path of the LoRA weights to be used"
     )
     parser.add_argument(
         "--output_path",
         type=str,
-        default="./output2.mp4",
+        default="./output_debug_checkingg.mp4",
         help="The path where the generated video will be saved",
     )
     parser.add_argument(
@@ -254,43 +287,31 @@ if __name__ == "__main__":
         help="Number of steps for the inference process",
     )
     parser.add_argument(
-        "--num_videos_per_prompt",
-        type=int,
-        default=1,
-        help="Number of videos to generate per prompt",
-    )
-    parser.add_argument(
-        "--generate_type",
-        type=str,
-        default="t2v",
-        choices=["t2v", "i2v", "v2v"],
-        help="The type of video generation",
-    )
-    parser.add_argument(
         "--dtype",
         type=str,
         default="bfloat16",
-        choices=["float16", "bfloat16"],
+        choices=["float16", "float32", "bfloat16"],
         help="The data type for computation",
     )
     parser.add_argument("--seed", type=int, default=42, help="The seed for reproducibility")
 
     args = parser.parse_args()
-    dtype = torch.float16 if args.dtype == "float16" else torch.bfloat16
+    if args.dtype == "float16":
+        dtype = torch.float16
+    elif args.dtype == "bfloat16":
+        dtype = torch.bfloat16
+    else:
+        dtype = torch.float32
 
     generate_video(
         prompt=args.prompt,
         model_path=args.model_path,
         lora_path=args.lora_path,
-        lora_rank=args.lora_rank,
-        lora_alpha=args.lora_alpha,
         output_path=args.output_path,
-        image_or_video_path=args.image_or_video_path,
         reference_image_path=args.reference_image_path,
         num_inference_steps=args.num_inference_steps,
         guidance_scale=args.guidance_scale,
-        num_videos_per_prompt=args.num_videos_per_prompt,
         dtype=dtype,
-        generate_type=args.generate_type,
         seed=args.seed,
+        negative_prompt=args.negative_prompt,
     )
