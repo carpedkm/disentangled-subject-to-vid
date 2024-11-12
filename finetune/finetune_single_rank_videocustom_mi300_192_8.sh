@@ -4,7 +4,7 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/preprocessed_subset4000/background_only_boxes"
 export ANNO_PATH="../annotation/video_dict_fullset400k.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/finetune4000_custom_debug_zero_init_t5"
+export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/finetune4000_one_init_with_PE_4000subset_T5_zero_init"
 export VALIDATION_REF_PATH="./val_samples/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
@@ -20,7 +20,8 @@ accelerate launch --config_file accelerate_config_machine_single_8gpu.yaml --mul
   --enable_slicing \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
-  --validation_epochs 2 \
+  --validation_epochs 3 \
+  --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
   --rank 128 \
