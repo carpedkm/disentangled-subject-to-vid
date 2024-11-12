@@ -161,7 +161,7 @@ def main():
             width=720,
             num_frames=49,
             num_inference_steps=50,
-            guidance_scale=6.0,
+            guidance_scale=1.0,
             use_dynamic_cfg=False,
             generator=generator,
             output_type="pil",
