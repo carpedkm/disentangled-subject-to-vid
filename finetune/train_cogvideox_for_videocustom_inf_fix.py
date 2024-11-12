@@ -491,7 +491,7 @@ class VideoDataset(Dataset):
         file_list = os.listdir(ref_img_paths)
         ref_img_ids = [file.split('_')[0] for file in file_list]
         orig_ref_img_ids = ref_img_ids
-        ref_img_ids = ref_img_ids[:144]
+        ref_img_ids = ref_img_ids
         self.num_instance_videos = len(ref_img_ids)
         video_ids = set(ref_img_ids)
         video_ids = list(video_ids)
