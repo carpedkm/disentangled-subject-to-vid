@@ -253,7 +253,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         use_rotary_positional_embeddings: bool = False,
         use_learned_positional_embeddings: bool = False,
         customization: bool = False,
-        concatenated_all: bool = True,
+        concatenated_all: bool = False,
+        reduce_token: bool = False
     ):
         super().__init__()
         inner_dim = num_attention_heads * attention_head_dim
@@ -266,6 +267,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             )
         # if customization:
         clip_vision_config = None # CLIPVisionConfig.from_pretrained("openai/clip-vit-base-patch16")
+
         if concatenated_all is not True:
             self.reference_vision_encoder = None # CLIPVisionModel(clip_vision_config)
             self.T5ProjectionLayer = None # ProjectionLayer(in_features=4096, out_features=4096).to(dtype=torch.bfloat16)
@@ -274,6 +276,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         else:
             self.reference_vision_encoder = None
             self.T5ProjectionLayer = None
+
             
     
             # all should be trainable # requires grad = True
@@ -459,7 +462,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         customization: bool = False,
         t5_first: bool = True,
         eval: bool = False,
-        concatenated_all: bool = True
+        concatenated_all: bool = False,
+        reduce_token: bool = False,
     ):
         if customization:
             if concatenated_all:
@@ -468,61 +472,20 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 ref_img_states = torch.cat([ref_img_states, torch.zeros((ref_img_states.shape[0], ref_img_states.shape[1], 4096 - ref_img_states.shape[2])).to(ref_img_states.device)], dim=2)
                 clip_text_states = torch.cat([clip_prompt_embeds, torch.zeros((clip_prompt_embeds.shape[0], clip_prompt_embeds.shape[1], 4096 - clip_prompt_embeds.shape[2])).to(clip_prompt_embeds.device)], dim=2)
                 encoder_hidden_states = torch.cat([encoder_hidden_states, clip_text_states, ref_img_states], dim=1)
-                encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
+                if reduce_token is True: # reduce 500 -> 226
+                    encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states.transpose(1,2)).transpose(1,2)
+                else: # mix 4096 -> 4096
+                    encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
             else:
                 ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
                 enc_hidden_states0 = self.T5ProjectionLayer(encoder_hidden_states.to(dtype=torch.bfloat16))
                 enc_hidden_states1 = self.CLIPTextProjectionLayer(clip_prompt_embeds.to(dtype=torch.bfloat16))
                 enc_hidden_states2 = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16))
                 
-                # print("T5ProjectionLayer output mean:", enc_hidden_states0.mean().item())
-                # print("CLIPTextProjectionLayer output mean:", enc_hidden_states1.mean().item())
-                # print("CLIPVisionProjectionLayer output mean:", enc_hidden_states2.mean().item())
-
-                # if in eval mode , match shape of CFG on enc_hidden_states2
-                # if eval:
-                #     enc_hidden_states2 = torch.cat([enc_hidden_states2, enc_hidden_states2], dim=0)
-                
                 if t5_first is True:
                     encoder_hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, enc_hidden_states2], dim=1)
                 else:
                     encoder_hidden_states = torch.cat([enc_hidden_states2, enc_hidden_states1, enc_hidden_states0], dim=1)
-                # Apply PEs [POSITIONAL ENCODING]
-                # seq_length = encoder_hidden_states.size(1)
-                # pos_embeds = get_sinusoidal_positional_embeddings(seq_length, encoder_hidden_states.size(-1), encoder_hidden_states.device)
-                # encoder_hidden_states = encoder_hidden_states + pos_embeds.unsqueeze(0)
-                # encoder_hidden_states = encoder_hidden_states.to(dtype=torch.bfloat16)
-                # Process embeddings from each encoder [MODALITY ENCODING]
-                # ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
-                # enc_hidden_states0 = self.T5ProjectionLayer(encoder_hidden_states)  # T5 embeddings
-                # enc_hidden_states1 = self.CLIPTextProjectionLayer(clip_prompt_embeds.to(dtype=hidden_states.dtype))  # CLIP text
-                # enc_hidden_states2 = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=hidden_states.dtype))  # CLIP vision
-
-                # # Concatenate embeddings along sequence length
-                # encoder_hidden_states = torch.cat([enc_hidden_states2, enc_hidden_states1, enc_hidden_states0], dim=1)
-
-                # # Create modality IDs
-                # batch_size = encoder_hidden_states.size(0)
-                # modality_ids = []
-                # modality_ids.extend([0] * enc_hidden_states2.size(1))  # CLIP vision
-                # modality_ids.extend([1] * enc_hidden_states1.size(1))  # CLIP text
-                # modality_ids.extend([2] * enc_hidden_states0.size(1))  # T5
-
-                # modality_ids = torch.tensor(modality_ids, device=encoder_hidden_states.device)
-                # modality_ids = modality_ids.unsqueeze(0).expand(batch_size, -1)  # Shape: [batch_size, seq_length]
-
-                # # Get modality embeddings
-                # modality_embeds = self.modality_embeddings(modality_ids)  # Shape: [batch_size, seq_length, embed_dim]
-
-                # # Add modality embeddings
-                # encoder_hidden_states = encoder_hidden_states + modality_embeds
-
-                # # Apply positional embeddings to the concatenated sequence
-                # seq_length = encoder_hidden_states.size(1)
-                # pos_embeds = get_sinusoidal_positional_embeddings(
-                #     seq_length, encoder_hidden_states.size(-1), encoder_hidden_states.device
-                # )
-                # encoder_hidden_states = encoder_hidden_states + pos_embeds.unsqueeze(0)
         else:
             encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
 
