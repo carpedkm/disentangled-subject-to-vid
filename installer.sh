@@ -1,6 +1,4 @@
-git clone https://github.com/carpedkm/videocustom.git
-echo "carpedkm"
-echo "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"
+pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cu121
 
 cd videocustom
 git checkout develop
