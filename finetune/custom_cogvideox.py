@@ -19,6 +19,7 @@ class CustomCogVideoXTransformer3DModel(CogVideoXTransformer3DModel):
         encoder_attention_mask=None,
         return_dict=False,
         customization=False,
+        concatenated_all=False,
         **kwargs,
     ):
         # # Use custom components if they are available
@@ -43,5 +44,6 @@ class CustomCogVideoXTransformer3DModel(CogVideoXTransformer3DModel):
             # encoder_attention_mask=encoder_attention_mask,
             return_dict=return_dict,
             customization=customization,
+            concatenated_all=concatenated_all,
             **kwargs,
         )
