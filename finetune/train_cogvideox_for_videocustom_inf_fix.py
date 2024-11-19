@@ -442,6 +442,11 @@ def get_args():
         default=-1,
         help='Number of videos to use for training'
     )
+    parser.add_argument(
+        '--concatenated_all',
+        action='store_true',
+        help='Whether to concatenate encoders and use the concatenated feature itself'
+    )
 
     return parser.parse_args()
 
@@ -1106,6 +1111,7 @@ def get_optimizer(args, params_to_optimize, use_deepspeed: bool = False):
 def main(args):
     print('Start')
     t5_first = args.t5_first
+    concatenated_all = args.concatenated_all
     if args.report_to == "wandb" and args.hub_token is not None:
         raise ValueError(
             "You cannot use both --report_to=wandb and --hub_token due to a security risk of exposing your token."
@@ -1218,6 +1224,7 @@ def main(args):
         revision=args.revision,
         variant=args.variant,
         customization=True,
+        concatenated_all=concatenated_all
     )
     print("Done - CogVideoX Transformer model loaded")
     # Initialize submodules
@@ -1773,6 +1780,7 @@ def main(args):
                     return_dict=False,
                     customization=True,
                     t5_first=t5_first,
+                    concatenated_all=concatenated_all
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
@@ -1853,6 +1861,7 @@ def main(args):
                     torch_dtype=weight_dtype,
                     customization=True,
                     t5_first=t5_first,
+                    concatenated_all=concatenated_all
                 )
 
                 # validation_prompts = args.validation_prompt.split(args.validation_prompt_separator)
@@ -1869,7 +1878,8 @@ def main(args):
                         "validation_reference_image": validation_ref_img,
                         "height": args.height,
                         "width": args.width,
-                        "eval" : True
+                        "eval" : True,
+                        "concatenated_all" : concatenated_all
                     }
 
                     validation_outputs = log_validation(
