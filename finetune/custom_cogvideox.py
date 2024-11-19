@@ -20,6 +20,7 @@ class CustomCogVideoXTransformer3DModel(CogVideoXTransformer3DModel):
         return_dict=False,
         customization=False,
         concatenated_all=False,
+        reduce_token=False,
         **kwargs,
     ):
         # # Use custom components if they are available
@@ -45,5 +46,6 @@ class CustomCogVideoXTransformer3DModel(CogVideoXTransformer3DModel):
             return_dict=return_dict,
             customization=customization,
             concatenated_all=concatenated_all,
+            reduce_token=reduce_token,
             **kwargs,
         )
