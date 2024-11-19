@@ -466,8 +466,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             # print("CLIPVisionProjectionLayer output mean:", enc_hidden_states2.mean().item())
 
             # if in eval mode , match shape of CFG on enc_hidden_states2
-            if eval:
-                enc_hidden_states2 = torch.cat([enc_hidden_states2, enc_hidden_states2], dim=0)
+            # if eval:
+            #     enc_hidden_states2 = torch.cat([enc_hidden_states2, enc_hidden_states2], dim=0)
             
             if t5_first is True:
                 encoder_hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, enc_hidden_states2], dim=1)
