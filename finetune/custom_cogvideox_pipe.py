@@ -190,6 +190,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         callback_on_step_end_tensor_inputs: List[str] = ["latents"],
         max_sequence_length: int = 226,
         eval: bool = False,
+        t5_first: bool = True,
     ) -> Union[CogVideoXPipelineOutput, Tuple]:
         if num_frames > 49:
             raise ValueError(
@@ -303,6 +304,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     customization=self.customization,
                     return_dict=False,
                     eval=True,
+                    t5_first=t5_first,
                 )[0]
                 noise_pred = noise_pred.float()
 

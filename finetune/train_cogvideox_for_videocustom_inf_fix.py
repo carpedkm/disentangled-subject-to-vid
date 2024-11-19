@@ -431,6 +431,17 @@ def get_args():
             ' (default), `"wandb"` and `"comet_ml"`. Use `"all"` to report to all integrations.'
         ),
     )
+    parser.add_argument(
+        '--t5_first',
+        action='store_true',
+        help='Whether to concatenate the prompt of the t5 encoder with clip encoders first or not'
+    )
+    parser.add_argument(
+        '--subset_cnt',
+        type=int,
+        default=-1,
+        help='Number of videos to use for training'
+    )
 
     return parser.parse_args()
 
@@ -469,6 +480,7 @@ class VideoDataset(Dataset):
         skip_frames_end: int = 0,
         cache_dir: Optional[str] = None,
         id_token: Optional[str] = None,
+        subset_cnt: int = -1,
     ) -> None:
         super().__init__()
 
@@ -491,7 +503,7 @@ class VideoDataset(Dataset):
         file_list = os.listdir(ref_img_paths)
         ref_img_ids = [file.split('_')[0] for file in file_list]
         orig_ref_img_ids = ref_img_ids
-        ref_img_ids = ref_img_ids
+        ref_img_ids = ref_img_ids[:subset_cnt]
         self.num_instance_videos = len(ref_img_ids)
         video_ids = set(ref_img_ids)
         video_ids = list(video_ids)
@@ -1093,6 +1105,7 @@ def get_optimizer(args, params_to_optimize, use_deepspeed: bool = False):
 
 def main(args):
     print('Start')
+    t5_first = args.t5_first
     if args.report_to == "wandb" and args.hub_token is not None:
         raise ValueError(
             "You cannot use both --report_to=wandb and --hub_token due to a security risk of exposing your token."
@@ -1512,6 +1525,7 @@ def main(args):
         skip_frames_end=args.skip_frames_end,
         cache_dir=args.cache_dir,
         id_token=args.id_token,
+        subset_cnt=args.subset_cnt,
     )
 
     def encode_video(video):
@@ -1758,6 +1772,7 @@ def main(args):
                     image_rotary_emb=image_rotary_emb,
                     return_dict=False,
                     customization=True,
+                    t5_first=t5_first,
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
@@ -1837,6 +1852,7 @@ def main(args):
                     variant=args.variant,
                     torch_dtype=weight_dtype,
                     customization=True,
+                    t5_first=t5_first,
                 )
 
                 # validation_prompts = args.validation_prompt.split(args.validation_prompt_separator)

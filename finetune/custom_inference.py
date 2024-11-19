@@ -22,21 +22,22 @@ class ProjectionLayer(nn.Module):
     def __init__(self, in_features, out_features):
         super().__init__()
         self.projection = nn.Linear(in_features, out_features)
-
+        self.projection2 = nn.Linear(out_features, out_features)
     def forward(self, x):
-        return self.projection(x)
+        x2 = self.projection(x)
+        return x2 + self.projection2(x2)
 
 def main():
     # Model paths and parameters
     pretrained_model_name_or_path = "THUDM/CogVideoX-5b"
-    output_dir = "/mnt/carpedkm_data/finetune_result/finetune4000_custom_zero_init_t5_full_custom_with_clip/checkpoint-800"
+    output_dir = "/mnt/carpedkm_data/finetune_result/finetune4000_one_init_with_PE_4000subset_T5_zero_init_added_proj_lin/checkpoint-210"
     prompt = "Two dogs one with a black and tan coat and another with a black and white coat appear to be playing on a lush green lawn with trees and a building in the background"
     negative_prompt = "Low quality, bad image, artifacts"
     reference_image_path = "/root/daneul/projects/refactored/CogVideo/finetune/val_samples/854179_background_boxes.jpg"
 
     # Device and dtype setup
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-    dtype = torch.float32  # Use torch.float32 for better compatibility
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    dtype = torch.bfloat16  # Use torch.float32 for better compatibility
 
     print("Using device:", device)
 
@@ -57,7 +58,7 @@ def main():
         subfolder="transformer",
         torch_dtype=dtype,
         customization=True,
-    )
+    ).to(device=device, dtype=dtype)
 
     print("Creating pipeline...")
     pipe = CustomCogVideoXPipeline(
@@ -88,9 +89,9 @@ def main():
 
     print("Initializing additional components...")
     # Initialize additional components before loading their state dictionaries
-    pipe.transformer.T5ProjectionLayer = SkipProjectionLayer(4096, 4096)
-    pipe.transformer.CLIPTextProjectionLayer = ProjectionLayer(512, 4096)
-    pipe.transformer.CLIPVisionProjectionLayer = ProjectionLayer(768, 4096)
+    pipe.transformer.T5ProjectionLayer = SkipProjectionLayer(4096, 4096).to(dtype=dtype)
+    pipe.transformer.CLIPTextProjectionLayer = ProjectionLayer(512, 4096).to(dtype=dtype)
+    pipe.transformer.CLIPVisionProjectionLayer = ProjectionLayer(768, 4096).to(dtype=dtype)
     pipe.transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
 
     print("Loading additional components...")
@@ -161,14 +162,14 @@ def main():
             width=720,
             num_frames=49,
             num_inference_steps=50,
-            guidance_scale=1.0,
-            use_dynamic_cfg=False,
+            guidance_scale=6.0,
+            use_dynamic_cfg=True,
             generator=generator,
             output_type="pil",
         )
 
     # Save the output video
-    output_path = "output_video2.mp4"
+    output_path = "output_video_checking.mp4"
     from diffusers.utils import export_to_video
     export_to_video(output.frames[0], output_path, fps=8)
     print(f"Video saved to {output_path}")
