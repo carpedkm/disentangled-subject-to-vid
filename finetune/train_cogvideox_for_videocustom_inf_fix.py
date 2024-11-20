@@ -465,7 +465,7 @@ class SkipProjectionLayer(nn.Module):
         return x + self.projection(x)
 
 class ReduceProjectionLayer(nn.Module):
-    def __init_(self, in_features, out_features):
+    def __init__(self, in_features, out_features):
         super().__init__()
         self.projection = nn.Linear(in_features, out_features)
     
@@ -1502,11 +1502,16 @@ def main(args):
     transformer_parameters_with_lr = {"params": transformer_lora_parameters, "lr": args.learning_rate}
 
     # Add the parameters of the projection layers with their learning rates
-    projection_parameters = [
-        {"params": transformer.T5ProjectionLayer.parameters(), "lr": args.learning_rate},
-        {"params": transformer.CLIPTextProjectionLayer.parameters(), "lr": args.learning_rate},
-        {"params": transformer.CLIPVisionProjectionLayer.parameters(), "lr": args.learning_rate}
-    ]
+    if concatenated_all is True:
+        projection_parameters = [
+            {"params": transformer.T5ProjectionLayer.parameters(), "lr": args.learning_rate},
+        ]
+    else:
+        projection_parameters = [
+            {"params": transformer.T5ProjectionLayer.parameters(), "lr": args.learning_rate},
+            {"params": transformer.CLIPTextProjectionLayer.parameters(), "lr": args.learning_rate},
+            {"params": transformer.CLIPVisionProjectionLayer.parameters(), "lr": args.learning_rate}
+        ]
     # Add the parameters of the CLIP Vision Model
     clip_vision_parameters_with_lr = {
         "params": transformer.reference_vision_encoder.parameters(),
