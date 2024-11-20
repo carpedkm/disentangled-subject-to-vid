@@ -475,26 +475,27 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 clip_text_states = self.CLIPTextProjectionLayer(clip_text_states.to(dtype=torch.bfloat16).transpose(1,2)).transpose(1,2)
                 encoder_hidden_states = encoder_hidden_states + ref_img_states + clip_text_states
                 encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
-            if concatenated_all:
-                ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
-                #  match the feature dimension 4096 by padding zeros
-                ref_img_states = torch.cat([ref_img_states, torch.zeros((ref_img_states.shape[0], ref_img_states.shape[1], 4096 - ref_img_states.shape[2])).to(ref_img_states.device)], dim=2)
-                clip_text_states = torch.cat([clip_prompt_embeds, torch.zeros((clip_prompt_embeds.shape[0], clip_prompt_embeds.shape[1], 4096 - clip_prompt_embeds.shape[2])).to(clip_prompt_embeds.device)], dim=2)
-                encoder_hidden_states = torch.cat([encoder_hidden_states, clip_text_states, ref_img_states], dim=1)
-                if reduce_token is True: # reduce 500 -> 226
-                    encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states.transpose(1,2)).transpose(1,2)
-                else: # mix 4096 -> 4096
-                    encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
             else:
-                ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
-                enc_hidden_states0 = self.T5ProjectionLayer(encoder_hidden_states.to(dtype=torch.bfloat16))
-                enc_hidden_states1 = self.CLIPTextProjectionLayer(clip_prompt_embeds.to(dtype=torch.bfloat16))
-                enc_hidden_states2 = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16))
-                
-                if t5_first is True:
-                    encoder_hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, enc_hidden_states2], dim=1)
+                if concatenated_all:
+                    ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
+                    #  match the feature dimension 4096 by padding zeros
+                    ref_img_states = torch.cat([ref_img_states, torch.zeros((ref_img_states.shape[0], ref_img_states.shape[1], 4096 - ref_img_states.shape[2])).to(ref_img_states.device)], dim=2)
+                    clip_text_states = torch.cat([clip_prompt_embeds, torch.zeros((clip_prompt_embeds.shape[0], clip_prompt_embeds.shape[1], 4096 - clip_prompt_embeds.shape[2])).to(clip_prompt_embeds.device)], dim=2)
+                    encoder_hidden_states = torch.cat([encoder_hidden_states, clip_text_states, ref_img_states], dim=1)
+                    if reduce_token is True: # reduce 500 -> 226
+                        encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states.transpose(1,2)).transpose(1,2)
+                    else: # mix 4096 -> 4096
+                        encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
                 else:
-                    encoder_hidden_states = torch.cat([enc_hidden_states2, enc_hidden_states1, enc_hidden_states0], dim=1)
+                    ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
+                    enc_hidden_states0 = self.T5ProjectionLayer(encoder_hidden_states.to(dtype=torch.bfloat16))
+                    enc_hidden_states1 = self.CLIPTextProjectionLayer(clip_prompt_embeds.to(dtype=torch.bfloat16))
+                    enc_hidden_states2 = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16))
+                    
+                    if t5_first is True:
+                        encoder_hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, enc_hidden_states2], dim=1)
+                    else:
+                        encoder_hidden_states = torch.cat([enc_hidden_states2, enc_hidden_states1, enc_hidden_states0], dim=1)
         else:
             encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
 
