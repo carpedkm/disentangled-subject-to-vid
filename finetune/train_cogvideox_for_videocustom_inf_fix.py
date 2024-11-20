@@ -452,6 +452,11 @@ def get_args():
         action='store_true',
         help='Whether to reduce the token embeddings'
     )
+    parser.add_argument(
+        '--add_token',
+        action='store_true',
+        help='Whether to add the token embeddings'
+    )
 
     return parser.parse_args()
 
@@ -1244,40 +1249,63 @@ def main(args):
     print("Done - CogVideoX Transformer model loaded")
     # Initialize submodules
     transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
-    if reduce_token is not True:
-        transformer.T5ProjectionLayer = SkipProjectionLayer(in_features=4096, out_features=4096)
+    
+    if args.add_token is True:
+        transformer.T5ProjectionLayer = ProjectionLayer(in_features=4096, out_features=4096)
         with torch.no_grad():
-            transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
+            transformer.T5ProjectionLayer.projection.weight.fill_(1.0)
             if transformer.T5ProjectionLayer.projection.bias is not None:
-                transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
+                transformer.T5ProjectionLayer.projection.bias.fill_(1.0)
+        transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=77, out_features=226)
+        with torch.no_grad():
+            transformer.CLIPTextProjectionLayer.projection.weight.fill_(0.0)
+            if transformer.CLIPTextProjectionLayer.projection.bias is not None:
+                transformer.CLIPTextProjectionLayer.projection.bias.fill_(0.0)
+        transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=197, out_features=226)
+        with torch.no_grad():
+            transformer.CLIPVisionProjectionLayer.projection.weight.fill_(0.0)
+            if transformer.CLIPVisionProjectionLayer.projection.bias is not None:
+                transformer.CLIPVisionProjectionLayer.projection.bias.fill_(0.0)
         # Requires grad true
         transformer.reference_vision_encoder.requires_grad_(True)
         transformer.T5ProjectionLayer.requires_grad_(True)
-        
-        if concatenated_all:
-            transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=512, out_features=4096)
+        transformer.CLIPTextProjectionLayer.requires_grad_(True)
+        transformer.CLIPVisionProjectionLayer.requires_grad_(True)
+    else:    
+        if reduce_token is not True:
+            transformer.T5ProjectionLayer = SkipProjectionLayer(in_features=4096, out_features=4096)
             with torch.no_grad():
-                transformer.CLIPTextProjectionLayer.projection.weight.fill_(1.0)
-                if transformer.CLIPTextProjectionLayer.projection.bias is not None:
-                    transformer.CLIPTextProjectionLayer.projection.bias.fill_(1.0)
-            transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=768, out_features=4096)
-            with torch.no_grad():
-                transformer.CLIPVisionProjectionLayer.projection.weight.fill_(1.0)
-                if transformer.CLIPVisionProjectionLayer.projection.bias is not None:
-                    transformer.CLIPVisionProjectionLayer.projection.bias.fill_(1.0)
+                transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
+                if transformer.T5ProjectionLayer.projection.bias is not None:
+                    transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
             # Requires grad true
-            transformer.CLIPTextProjectionLayer.requires_grad_(True)
-            transformer.CLIPVisionProjectionLayer.requires_grad_(True)
-    else:
-        transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
-        transformer.T5ProjectionLayer = ReduceProjectionLayer(in_features=500, out_features=226)
-        with torch.no_grad():
-            transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
-            if transformer.T5ProjectionLayer.projection.bias is not None:
-                transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
-        # Requires grad true
-        transformer.reference_vision_encoder.requires_grad_(True)
-        transformer.T5ProjectionLayer.requires_grad_(True)
+            transformer.reference_vision_encoder.requires_grad_(True)
+            transformer.T5ProjectionLayer.requires_grad_(True)
+            
+            if concatenated_all:
+                transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=512, out_features=4096)
+                with torch.no_grad():
+                    transformer.CLIPTextProjectionLayer.projection.weight.fill_(1.0)
+                    if transformer.CLIPTextProjectionLayer.projection.bias is not None:
+                        transformer.CLIPTextProjectionLayer.projection.bias.fill_(1.0)
+                transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=768, out_features=4096)
+                with torch.no_grad():
+                    transformer.CLIPVisionProjectionLayer.projection.weight.fill_(1.0)
+                    if transformer.CLIPVisionProjectionLayer.projection.bias is not None:
+                        transformer.CLIPVisionProjectionLayer.projection.bias.fill_(1.0)
+                # Requires grad true
+                transformer.CLIPTextProjectionLayer.requires_grad_(True)
+                transformer.CLIPVisionProjectionLayer.requires_grad_(True)
+        else:
+            transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
+            transformer.T5ProjectionLayer = ReduceProjectionLayer(in_features=500, out_features=226)
+            with torch.no_grad():
+                transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
+                if transformer.T5ProjectionLayer.projection.bias is not None:
+                    transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
+            # Requires grad true
+            transformer.reference_vision_encoder.requires_grad_(True)
+            transformer.T5ProjectionLayer.requires_grad_(True)
       
     # Print out parameter names to verify # FOR DEBUGGING
     for name, param in transformer.named_parameters():
@@ -1802,7 +1830,8 @@ def main(args):
                     customization=True,
                     t5_first=t5_first,
                     concatenated_all=concatenated_all,
-                    reduce_token=reduce_token
+                    reduce_token=reduce_token,
+                    add_token=args.add_token,
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
@@ -1900,7 +1929,8 @@ def main(args):
                         "width": args.width,
                         "eval" : True,
                         "concatenated_all" : concatenated_all,
-                        "reduce_token" : reduce_token
+                        "reduce_token" : reduce_token,
+                        "add_token": args.add_token,
                     }
 
                     validation_outputs = log_validation(

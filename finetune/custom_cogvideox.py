@@ -21,6 +21,7 @@ class CustomCogVideoXTransformer3DModel(CogVideoXTransformer3DModel):
         customization=False,
         concatenated_all=False,
         reduce_token=False,
+        add_token=False,
         **kwargs,
     ):
         # # Use custom components if they are available
@@ -47,5 +48,6 @@ class CustomCogVideoXTransformer3DModel(CogVideoXTransformer3DModel):
             customization=customization,
             concatenated_all=concatenated_all,
             reduce_token=reduce_token,
+            add_token=add_token,
             **kwargs,
         )

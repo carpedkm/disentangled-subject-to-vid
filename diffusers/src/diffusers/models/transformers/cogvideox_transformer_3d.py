@@ -464,8 +464,17 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         eval: bool = False,
         concatenated_all: bool = False,
         reduce_token: bool = False,
+        add_token: bool = False,
     ):
         if customization:
+            if add_token:
+                ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
+                ref_img_states = torch.cat([ref_img_states, torch.zeros((ref_img_states.shape[0], ref_img_states.shape[1], 4096 - ref_img_states.shape[2])).to(ref_img_states.device)], dim=2)
+                clip_text_states = torch.cat([clip_prompt_embeds, torch.zeros((clip_prompt_embeds.shape[0], clip_prompt_embeds.shape[1], 4096 - clip_prompt_embeds.shape[2])).to(clip_prompt_embeds.device)], dim=2)
+                ref_img_states = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16).transpose(1,2)).transpose(1,2)
+                clip_text_states = self.CLIPTextProjectionLayer(clip_text_states.to(dtype=torch.bfloat16).transpose(1,2)).transpose(1,2)
+                encoder_hidden_states = encoder_hidden_states + ref_img_states + clip_text_states
+                encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
             if concatenated_all:
                 ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
                 #  match the feature dimension 4096 by padding zeros

@@ -193,6 +193,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         t5_first: bool = True,
         concatenated_all: bool = False,
         reduce_token: bool = False,
+        add_token: bool = False,
     ) -> Union[CogVideoXPipelineOutput, Tuple]:
         if num_frames > 49:
             raise ValueError(
@@ -309,6 +310,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     t5_first=t5_first,
                     concatenated_all=concatenated_all,
                     reduce_token=reduce_token,
+                    add_token=add_token,
                 )[0]
                 noise_pred = noise_pred.float()
 
