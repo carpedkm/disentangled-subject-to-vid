@@ -4,7 +4,7 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/preprocessed_subset4000/background_only_boxes"
 export ANNO_PATH="../annotation/video_dict_fullset400k.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241119/finetune4000_concat_padded_added_normalized_with_mean_debug"
+export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241125/finetune144_zero_conv_debug"
 export VALIDATION_REF_PATH="./val_samples2/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3
@@ -36,7 +36,7 @@ accelerate launch --config_file accelerate_config_machine_single_4gpu.yaml --mul
   --skip_frames_end 0 \
   --train_batch_size 6 \
   --num_train_epochs 30 \
-  --checkpointing_steps 50 \
+  --checkpointing_steps 10 \
   --gradient_accumulation_steps 1 \
   --learning_rate 5e-5 \
   --lr_scheduler cosine_with_restarts \
@@ -52,7 +52,7 @@ accelerate launch --config_file accelerate_config_machine_single_4gpu.yaml --mul
   --allow_tf32 \
   --t5_first \
   --subset_cnt 144 \
-  --add_token \
+  --zero_conv_add \
   --report_to wandb 
   # --validation_prompt "DISNEY A black and white animated scene unfolds with an anthropomorphic goat surrounded by musical notes and symbols, suggesting a playful environment. Mickey Mouse appears, leaning forward in curiosity as the goat remains still. The goat then engages with Mickey, who bends down to converse or react. The dynamics shift as Mickey grabs the goat, potentially in surprise or playfulness, amidst a minimalistic background. The scene captures the evolving relationship between the two characters in a whimsical, animated setting, emphasizing their interactions and emotions:::A panda, dressed in a small, red jacket and a tiny hat, sits on a wooden stool in a serene bamboo forest. The panda's fluffy paws strum a miniature acoustic guitar, producing soft, melodic tunes. Nearby, a few other pandas gather, watching curiously and some clapping in rhythm. Sunlight filters through the tall bamboo, casting a gentle glow on the scene. The panda's face is expressive, showing concentration and joy as it plays. The background includes a small, flowing stream and vibrant green foliage, enhancing the peaceful and magical atmosphere of this unique musical performance" \
   # --validation_prompt_separator ::: \

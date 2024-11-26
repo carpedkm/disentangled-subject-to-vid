@@ -22,7 +22,7 @@ class CustomCogVideoXTransformer3DModel(CogVideoXTransformer3DModel):
         concatenated_all=False,
         reduce_token=False,
         add_token=False,
-        **kwargs,
+        zero_conv_add=False,
     ):
         # # Use custom components if they are available
         # if hasattr(self, 'T5ProjectionLayer'):
@@ -49,5 +49,6 @@ class CustomCogVideoXTransformer3DModel(CogVideoXTransformer3DModel):
             concatenated_all=concatenated_all,
             reduce_token=reduce_token,
             add_token=add_token,
+            zero_conv_add=zero_conv_add,
             **kwargs,
         )
