@@ -7,11 +7,11 @@ export ANNO_PATH="../annotation/video_dict_fullset400k.json"
 export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241203/finetune1600_concat_padded_inf_fix"
 export VALIDATION_REF_PATH="./val_samples2/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 # if you are not using wth 8 gus, change `accelerate_config_machine_single.yaml` num_processes as your gpu number
-accelerate launch --config_file accelerate_config_machine_single_4gpu.yaml --multi_gpu \
+accelerate launch --config_file accelerate_config_machine_single_8gpu.yaml --multi_gpu \
   train_cogvideox_for_videocustom_inf_fix.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
@@ -34,7 +34,7 @@ accelerate launch --config_file accelerate_config_machine_single_4gpu.yaml --mul
   --max_num_frames 49 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 6 \
+  --train_batch_size 2 \
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
