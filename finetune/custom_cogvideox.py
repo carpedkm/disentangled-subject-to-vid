@@ -46,9 +46,11 @@ class CustomCogVideoXTransformer3DModel(CogVideoXTransformer3DModel):
             # encoder_attention_mask=encoder_attention_mask,
             return_dict=return_dict,
             customization=customization,
+            eval=True,
             concatenated_all=concatenated_all,
             reduce_token=reduce_token,
             add_token=add_token,
             zero_conv_add=zero_conv_add,
+            # eval=True,
             **kwargs,
         )
