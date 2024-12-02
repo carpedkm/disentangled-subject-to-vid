@@ -1352,14 +1352,14 @@ def main(args):
                 if concatenated_all:
                     transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=512, out_features=4096)
                     with torch.no_grad():
-                        transformer.CLIPTextProjectionLayer.projection.weight.fill_(1.0)
+                        transformer.CLIPTextProjectionLayer.projection.weight.fill_(0.0)
                         if transformer.CLIPTextProjectionLayer.projection.bias is not None:
-                            transformer.CLIPTextProjectionLayer.projection.bias.fill_(1.0)
+                            transformer.CLIPTextProjectionLayer.projection.bias.fill_(0.0)
                     transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=768, out_features=4096)
                     with torch.no_grad():
-                        transformer.CLIPVisionProjectionLayer.projection.weight.fill_(1.0)
+                        transformer.CLIPVisionProjectionLayer.projection.weight.fill_(0.0)
                         if transformer.CLIPVisionProjectionLayer.projection.bias is not None:
-                            transformer.CLIPVisionProjectionLayer.projection.bias.fill_(1.0)
+                            transformer.CLIPVisionProjectionLayer.projection.bias.fill_(0.0)
                     # Requires grad true
                     transformer.CLIPTextProjectionLayer.requires_grad_(True)
                     transformer.CLIPVisionProjectionLayer.requires_grad_(True)
