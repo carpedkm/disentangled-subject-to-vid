@@ -194,7 +194,7 @@ def get_args():
     parser.add_argument(
         "--guidance_scale",
         type=float,
-        default=1.,
+        default=6.,
         help="The guidance scale to use while sampling validation videos.",
     )
     parser.add_argument(
@@ -1293,19 +1293,23 @@ def main(args):
         
         transformer.CLIPTextProjectionLayer = ZeroConv1D(in_dim=512, out_dim=4096)
         transformer.CLIPVisionProjectionLayer = ZeroConv1D(in_dim=768, out_dim=4096)
+        transformer.CLIPTextProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
+        transformer.CLIPVisionProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
         transformer.T5ProjectionLayer = SkipProjectionLayer(4096, 4096)
         
         # Learnable single parameter
-        transformer.alpha = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
-        transformer.beta = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
+        # transformer.alpha = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
+        # transformer.beta = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
         
         # requries grad True
         transformer.CLIPTextProjectionLayer.requires_grad_(True)
         transformer.CLIPVisionProjectionLayer.requires_grad_(True)
+        transformer.CLIPTextProjectionLayer2.requires_grad_(True)
+        transformer.CLIPVisionProjectionLayer2.requires_grad_(True)
         transformer.reference_vision_encoder.requires_grad_(True)
         
-        transformer.alpha.requires_grad_(True)
-        transformer.beta.requires_grad_(True)
+        # transformer.alpha.requires_grad_(True)
+        # transformer.beta.requires_grad_(True)
         
     else:
         if args.add_token is True:
@@ -1465,6 +1469,9 @@ def main(args):
                         "CLIPTextProjectionLayer": unwrapped_model.CLIPTextProjectionLayer.state_dict(),
                         "CLIPVisionProjectionLayer": unwrapped_model.CLIPVisionProjectionLayer.state_dict(),
                     }
+                    if args.zero_conv_add:
+                        projection_layers_state_dict["CLIPTextProjectionLayer2"] = unwrapped_model.CLIPTextProjectionLayer2.state_dict()
+                        projection_layers_state_dict["CLIPVisionProjectionLayer2"] = unwrapped_model.CLIPVisionProjectionLayer2.state_dict()
                     # Save CLIPVisionModel state_dict
                     vision_model_state_dict = unwrapped_model.reference_vision_encoder.state_dict()
                 
@@ -1605,12 +1612,17 @@ def main(args):
     }
     
     if args.zero_conv_add:
-        learnable_weights = [transformer.alpha, transformer.beta]
+        # learnable_weights = [transformer.alpha, transformer.beta]
+        learnable_weights = [
+            {"params": transformer.CLIPTextProjectionLayer2.parameters(), "lr": args.learning_rate},
+            {"params": transformer.CLIPVisionProjectionLayer2.parameters(), "lr": args.learning_rate},
+        ]
 
     # Combine all parameters to optimize
     params_to_optimize = [transformer_parameters_with_lr, clip_vision_parameters_with_lr] + projection_parameters
     if args.zero_conv_add:
-        params_to_optimize.append({"params": learnable_weights, "lr": args.learning_rate})
+        # params_to_optimize.append({"params": learnable_weights, "lr": args.learning_rate})
+        params_to_optimize = params_to_optimize + learnable_weights
 
     # Check for DeepSpeed optimizer and scheduler configuration
     use_deepspeed_optimizer = (
@@ -1818,6 +1830,8 @@ def main(args):
         # update random seed
         # set_seed(args.seed + epoch)
         for step, batch in enumerate(train_dataloader):
+            if epoch == first_epoch and step == 0:
+                break
             # set_seed(args.seed + epoch)
             models_to_accumulate = [transformer]
 
