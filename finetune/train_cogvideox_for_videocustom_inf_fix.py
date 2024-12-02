@@ -1296,6 +1296,10 @@ def main(args):
         transformer.CLIPTextProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
         transformer.CLIPVisionProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
         transformer.T5ProjectionLayer = SkipProjectionLayer(4096, 4096)
+        with torch.no_grad():
+            transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
+            if transformer.T5ProjectionLayer.projection.bias is not None:
+                transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
         
         # Learnable single parameter
         # transformer.alpha = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
@@ -1307,6 +1311,7 @@ def main(args):
         transformer.CLIPTextProjectionLayer2.requires_grad_(True)
         transformer.CLIPVisionProjectionLayer2.requires_grad_(True)
         transformer.reference_vision_encoder.requires_grad_(True)
+        transformer.T5ProjectionLayer.requires_grad_(True)
         
         # transformer.alpha.requires_grad_(True)
         # transformer.beta.requires_grad_(True)
