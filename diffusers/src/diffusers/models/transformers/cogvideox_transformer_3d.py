@@ -493,7 +493,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 clip_text_states = self.CLIPTextProjectionLayer(clip_text_states.to(dtype=torch.bfloat16).transpose(1, 2)).transpose(1, 2)
                 ref_img_states = self.CLIPVisionProjectionLayer2(ref_img_states.transpose(1, 2)).transpose(1, 2)
                 clip_text_states = self.CLIPTextProjectionLayer2(clip_text_states.transpose(1, 2)).transpose(1, 2)
-                encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states) + ref_img_states + clip_text_states
+                encoder_hidden_states = encoder_hidden_states + ref_img_states + clip_text_states
                 # encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
             else:
                 if concatenated_all:
