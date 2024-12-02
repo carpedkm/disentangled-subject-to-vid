@@ -486,15 +486,15 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 encoder_hidden_states = (encoder_hidden_states + ref_img_states + clip_text_states) / (1 + torch.mean(torch.abs(ref_img_states), dim=(0,1,2)) + torch.mean(torch.abs(clip_text_states), dim=(0,1,2)))
                 encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
             elif zero_conv_add:
-                # ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
-                # ref_img_states = self.vision_sequence_aligner(ref_img_states)
-                # clip_text_states = self.text_sequence_aligner(clip_prompt_embeds)
-                # ref_img_states = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16).transpose(1, 2)).transpose(1, 2)     
-                # clip_text_states = self.CLIPTextProjectionLayer(clip_text_states.to(dtype=torch.bfloat16).transpose(1, 2)).transpose(1, 2)
-                # ref_img_states = self.CLIPVisionProjectionLayer2(ref_img_states.transpose(1, 2)).transpose(1, 2)
-                # clip_text_states = self.CLIPTextProjectionLayer2(clip_text_states.transpose(1, 2)).transpose(1, 2)
-                # encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states) + ref_img_states + clip_text_states
-                encoder_hidden_states = encoder_hidden_states #self.T5ProjectionLayer(encoder_hidden_states)
+                ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
+                ref_img_states = self.vision_sequence_aligner(ref_img_states)
+                clip_text_states = self.text_sequence_aligner(clip_prompt_embeds)
+                ref_img_states = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16).transpose(1, 2)).transpose(1, 2)     
+                clip_text_states = self.CLIPTextProjectionLayer(clip_text_states.to(dtype=torch.bfloat16).transpose(1, 2)).transpose(1, 2)
+                ref_img_states = self.CLIPVisionProjectionLayer2(ref_img_states.transpose(1, 2)).transpose(1, 2)
+                clip_text_states = self.CLIPTextProjectionLayer2(clip_text_states.transpose(1, 2)).transpose(1, 2)
+                encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states) + ref_img_states + clip_text_states
+                # encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
             else:
                 if concatenated_all:
                     ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
