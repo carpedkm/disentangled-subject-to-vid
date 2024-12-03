@@ -513,7 +513,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                     enc_hidden_states0 = self.T5ProjectionLayer(encoder_hidden_states.to(dtype=torch.bfloat16))
                     enc_hidden_states1 = self.CLIPTextProjectionLayer(clip_prompt_embeds.to(dtype=torch.bfloat16))
                     enc_hidden_states2 = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16))
-                    
+                    if eval:
+                        enc_hidden_states2 = torch.cat([enc_hidden_states2, enc_hidden_states2], dim=0)
                     if t5_first is True:
                         encoder_hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, enc_hidden_states2], dim=1)
                     else:
