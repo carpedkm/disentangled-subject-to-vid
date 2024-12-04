@@ -599,35 +599,42 @@ class VideoDataset(Dataset):
         return self.num_instance_videos
 
     def __getitem__(self, index):
-        prompt = self.id_token + self.instance_prompts[index]
-        video_path = self.instance_video_paths[index]
+        while True:
+            try:
+                prompt = self.id_token + self.instance_prompts[index]
+                video_path = self.instance_video_paths[index]
 
-        # Process the video
-        video = self._process_single_video(video_path, self.train_transforms)
-        # Ensure all videos have the same number of frames
-        max_frames = self.max_num_frames
-        num_frames = video.shape[0]
-        if num_frames < max_frames:
-            # Pad with zeros if the video has fewer frames
-            padding = torch.zeros((max_frames - num_frames, *video.shape[1:]), dtype=video.dtype)
-            video = torch.cat([video, padding], dim=0)
-        elif num_frames > max_frames:
-            # Trim if the video has more frames
-            video = video[:max_frames]
+                # Process the video
+                video = self._process_single_video(video_path, self.train_transforms)
+                # Ensure all videos have the same number of frames
+                max_frames = self.max_num_frames
+                num_frames = video.shape[0]
+                if num_frames < max_frames:
+                    # Pad with zeros if the video has fewer frames
+                    padding = torch.zeros((max_frames - num_frames, *video.shape[1:]), dtype=video.dtype)
+                    video = torch.cat([video, padding], dim=0)
+                elif num_frames > max_frames:
+                    # Trim if the video has more frames
+                    video = video[:max_frames]
+                        
+                if self.dataset_name == 'customization':
+                    ref_image_path = self.instance_ref_image_paths[index]
+                    ref_image = self._process_single_ref_image(ref_image_path)
+                    return {
+                        "instance_prompt": prompt,
+                        "instance_video": video,
+                        "instance_ref_image": ref_image,
+                    }
+                else:
+                    return {
+                        "instance_prompt": prompt,
+                        "instance_video": video,
+                    }
+            except Exception as e:
+                # change to other random video 
+                index = (index + 1) % self.num_instance_videos
+
                 
-        if self.dataset_name == 'customization':
-            ref_image_path = self.instance_ref_image_paths[index]
-            ref_image = self._process_single_ref_image(ref_image_path)
-            return {
-                "instance_prompt": prompt,
-                "instance_video": video,
-                "instance_ref_image": ref_image,
-            }
-        else:
-            return {
-                "instance_prompt": prompt,
-                "instance_video": video,
-            }
     def _process_single_ref_image(self, ref_image_path):
         try:
             from PIL import Image
