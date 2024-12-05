@@ -573,6 +573,7 @@ class VideoDataset(Dataset):
         self.instance_video_paths = [video.replace('/root/mnt/', '/mnt/') for video in self.instance_video_paths]
         self.instance_prompts = [video_dict[video_id]['text'] for video_id in video_ids]
         self.instance_prompt_dict = {str(video_id): video_dict[video_id]['text'] for video_id in orig_video_ids}
+        self.val_instance_prompt_dict = {str(video_id):video_dict[video_id]['text'] for video_id in list(video_dict.keys())}
         self.instance_ref_image_paths = [os.path.join(ref_img_paths, f"{video_id}_background_boxes.jpg") for video_id in video_ids]
         # if dataset_name is not None:
         #     self.instance_prompts, self.instance_video_paths = self._load_dataset_from_hub()
@@ -2010,7 +2011,7 @@ def main(args):
                 for i in range(val_len):
                     validation_ref_img = os.path.join(args.validation_reference_image, os.listdir(args.validation_reference_image)[i])
                     vid_id = os.listdir(args.validation_reference_image)[i].split('_')[0]
-                    validation_prompt = train_dataset.instance_prompt_dict[vid_id]
+                    validation_prompt = train_dataset.val_instance_prompt_dict[vid_id]
                     pipeline_args = {
                         "prompt": validation_prompt,
                         "guidance_scale": args.guidance_scale,
