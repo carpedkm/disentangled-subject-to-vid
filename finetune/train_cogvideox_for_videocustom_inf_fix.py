@@ -571,9 +571,9 @@ class VideoDataset(Dataset):
             video_dict = json.load(f)
         self.instance_video_paths = [video_dict[video_id]['video_path'] for video_id in video_ids]
         self.instance_video_paths = [video.replace('/root/mnt/', '/mnt/') for video in self.instance_video_paths]
-        self.instance_prompts = [video_dict[video_id]['text'] for video_id in video_ids]
-        self.instance_prompt_dict = {str(video_id): video_dict[video_id]['text'] for video_id in orig_video_ids}
-        self.val_instance_prompt_dict = {str(video_id):video_dict[video_id]['text'] for video_id in list(video_dict.keys())}
+        self.instance_prompts = [video_dict[video_id]['foreground_prompt'] for video_id in video_ids]
+        self.instance_prompt_dict = {str(video_id): video_dict[video_id]['foreground_prompt'] for video_id in orig_video_ids}
+        self.val_instance_prompt_dict = {str(video_id):video_dict[video_id]['foreground_prompt'] for video_id in list(video_dict.keys())}
         self.instance_ref_image_paths = [os.path.join(ref_img_paths, f"{video_id}_background_boxes.jpg") for video_id in video_ids]
         # if dataset_name is not None:
         #     self.instance_prompts, self.instance_video_paths = self._load_dataset_from_hub()
