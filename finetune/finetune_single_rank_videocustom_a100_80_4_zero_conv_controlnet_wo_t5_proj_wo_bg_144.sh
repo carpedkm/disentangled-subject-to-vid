@@ -3,8 +3,8 @@
 export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/preprocessed_subset4000/background_only_boxes"
-export ANNO_PATH="../annotation/video_dict_foreground2_subset128.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241203/finetune128_zero_conv_controlnet_w_inference_fix_wo_t5_proj_wo_bg"
+export ANNO_PATH="../annotation/video_dict_foreground_subset144.json"
+export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241203/finetune144_zero_conv_controlnet_w_inference_fix_wo_t5_proj_wo_bg"
 export VALIDATION_REF_PATH="./val_samples2/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3
