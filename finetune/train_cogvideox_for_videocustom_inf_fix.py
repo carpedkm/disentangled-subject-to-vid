@@ -567,8 +567,11 @@ class VideoDataset(Dataset):
         video_ids = list(video_ids)
         orig_video_ids = list(set(orig_ref_img_ids))
         
+        print(">> ANNOPATH", anno_path)
         with open(anno_path, 'r') as f:
             video_dict = json.load(f)
+        video_ids = [video_id for video_id in video_ids if video_id in video_dict]
+        orig_video_ids = video_ids
         self.instance_video_paths = [video_dict[video_id]['video_path'] for video_id in video_ids]
         self.instance_video_paths = [video.replace('/root/mnt/', '/mnt/') for video in self.instance_video_paths]
         self.instance_prompts = [video_dict[video_id]['foreground_prompt'] for video_id in video_ids]

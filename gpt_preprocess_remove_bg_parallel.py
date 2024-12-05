@@ -64,7 +64,7 @@ def generate_foreground_prompt_with_retry(args):
             if result:
                 return video_id, result
         except Exception as e:
-            print(f"Error processing video_id {video_id} (Attempt {attempt + 1}/5): {e}")
+            print(f"Error processing video_id {video_id} (Attempt {attempt + 1}/3): {e}")
         time.sleep(2)  # Wait before retrying
 
     return video_id, "Error"  # Return "Error" if all retries fail
@@ -76,7 +76,7 @@ def process_json_file_multiprocessing(json_file_path, output_file_path, num_work
         video_dict = json.load(f)
 
     tasks = [
-        (video_id, data.get("text", ""), data.get("objects", ""), 5)
+        (video_id, data.get("text", ""), data.get("objects", ""), 3)
         for video_id, data in video_dict.items()
     ]
 
@@ -96,8 +96,8 @@ def process_json_file_multiprocessing(json_file_path, output_file_path, num_work
         json.dump(video_dict, f, indent=4)
 
 # Paths to input and output JSON files
-input_json_path = "/root/daneul/projects/refactored/CogVideo/annotation/video_dict_subset4000.json"
-output_json_path = "/root/daneul/projects/refactored/CogVideo/annotation/video_dict_foreground_subset4000.json"
+input_json_path = "/root/daneul/projects/refactored/CogVideo/annotation/video_dict_fullset400k.json"
+output_json_path = "/root/daneul/projects/refactored/CogVideo/annotation/video_dict_foreground_fullset400k.json"
 
 # Process the JSON file with multiprocessing
 process_json_file_multiprocessing(input_json_path, output_json_path, num_workers=16)
