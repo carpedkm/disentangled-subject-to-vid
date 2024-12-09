@@ -7,7 +7,7 @@ export ANNO_PATH="../annotation/video_dict_foreground_subset4000.json"
 export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241203/finetune1600_concat_padded_wo_bg_cross_pairs"
 export VALIDATION_REF_PATH="./val_samples2/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 # if you are not using wth 8 gus, change `accelerate_config_machine_single.yaml` num_processes as your gpu number
