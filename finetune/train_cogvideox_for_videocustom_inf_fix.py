@@ -586,7 +586,7 @@ class VideoDataset(Dataset):
         self.instance_prompt_dict = {str(video_id): video_dict[video_id]['foreground_prompt'] for video_id in orig_video_ids}
         self.val_instance_prompt_dict = {str(video_id):video_dict[video_id]['foreground_prompt'] for video_id in list(video_dict.keys())}
         if cross_pairs is True:
-            self.instrance_ref_image_paths = []
+            self.instance_ref_image_paths = []
             video_id_cnt = {}
             # count video ids for redundant ids
             for video_id in video_ids:
