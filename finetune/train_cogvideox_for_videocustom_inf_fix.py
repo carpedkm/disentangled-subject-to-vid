@@ -464,6 +464,12 @@ def get_args():
         action='store_true',
         help='Whether to use zero conv'
     )
+    
+    parser.add_argument(
+        '--cross_pairs',
+        action='store_true',
+        help='Whether to use cross pairs or not'
+    )
 
     return parser.parse_args()
 
@@ -539,6 +545,7 @@ class VideoDataset(Dataset):
         cache_dir: Optional[str] = None,
         id_token: Optional[str] = None,
         subset_cnt: int = -1,
+        cross_pairs: bool = False,
     ) -> None:
         super().__init__()
 
@@ -559,7 +566,8 @@ class VideoDataset(Dataset):
         ref_img_paths = self.instance_data_root #FIXME
         
         file_list = os.listdir(ref_img_paths)
-        ref_img_ids = [file.split('_')[0] for file in file_list]
+
+        ref_img_ids = [file.split('_')[0] for file in file_list] # IDs
         orig_ref_img_ids = ref_img_ids
         ref_img_ids = ref_img_ids[:subset_cnt]
         self.num_instance_videos = len(ref_img_ids)
@@ -577,7 +585,21 @@ class VideoDataset(Dataset):
         self.instance_prompts = [video_dict[video_id]['foreground_prompt'] for video_id in video_ids]
         self.instance_prompt_dict = {str(video_id): video_dict[video_id]['foreground_prompt'] for video_id in orig_video_ids}
         self.val_instance_prompt_dict = {str(video_id):video_dict[video_id]['foreground_prompt'] for video_id in list(video_dict.keys())}
-        self.instance_ref_image_paths = [os.path.join(ref_img_paths, f"{video_id}_background_boxes.jpg") for video_id in video_ids]
+        if cross_pairs is True:
+            self.instrance_ref_image_paths = []
+            video_id_cnt = {}
+            # count video ids for redundant ids
+            for video_id in video_ids:
+                if video_id in video_id_cnt:
+                    video_id_cnt[video_id] += 1
+                else:
+                    video_id_cnt[video_id] = 1   
+             
+            for video_id in video_ids:
+                for cnt_idx in range(1, video_id_cnt[video_id] + 1):
+                    self.instance_ref_image_paths.append(os.path.join(ref_img_paths, f"{video_id}_frame_{cnt_idx}_background_boxes.jpg"))
+        else:
+            self.instance_ref_image_paths = [os.path.join(ref_img_paths, f"{video_id}_background_boxes.jpg") for video_id in video_ids]
         # if dataset_name is not None:
         #     self.instance_prompts, self.instance_video_paths = self._load_dataset_from_hub()
         # if dataset_name == 'customization':
@@ -1673,6 +1695,7 @@ def main(args):
         cache_dir=args.cache_dir,
         id_token=args.id_token,
         subset_cnt=args.subset_cnt,
+        cross_pairs=args.cross_pairs,
     )
 
     def encode_video(video):
