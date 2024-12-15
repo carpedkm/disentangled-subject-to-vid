@@ -575,13 +575,23 @@ class VideoDataset(Dataset):
         file_list = os.listdir(ref_img_paths)
 
         ref_img_ids = [file.split('_')[0] for file in file_list] # IDs there can be multiple (redundant) ids
-        if sub_driven is True:
-            subject_list = [{file.split('_')[0] : (int(file.split('_')[3].split('obj')[1].strip()), file.split('_')[4].split('.')[0].strip())} for file in file_list] # IDs for objs
+        ref_img_id_as_dict = {} # ID : [path1, path2, ...]
+        # ref_img_set = list(set(ref_img_ids))
+        for path in file_list:
+            vid_id = path.split('_')[0]
+            if vid_id in ref_img_id_as_dict:
+                ref_img_id_as_dict[vid_id].append(path)
+            else:
+                ref_img_id_as_dict[vid_id] = [path]
+                
+        # if sub_driven is True:
+        #     subject_list = [{file.split('_')[0] : (int(file.split('_')[3].split('obj')[1].strip()), file.split('_')[4].split('.')[0].strip())} for file in file_list] # IDs for objs
         orig_ref_img_ids = sorted(ref_img_ids.copy())
-        set_of_img_ids = sorted(list(set(ref_img_ids)))
+        set_of_img_ids = sorted(list(dict.fromkeys(ref_img_ids)))
         # get subset
         if subset_cnt != -1:
             subset_ref_img_ids = set_of_img_ids[:subset_cnt]
+            ref_img_id_as_dict = {key: ref_img_id_as_dict[key] for key in subset_ref_img_ids} # update the dictionary following the updated img id set
 
         full_video_ids = orig_ref_img_ids
         if subset_cnt != -1:
@@ -594,12 +604,18 @@ class VideoDataset(Dataset):
         full_video_ids = [video_id for video_id in full_video_ids if video_id in video_dict]
         self.instance_video_paths = [video_dict[video_id]['video_path'] for video_id in full_video_ids]
         self.instance_video_paths = [video.replace('/root/mnt/', '/mnt/') for video in self.instance_video_paths]
-        self.instance_prompts = [video_dict[video_id]['foreground_prompt'] for video_id in full_video_ids]
-        self.instance_prompt_dict = {str(video_id): video_dict[video_id]['foreground_prompt'] for video_id in full_video_ids}
-        self.val_instance_prompt_dict = {str(video_id):video_dict[video_id]['foreground_prompt'] for video_id in list(video_dict.keys())}
+        self.instance_prompts = [video_dict[video_id]['text'] for video_id in full_video_ids]
+        self.instance_prompt_dict = {str(video_id): video_dict[video_id]['text'] for video_id in full_video_ids}
+        self.val_instance_prompt_dict = {str(video_id):video_dict[video_id]['text'] for video_id in list(video_dict.keys())}
         if cross_pairs is True:
-            if sub_driven is True:
-                pass
+            if sub_driven is True: 
+            # /root/mnt/carpedkm_data/preprocessed_4k_with_foreground/foreground_objects -- [ID]_frame_[CNT]_obj[NO]_[OBJNAME].png
+                self.instance_ref_image_paths = []
+                # get the instance_ref_image_paths following prompt_dict and paths
+                for video_id in subset_ref_img_ids:
+                    for path in ref_img_id_as_dict[video_id]:
+                        self.instance_ref_image_paths.append(os.path.join(ref_img_paths, path))
+                        
             else:
                 self.instance_ref_image_paths = []
                 video_id_cnt = {}
@@ -1695,6 +1711,7 @@ def main(args):
         id_token=args.id_token,
         subset_cnt=args.subset_cnt,
         cross_pairs=args.cross_pairs,
+        sub_driven=args.sub_driven,
     )
 
     def encode_video(video):
