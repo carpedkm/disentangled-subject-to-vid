@@ -552,6 +552,7 @@ class VideoDataset(Dataset):
         id_token: Optional[str] = None,
         subset_cnt: int = -1,
         cross_pairs: bool = False,
+        sub_driven: bool = False,
     ) -> None:
         super().__init__()
 
@@ -573,61 +574,48 @@ class VideoDataset(Dataset):
         
         file_list = os.listdir(ref_img_paths)
 
-        ref_img_ids = [file.split('_')[0] for file in file_list] # IDs
+        ref_img_ids = [file.split('_')[0] for file in file_list] # IDs there can be multiple (redundant) ids
         if sub_driven is True:
             subject_list = [{file.split('_')[0] : (int(file.split('_')[3].split('obj')[1].strip()), file.split('_')[4].split('.')[0].strip())} for file in file_list] # IDs for objs
-        orig_ref_img_ids = ref_img_ids
-        ref_img_ids = ref_img_ids[:subset_cnt]
-        self.num_instance_videos = len(ref_img_ids)
-        video_ids = set(ref_img_ids)
-        video_ids = list(video_ids)
-        orig_video_ids = list(set(orig_ref_img_ids))
-        
+        orig_ref_img_ids = ref_img_ids.copy()
+        set_of_img_ids = list(set(ref_img_ids))
+        # get subset
+        if subset_cnt != -1:
+            subset_ref_img_ids = set_of_img_ids[:subset_cnt]
+
+        full_video_ids = orig_ref_img_ids
+        if subset_cnt != -1:
+            full_video_ids = [video_id for video_id in full_video_ids if video_id in subset_ref_img_ids]
+        self.num_instance_videos = len(full_video_ids)
+        print(">> NUM OF VIDEO INSTANCES", self.num_instance_videos)
         print(">> ANNOPATH", anno_path)
         with open(anno_path, 'r') as f:
             video_dict = json.load(f)
-        video_ids = [video_id for video_id in video_ids if video_id in video_dict]
-        orig_video_ids = video_ids
-        self.instance_video_paths = [video_dict[video_id]['video_path'] for video_id in video_ids]
+        full_video_ids = [video_id for video_id in full_video_ids if video_id in video_dict]
+        self.instance_video_paths = [video_dict[video_id]['video_path'] for video_id in full_video_ids]
         self.instance_video_paths = [video.replace('/root/mnt/', '/mnt/') for video in self.instance_video_paths]
-        self.instance_prompts = [video_dict[video_id]['foreground_prompt'] for video_id in video_ids]
-        self.instance_prompt_dict = {str(video_id): video_dict[video_id]['foreground_prompt'] for video_id in orig_video_ids}
+        self.instance_prompts = [video_dict[video_id]['foreground_prompt'] for video_id in full_video_ids]
+        self.instance_prompt_dict = {str(video_id): video_dict[video_id]['foreground_prompt'] for video_id in full_video_ids}
         self.val_instance_prompt_dict = {str(video_id):video_dict[video_id]['foreground_prompt'] for video_id in list(video_dict.keys())}
         if cross_pairs is True:
-            if args.sub_driven is True:
+            if sub_driven is True:
                 pass
             else:
                 self.instance_ref_image_paths = []
                 video_id_cnt = {}
                 # count video ids for redundant ids
-                for video_id in video_ids:
+                for video_id in full_video_ids:
                     if video_id in video_id_cnt:
                         video_id_cnt[video_id] += 1
                     else:
                         video_id_cnt[video_id] = 1   
                 
-                for video_id in video_ids:
+                for video_id in full_video_ids:
                     for cnt_idx in range(1, video_id_cnt[video_id] + 1):
                         self.instance_ref_image_paths.append(os.path.join(ref_img_paths, f"{video_id}_frame_{cnt_idx}_background_boxes.jpg"))
         else:
-            self.instance_ref_image_paths = [os.path.join(ref_img_paths, f"{video_id}_background_boxes.jpg") for video_id in video_ids]
-        # if dataset_name is not None:
-        #     self.instance_prompts, self.instance_video_paths = self._load_dataset_from_hub()
-        # if dataset_name == 'customization':
-        #     self.instance_prompts, self.instance_video_paths, self.instance_ref_image_paths = self._load_dataset_from_local_path_with_ref_image()
-        # else:
-        #     self.instance_prompts, self.instance_video_paths = self._load_dataset_from_local_path()
+            self.instance_ref_image_paths = [os.path.join(ref_img_paths, f"{video_id}_background_boxes.jpg") for video_id in full_video_ids]
 
-        # self.num_instance_videos = len(self.instance_video_paths)
-        # if self.num_instance_videos != len(self.instance_prompts):
-        #     raise ValueError(
-        #         f"Expected length of instance prompts and videos to be the same but found {len(self.instance_prompts)=} and {len(self.instance_video_paths)=}. Please ensure that the number of caption prompts and videos match in your dataset."
-        #     )
-        # if dataset_name == 'customization' and self.num_instance_videos != len(self.instance_ref_image_paths):
-        #     raise ValueError(
-        #         f"Expected length of instance prompts and videos to be the same but found {len(self.instance_prompts)=} and {len(self.instance_video_paths)=}. Please ensure that the number of caption prompts and videos match in your dataset."
-            # )
-        # Initialize transforms
         self.train_transforms = transforms.Compose(
             [transforms.Lambda(lambda x: x / 255.0 * 2.0 - 1.0)]
         )
