@@ -577,8 +577,8 @@ class VideoDataset(Dataset):
         ref_img_ids = [file.split('_')[0] for file in file_list] # IDs there can be multiple (redundant) ids
         if sub_driven is True:
             subject_list = [{file.split('_')[0] : (int(file.split('_')[3].split('obj')[1].strip()), file.split('_')[4].split('.')[0].strip())} for file in file_list] # IDs for objs
-        orig_ref_img_ids = ref_img_ids.copy()
-        set_of_img_ids = list(set(ref_img_ids))
+        orig_ref_img_ids = sorted(ref_img_ids.copy())
+        set_of_img_ids = sorted(list(set(ref_img_ids)))
         # get subset
         if subset_cnt != -1:
             subset_ref_img_ids = set_of_img_ids[:subset_cnt]
@@ -1868,8 +1868,8 @@ def main(args):
         # update random seed
         # set_seed(args.seed + epoch)
         for step, batch in enumerate(train_dataloader):
-            if epoch == first_epoch and step == 0:
-                break
+            # if epoch == first_epoch and step == 0:
+            #     break
             # set_seed(args.seed + epoch)
             models_to_accumulate = [transformer]
 
