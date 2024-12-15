@@ -373,10 +373,12 @@ class CogVideoXPatchEmbed(nn.Module):
 
         if use_positional_embeddings or use_learned_positional_embeddings:
             persistent = use_learned_positional_embeddings
-            pos_embedding = self._get_positional_embeddings(sample_height, sample_width, sample_frames)
+            pos_embedding = self._get_positional_embeddings(sample_height, sample_width, sample_frames, None)
             self.register_buffer("pos_embedding", pos_embedding, persistent=persistent)
 
-    def _get_positional_embeddings(self, sample_height: int, sample_width: int, sample_frames: int) -> torch.Tensor:
+    def _get_positional_embeddings(self, sample_height: int, sample_width: int, sample_frames: int, text_seq_length : int) -> torch.Tensor:
+        if text_seq_length is not None:
+            self.max_text_seq_length = text_seq_length
         post_patch_height = sample_height // self.patch_size
         post_patch_width = sample_width // self.patch_size
         post_time_compression_frames = (sample_frames - 1) // self.temporal_compression_ratio + 1
@@ -406,6 +408,7 @@ class CogVideoXPatchEmbed(nn.Module):
                 Input image embeddings. Expected shape: (batch_size, num_frames, channels, height, width).
         """
         text_embeds = self.text_proj(text_embeds)
+        text_seq_length = text_embeds.shape[1]
 
         batch, num_frames, channels, height, width = image_embeds.shape
         image_embeds = image_embeds.reshape(-1, channels, height, width)
@@ -418,6 +421,7 @@ class CogVideoXPatchEmbed(nn.Module):
             [text_embeds, image_embeds], dim=1
         ).contiguous()  # [batch, seq_length + num_frames x height x width, channels]
 
+        
         if self.use_positional_embeddings or self.use_learned_positional_embeddings:
             if self.use_learned_positional_embeddings and (self.sample_width != width or self.sample_height != height):
                 raise ValueError(
@@ -431,8 +435,8 @@ class CogVideoXPatchEmbed(nn.Module):
                 self.sample_height != height
                 or self.sample_width != width
                 or self.sample_frames != pre_time_compression_frames
-            ):
-                pos_embedding = self._get_positional_embeddings(height, width, pre_time_compression_frames)
+            ) or (text_seq_length != self.max_text_seq_length):
+                pos_embedding = self._get_positional_embeddings(height, width, pre_time_compression_frames, text_seq_length)
                 pos_embedding = pos_embedding.to(embeds.device, dtype=embeds.dtype)
             else:
                 pos_embedding = self.pos_embedding
