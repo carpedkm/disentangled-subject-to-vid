@@ -437,6 +437,7 @@ class CogVideoXPatchEmbed(nn.Module):
                 or self.sample_frames != pre_time_compression_frames
             ) or (text_seq_length != self.max_text_seq_length):
                 pos_embedding = self._get_positional_embeddings(height, width, pre_time_compression_frames, text_seq_length)
+                self.register_buffer("pos_embedding", pos_embedding)
                 pos_embedding = pos_embedding.to(embeds.device, dtype=embeds.dtype)
             else:
                 pos_embedding = self.pos_embedding
