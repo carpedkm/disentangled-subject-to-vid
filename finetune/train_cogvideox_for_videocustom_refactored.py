@@ -476,6 +476,11 @@ def get_args():
         action='store_true',
         help='Whether to use sub driven or not'
     )
+    parser.add_argument(
+        '--wo_bg',
+        action='store_true',
+        help='Whether to use without bg or not'
+    )
 
     return parser.parse_args()
 
@@ -553,6 +558,7 @@ class VideoDataset(Dataset):
         subset_cnt: int = -1,
         cross_pairs: bool = False,
         sub_driven: bool = False,
+        wo_bg : bool = False,
     ) -> None:
         super().__init__()
 
@@ -604,9 +610,14 @@ class VideoDataset(Dataset):
         full_video_ids = [video_id for video_id in full_video_ids if video_id in video_dict]
         self.instance_video_paths = [video_dict[video_id]['video_path'] for video_id in full_video_ids]
         self.instance_video_paths = [video.replace('/root/mnt/', '/mnt/') for video in self.instance_video_paths]
-        self.instance_prompts = [video_dict[video_id]['text'] for video_id in full_video_ids]
-        self.instance_prompt_dict = {str(video_id): video_dict[video_id]['text'] for video_id in full_video_ids}
-        self.val_instance_prompt_dict = {str(video_id):video_dict[video_id]['text'] for video_id in list(video_dict.keys())}
+        if wo_bg is True:
+            self.instance_prompts = [video_dict[video_id]['foreground_prompt'] for video_id in full_video_ids]
+            self.instance_prompt_dict = {str(video_id): video_dict[video_id]['foreground_prompt'] for video_id in full_video_ids}
+            self.val_instance_prompt_dict = {str(video_id):video_dict[video_id]['foreground_prompt'] for video_id in list(video_dict.keys())}
+        else:
+            self.instance_prompts = [video_dict[video_id]['text'] for video_id in full_video_ids]
+            self.instance_prompt_dict = {str(video_id): video_dict[video_id]['text'] for video_id in full_video_ids}
+            self.val_instance_prompt_dict = {str(video_id):video_dict[video_id]['text'] for video_id in list(video_dict.keys())}
         if cross_pairs is True:
             if sub_driven is True: 
             # /root/mnt/carpedkm_data/preprocessed_4k_with_foreground/foreground_objects -- [ID]_frame_[CNT]_obj[NO]_[OBJNAME].png
@@ -1712,6 +1723,7 @@ def main(args):
         subset_cnt=args.subset_cnt,
         cross_pairs=args.cross_pairs,
         sub_driven=args.sub_driven,
+        wo_bg=args.wo_bg,
     )
 
     def encode_video(video):
