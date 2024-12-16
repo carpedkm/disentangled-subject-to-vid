@@ -50,7 +50,7 @@ accelerate launch --config_file accelerate_config_machine_single_4gpu.yaml --mul
   --adam_beta2 0.95 \
   --max_grad_norm 1.0 \
   --allow_tf32 \
-  --subset_cnt 144 \
+  --subset_cnt 72 \
   --cross_pairs \
   --sub_driven \
   --report_to wandb 
