@@ -684,6 +684,7 @@ class VideoDataset(Dataset):
                         "instance_video": video,
                     }
             except Exception as e:
+                print('>> ERROR', e)
                 # change to other random video 
                 index = (index + 1) % self.num_instance_videos
 
