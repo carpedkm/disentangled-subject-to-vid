@@ -4,7 +4,7 @@ export MODEL_PATH="THUDM/CogVideoX-2b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/preprocessed_4k_updated/background_only_boxes"
 export ANNO_PATH="../annotation/video_dict_foreground_subset4000.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241215/finetune144_moviegen_wo_bg_cross_pairs_refactored_2b"
+export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241216/moviegen_wobg_fix_crosspairs_2b_144set"
 export VALIDATION_REF_PATH="./val_samples2/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
@@ -52,6 +52,7 @@ accelerate launch --config_file accelerate_config_machine_single_8gpu.yaml --mul
   --allow_tf32 \
   --subset_cnt 144 \
   --cross_pairs \
+  --wo_bg \
   --report_to wandb 
   # --validation_prompt "DISNEY A black and white animated scene unfolds with an anthropomorphic goat surrounded by musical notes and symbols, suggesting a playful environment. Mickey Mouse appears, leaning forward in curiosity as the goat remains still. The goat then engages with Mickey, who bends down to converse or react. The dynamics shift as Mickey grabs the goat, potentially in surprise or playfulness, amidst a minimalistic background. The scene captures the evolving relationship between the two characters in a whimsical, animated setting, emphasizing their interactions and emotions:::A panda, dressed in a small, red jacket and a tiny hat, sits on a wooden stool in a serene bamboo forest. The panda's fluffy paws strum a miniature acoustic guitar, producing soft, melodic tunes. Nearby, a few other pandas gather, watching curiously and some clapping in rhythm. Sunlight filters through the tall bamboo, casting a gentle glow on the scene. The panda's face is expressive, showing concentration and joy as it plays. The background includes a small, flowing stream and vibrant green foliage, enhancing the peaceful and magical atmosphere of this unique musical performance" \
   # --validation_prompt_separator ::: \
