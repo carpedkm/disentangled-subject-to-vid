@@ -620,6 +620,7 @@ class VideoDataset(Dataset):
             self.val_instance_prompt_dict = {str(video_id):video_dict[video_id]['text'] for video_id in list(video_dict.keys())}
         if cross_pairs is True:
             if sub_driven is True: 
+                print('>>>>> SUB DRIVEN')
             # /root/mnt/carpedkm_data/preprocessed_4k_with_foreground/foreground_objects -- [ID]_frame_[CNT]_obj[NO]_[OBJNAME].png
                 self.instance_ref_image_paths = []
                 # get the instance_ref_image_paths following prompt_dict and paths
