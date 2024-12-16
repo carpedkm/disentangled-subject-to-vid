@@ -2,7 +2,7 @@
 
 export MODEL_PATH="THUDM/CogVideoX-2b"
 export CACHE_PATH="~/.cache"
-export DATASET_PATH="/root/mnt/carpedkm_data/preprocessed_4k_with_foreground_bbox/foreground_objects"
+export DATASET_PATH="/mnt/carpedkm_data/preprocessed_4k_with_foreground_bbox/foreground_objects"
 export ANNO_PATH="../annotation/video_dict_foreground_subset4000.json"
 export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241216/moviegen_wobg_fix_crosspairs_2b_144set"
 export VALIDATION_REF_PATH="./val_samples2/"
