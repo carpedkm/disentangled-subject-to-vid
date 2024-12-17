@@ -8,7 +8,7 @@ deepspeed_config:
   offload_optimizer_device: none
   offload_param_device: none
   zero3_init_flag: true
-  zero_stage: 3
+  zero_stage: 2
 distributed_type: DEEPSPEED
 downcast_bf16: 'yes'
 enable_cpu_affinity: true
