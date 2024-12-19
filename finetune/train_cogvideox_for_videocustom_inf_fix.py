@@ -574,8 +574,8 @@ class VideoDataset(Dataset):
         file_list = os.listdir(ref_img_paths)
 
         ref_img_ids = [file.split('_')[0] for file in file_list] # IDs
-        if sub_driven is True:
-            subject_list = [{file.split('_')[0] : (int(file.split('_')[3].split('obj')[1].strip()), file.split('_')[4].split('.')[0].strip())} for file in file_list] # IDs for objs
+        # if sub_driven is True:
+        #     subject_list = [{file.split('_')[0] : (int(file.split('_')[3].split('obj')[1].strip()), file.split('_')[4].split('.')[0].strip())} for file in file_list] # IDs for objs
         orig_ref_img_ids = ref_img_ids
         ref_img_ids = ref_img_ids[:subset_cnt]
         self.num_instance_videos = len(ref_img_ids)
