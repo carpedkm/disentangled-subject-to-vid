@@ -1899,8 +1899,8 @@ def main(args):
         # update random seed
         # set_seed(args.seed + epoch)
         for step, batch in enumerate(train_dataloader):
-            # if epoch == first_epoch and step == 0:
-            #     break
+            if epoch == first_epoch and step == 0:
+                break
             # set_seed(args.seed + epoch)
             models_to_accumulate = [transformer]
 
