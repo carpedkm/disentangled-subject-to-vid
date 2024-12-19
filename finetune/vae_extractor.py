@@ -82,7 +82,7 @@ if __name__ == "__main__":
     # Example usage
     video_dir = "/mnt/carpedkm_data/pexels_8fps"
     vae_model_path = "THUDM/CogVideoX-5b"
-    output_dir = "/mnt/carpedkm_data/pexels_8fps_latents_80"
+    output_dir = "/mnt/carpedkm_data/pexels_8fps_latents_1600"
     csv_path = '/mnt/video_data/pexels/metadata/results_400k_train_rfcap_pexels_reformat_clean.csv'
     video_paths = [str(p) for p in Path(video_dir).glob("*.mp4")]
     # utilize the given csv file to filter out the videos in portrait aspect ratio
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         if Path(p).stem in path_aspect and path_aspect[Path(p).stem] > 1
     ]
     # Get 80 videos
-    video_paths = video_paths[:8000]
+    video_paths = video_paths[:1600]
     # Extract VAE latents
     extract_vae_latents(
         video_paths,
