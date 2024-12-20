@@ -31,7 +31,7 @@ accelerate launch --config_file accelerate_config_machine_single_4gpu.yaml --mul
   --height 480 \
   --width 720 \
   --fps 8 \
-  --max_num_frames 25 \
+  --max_num_frames 12 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
   --train_batch_size 6 \
