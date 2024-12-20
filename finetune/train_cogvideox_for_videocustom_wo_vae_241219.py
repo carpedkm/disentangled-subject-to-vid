@@ -1497,23 +1497,28 @@ def main(args):
             print(f"{name}: {param.size()}")
 
     ## ADCDITIONAL projection l
-    print("Loading CogVideoX VAE model")
-    vae = AutoencoderKLCogVideoX.from_pretrained(
-        args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision, variant=args.variant
-    )
+    if args.use_latent is True:
+        print("Not loading CogVideoX VAE model --> using VAE Latents directly!..")
+    else:
+        print("Loading CogVideoX VAE model")
+        vae = AutoencoderKLCogVideoX.from_pretrained(
+            args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision, variant=args.variant
+        )
+        if args.enable_slicing:
+            vae.enable_slicing()
+        if args.enable_tiling:
+            vae.enable_tiling()
+        vae.requires_grad_(False)
     print("Done - CogVideoX VAE model loaded")
     print("Loading CogVideoX Scheduler model")
     scheduler = CogVideoXDPMScheduler.from_pretrained(args.pretrained_model_name_or_path, subfolder="scheduler")
+    
 
-    if args.enable_slicing:
-        vae.enable_slicing()
-    if args.enable_tiling:
-        vae.enable_tiling()
 
     # We only train the additional adapter LoRA layers
     text_encoder.requires_grad_(False)
     transformer.requires_grad_(False)
-    vae.requires_grad_(False)
+    
     # Do Not Train CLIP text encoder
     clip_text_encoder.requires_grad_(False)
     # Train CLIP image encoder
@@ -1551,7 +1556,8 @@ def main(args):
 
     text_encoder.to(accelerator.device, dtype=weight_dtype)
     transformer.to(accelerator.device, dtype=weight_dtype)
-    vae.to(accelerator.device, dtype=weight_dtype)
+    if not args.use_latent:
+        vae.to(accelerator.device, dtype=weight_dtype)
 
     if args.gradient_checkpointing:
         transformer.enable_gradient_checkpointing()
@@ -1787,11 +1793,11 @@ def main(args):
         quick_poc_subset=args.quick_poc_subset,
     )
 
-    def encode_video(video):
-        video = video.to(accelerator.device, dtype=vae.dtype).unsqueeze(0)
-        video = video.permute(0, 2, 1, 3, 4)  # [B, C, F, H, W]
-        latent_dist = vae.encode(video).latent_dist
-        return latent_dist
+    # def encode_video(video):
+    #     video = video.to(accelerator.device, dtype=vae.dtype).unsqueeze(0)
+    #     video = video.permute(0, 2, 1, 3, 4)  # [B, C, F, H, W]
+    #     latent_dist = vae.encode(video).latent_dist
+    #     return latent_dist
 
     # train_dataset.instance_videos = [encode_video(video) for video in train_dataset.instance_videos]
 
@@ -1951,8 +1957,10 @@ def main(args):
         # Only show the progress bar once on each machine.
         disable=not accelerator.is_local_main_process,
     )
-    # if not args.use_latent:  
-    vae_scale_factor_spatial = 2 ** (len(vae.config.block_out_channels) - 1)
+    if not args.use_latent:  
+        vae_scale_factor_spatial = 2 ** (len(vae.config.block_out_channels) - 1)
+    else:
+        vae_scale_factor_spatial = 8 # 5B
 
     # For DeepSpeed training
     model_config = transformer.module.config if hasattr(transformer, "module") else transformer.config
@@ -1977,7 +1985,7 @@ def main(args):
                     model_input = latent_dist.sample() * vae.config.scaling_factor
                     model_input = model_input.permute(0, 2, 1, 3, 4)
                 else: # if use latent vectors directly loaded with pre-extracted numpy files
-                    latent_dist = videos * vae.config.scaling_factor
+                    latent_dist = videos * 0.7
                     model_input = latent_dist
                 
                 
