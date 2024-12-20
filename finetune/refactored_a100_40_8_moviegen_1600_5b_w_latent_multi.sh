@@ -4,7 +4,7 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/preprocessed_subset_200k"
 export ANNO_PATH="../annotation/video_dict_fullset400k.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241219/moviegen_5b_quick_encode_with_latent_test_1600"
+export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241219/moviegen_5b_quick_encode_with_latent_test_1600_49frames"
 export VALIDATION_REF_PATH="./val_samples3/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
@@ -31,10 +31,10 @@ accelerate launch --config_file accelerate_config_machine_multi.yaml --multi_gpu
   --height 480 \
   --width 720 \
   --fps 8 \
-  --max_num_frames 1 \
+  --max_num_frames 49 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 16 \
+  --train_batch_size 2 \
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
