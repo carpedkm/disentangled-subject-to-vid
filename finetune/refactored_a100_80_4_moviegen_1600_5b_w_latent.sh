@@ -37,7 +37,7 @@ accelerate launch --config_file accelerate_config_machine_single_4gpu.yaml --mul
   --train_batch_size 6 \
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
-  --gradient_accumulation_steps 1 \
+  --gradient_accumulation_steps 2 \
   --learning_rate 5e-5 \
   --lr_scheduler cosine_with_restarts \
   --lr_warmup_steps 200 \
