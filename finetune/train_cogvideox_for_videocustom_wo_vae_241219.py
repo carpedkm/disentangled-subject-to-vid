@@ -724,7 +724,7 @@ class VideoDataset(Dataset):
                         # Trim if the video has more frames
                         video = video[:max_frames]
                 else:
-                    video = torch.from_numpy(np.load(self.instance_latent_paths[index]))
+                    video = torch.from_numpy(np.load(self.instance_latent_paths[index])[:,:,:self.max_num_frames])
                         
                 if self.dataset_name == 'customization':
                     ref_image_path = self.instance_ref_image_paths[index]
@@ -1860,7 +1860,7 @@ def main(args):
         # collate_fn=collate_fn_with_args,
         collate_fn=collate_fn,
         num_workers=args.dataloader_num_workers,
-        prefetch_factor=2,
+        prefetch_factor=4,
     )
 
     # Scheduler and math around the number of training steps.
