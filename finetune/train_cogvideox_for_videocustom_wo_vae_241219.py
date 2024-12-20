@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple, Union, Dict, Optional, Any
 # from typing import List, Dict, Any, Optional
 
+import numpy as np
 import torch
 from torch.nn import init
 import transformers
@@ -481,7 +482,21 @@ def get_args():
         action='store_true',
         help='Whether to use without bg or not'
     )
-
+    parser.add_argument(
+        '--use_latent',
+        action='store_true',
+        help='Whether to use latent directly loaded'
+    )
+    parser.add_argument(
+        '--latent_data_root',
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        '--quick_poc_subset',
+        action='store_true',
+        help='Whether to use quick poc subset or not'
+    )
     return parser.parse_args()
 
 
@@ -558,10 +573,13 @@ class VideoDataset(Dataset):
         subset_cnt: int = -1,
         cross_pairs: bool = False,
         sub_driven: bool = False,
+        latent_data_root: str = None,
+        use_latent: bool = False,
         wo_bg : bool = False,
+        quick_poc_subset: bool = False,
     ) -> None:
         super().__init__()
-
+        self.use_latent = use_latent
         self.instance_data_root = Path(instance_data_root) if instance_data_root is not None else None
         self.dataset_name = dataset_name
         self.dataset_config_name = dataset_config_name
@@ -577,8 +595,35 @@ class VideoDataset(Dataset):
         self.cache_dir = cache_dir
         self.id_token = id_token or ""
         ref_img_paths = self.instance_data_root #FIXME
-        
-        file_list = os.listdir(ref_img_paths)
+        ref_img_paths = str(ref_img_paths)
+        if quick_poc_subset:
+            ## due to partial encoded vae latents, we need to get the paths of the reference images separately
+            part1_ref_img_paths = os.path.join(ref_img_paths + '_part1_t2vgusw2', 'background_only_boxes')
+            part2_ref_img_paths = os.path.join(ref_img_paths + '_part2_t2vgusw2', 'background_only_boxes')
+            
+            file_list = os.listdir(part1_ref_img_paths)
+            f_list_for_ids_1 = file_list.copy()
+            file_list_full = [os.path.join(part1_ref_img_paths, file) for file in file_list]
+            file_list2 = os.listdir(part2_ref_img_paths)
+            f_list_for_ids_2 = file_list2.copy()
+            file_list_full2 = [os.path.join(part2_ref_img_paths, file) for file in file_list2]
+            file_list_full.extend(file_list_full2)
+            # get dict of video_id : path
+            poc_video_id_path = {}
+            for file in file_list_full:
+                video_id = file.split('/')[-1].split('_')[0]
+                poc_video_id_path[video_id] = file
+            
+            file_list = f_list_for_ids_1 + f_list_for_ids_2
+            
+            ## filter out with the videos existing only
+            video_id_listing_temp = os.listdir(latent_data_root)
+            video_id_listing = [video_id.split('_')[0] for video_id in video_id_listing_temp]
+            
+            ## filter file_list
+            file_list = [file for file in file_list if file.split('_')[0] in video_id_listing]
+        else:
+            file_list = os.listdir(ref_img_paths)
 
         ref_img_ids = [file.split('_')[0] for file in file_list] # IDs there can be multiple (redundant) ids
         ref_img_id_as_dict = {} # ID : [path1, path2, ...]
@@ -608,8 +653,12 @@ class VideoDataset(Dataset):
         with open(anno_path, 'r') as f:
             video_dict = json.load(f)
         full_video_ids = [video_id for video_id in full_video_ids if video_id in video_dict]
-        self.instance_video_paths = [video_dict[video_id]['video_path'] for video_id in full_video_ids]
-        self.instance_video_paths = [video.replace('/root/mnt/', '/mnt/') for video in self.instance_video_paths]
+        if not use_latent:
+            self.instance_video_paths = [video_dict[video_id]['video_path'] for video_id in full_video_ids]
+            self.instance_video_paths = [video.replace('/root/mnt/', '/mnt/') for video in self.instance_video_paths]
+        else:
+            self.instance_latent_paths = [os.path.join(latent_data_root, f"{video_id}_vae_latents.npy") for video_id in full_video_ids]
+            
         if wo_bg is True:
             self.instance_prompts = [video_dict[video_id]['foreground_prompt'] for video_id in full_video_ids]
             self.instance_prompt_dict = {str(video_id): video_dict[video_id]['foreground_prompt'] for video_id in full_video_ids}
@@ -642,7 +691,11 @@ class VideoDataset(Dataset):
                     for cnt_idx in range(1, video_id_cnt[video_id] + 1):
                         self.instance_ref_image_paths.append(os.path.join(ref_img_paths, f"{video_id}_frame_{cnt_idx}_background_boxes.jpg"))
         else:
-            self.instance_ref_image_paths = [os.path.join(ref_img_paths, f"{video_id}_background_boxes.jpg") for video_id in full_video_ids]
+            if not quick_poc_subset:
+                self.instance_ref_image_paths = [os.path.join(ref_img_paths, f"{video_id}_background_boxes.jpg") for video_id in full_video_ids]
+            else:
+                self.instance_ref_image_paths = [poc_video_id_path[video_id] for video_id in full_video_ids]
+                
 
         self.train_transforms = transforms.Compose(
             [transforms.Lambda(lambda x: x / 255.0 * 2.0 - 1.0)]
@@ -655,20 +708,23 @@ class VideoDataset(Dataset):
         while True:
             try:
                 prompt = self.id_token + self.instance_prompts[index]
-                video_path = self.instance_video_paths[index]
-
+                
                 # Process the video
-                video = self._process_single_video(video_path, self.train_transforms)
-                # Ensure all videos have the same number of frames
-                max_frames = self.max_num_frames
-                num_frames = video.shape[0]
-                if num_frames < max_frames:
-                    # Pad with zeros if the video has fewer frames
-                    padding = torch.zeros((max_frames - num_frames, *video.shape[1:]), dtype=video.dtype)
-                    video = torch.cat([video, padding], dim=0)
-                elif num_frames > max_frames:
-                    # Trim if the video has more frames
-                    video = video[:max_frames]
+                if not self.use_latent:
+                    video_path = self.instance_video_paths[index]
+                    video = self._process_single_video(video_path, self.train_transforms)
+                    # Ensure all videos have the same number of frames
+                    max_frames = self.max_num_frames
+                    num_frames = video.shape[0]
+                    if num_frames < max_frames:
+                        # Pad with zeros if the video has fewer frames
+                        padding = torch.zeros((max_frames - num_frames, *video.shape[1:]), dtype=video.dtype)
+                        video = torch.cat([video, padding], dim=0)
+                    elif num_frames > max_frames:
+                        # Trim if the video has more frames
+                        video = video[:max_frames]
+                else:
+                    video = torch.from_numpy(np.load(self.instance_latent_paths[index]))
                         
                 if self.dataset_name == 'customization':
                     ref_image_path = self.instance_ref_image_paths[index]
@@ -1726,6 +1782,9 @@ def main(args):
         cross_pairs=args.cross_pairs,
         sub_driven=args.sub_driven,
         wo_bg=args.wo_bg,
+        use_latent=args.use_latent,
+        latent_data_root=args.latent_data_root,
+        quick_poc_subset=args.quick_poc_subset,
     )
 
     def encode_video(video):
@@ -1771,7 +1830,10 @@ def main(args):
             ref_images = None
 
         # Stack the videos
-        videos = torch.stack(videos)
+        if args.use_latent:
+            videos = torch.cat(videos, dim=0)
+        else:
+            videos = torch.stack(videos)
         videos = videos.to(memory_format=torch.contiguous_format).float()
 
         batch = {
@@ -1889,6 +1951,7 @@ def main(args):
         # Only show the progress bar once on each machine.
         disable=not accelerator.is_local_main_process,
     )
+    # if not args.use_latent:  
     vae_scale_factor_spatial = 2 ** (len(vae.config.block_out_channels) - 1)
 
     # For DeepSpeed training
@@ -1907,11 +1970,16 @@ def main(args):
             with accelerator.accumulate(models_to_accumulate):
                 videos = batch["videos"].to(accelerator.device, dtype=vae.dtype)
                 videos = videos.permute(0, 2, 1, 3, 4).to(dtype=weight_dtype)  # [B, F, C, H, W]
-                vae.eval()
-                with torch.no_grad():
-                    latent_dist = vae.encode(videos).latent_dist
-                model_input = latent_dist.sample() * vae.config.scaling_factor
-                model_input = model_input.permute(0, 2, 1, 3, 4)
+                if not args.use_latent: # if use videos directly in end-to-end manner
+                    vae.eval()
+                    with torch.no_grad():
+                        latent_dist = vae.encode(videos).latent_dist
+                    model_input = latent_dist.sample() * vae.config.scaling_factor
+                    model_input = model_input.permute(0, 2, 1, 3, 4)
+                else: # if use latent vectors directly loaded with pre-extracted numpy files
+                    latent_dist = videos * vae.config.scaling_factor
+                    model_input = latent_dist
+                
                 
                 prompts = batch["prompts"]
                 if train_dataset.dataset_name == 'customization':
