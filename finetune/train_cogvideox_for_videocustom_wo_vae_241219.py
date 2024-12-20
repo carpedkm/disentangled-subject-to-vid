@@ -980,7 +980,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height,
                 'width': args.width,
-                'num_frames': args.max_num_frames,
+                'num_frames': 49, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
@@ -2123,6 +2123,15 @@ def main(args):
                 # epoch = 1
             if args.validation_prompt is not None and (epoch + 1) % args.validation_epochs == 0:
                 # Create pipeline
+                vae = AutoencoderKLCogVideoX.from_pretrained(
+                        args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision, variant=args.variant
+                    )
+                if args.enable_slicing:
+                    vae.enable_slicing()
+                if args.enable_tiling:
+                    vae.enable_tiling()
+                vae.requires_grad_(False)
+                vae.to(accelerator.device, dtype=weight_dtype)
                 pipe = CustomCogVideoXPipeline.from_pretrained(
                     args.pretrained_model_name_or_path,
                     transformer=unwrap_model(transformer),
