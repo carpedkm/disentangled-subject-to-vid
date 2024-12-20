@@ -1509,7 +1509,7 @@ def main(args):
         if args.enable_tiling:
             vae.enable_tiling()
         vae.requires_grad_(False)
-    print("Done - CogVideoX VAE model loaded")
+        print("Done - CogVideoX VAE model loaded")
     print("Loading CogVideoX Scheduler model")
     scheduler = CogVideoXDPMScheduler.from_pretrained(args.pretrained_model_name_or_path, subfolder="scheduler")
     
@@ -1976,7 +1976,8 @@ def main(args):
             models_to_accumulate = [transformer]
 
             with accelerator.accumulate(models_to_accumulate):
-                videos = batch["videos"].to(accelerator.device, dtype=vae.dtype)
+                # videos = batch["videos"].to(accelerator.device, dtype=vae.dtype)
+                videos = batch["videos"].to(accelerator.device, dtype=weight_dtype)
                 videos = videos.permute(0, 2, 1, 3, 4).to(dtype=weight_dtype)  # [B, F, C, H, W]
                 if not args.use_latent: # if use videos directly in end-to-end manner
                     vae.eval()

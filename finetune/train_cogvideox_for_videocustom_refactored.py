@@ -1905,7 +1905,8 @@ def main(args):
             models_to_accumulate = [transformer]
 
             with accelerator.accumulate(models_to_accumulate):
-                videos = batch["videos"].to(accelerator.device, dtype=vae.dtype)
+                # videos = batch["videos"].to(accelerator.device, dtype=vae.dtype)
+                videos = batch["videos"].to(accelerator.device, dtype=weight_dtype)
                 videos = videos.permute(0, 2, 1, 3, 4).to(dtype=weight_dtype)  # [B, F, C, H, W]
                 vae.eval()
                 with torch.no_grad():
