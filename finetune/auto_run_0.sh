@@ -8,7 +8,9 @@ while true; do
     if [ "$PROCESS_COUNT" -gt 0 ]; then
         echo "No GPU processes found. Running abc.sh..."
         # Run abc.sh script
-        bash refactored_a100_40_8_controlnet_wobg_crosspairs_144_2b.sh
+        bash refactored_a100_40_8_moviegen_1600_5b_w_latent_multi24.sh 0
+        echo "Script executed. Exiting..."
+        exit 0  # Exit the loop and script after running
     else
         echo "GPU is in use. Checking again in 30 seconds..."
     fi
