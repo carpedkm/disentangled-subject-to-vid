@@ -53,6 +53,7 @@ accelerate launch --config_file accelerate_config_machine_single_4gpu.yaml --mul
   --t5_first \
   --zero_conv_add \
   --cross_pairs \
+  --wo_bg \
   --use_latent \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --quick_poc_subset \
