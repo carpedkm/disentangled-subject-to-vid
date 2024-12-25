@@ -4,7 +4,7 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/preprocessed_4k_updated/background_only_boxes"
 export ANNO_PATH="../annotation/video_dict_foreground_subset4000.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241223/compare_controlnet_5b_w_latent_4000_xpairs_wobg"
+export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241223/compare_controlnet_5b_w_latent_4000_xpairs_wobg_single_frame"
 export VALIDATION_REF_PATH="./val_samples4/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3
@@ -31,10 +31,10 @@ accelerate launch --config_file accelerate_config_machine_single_4gpu.yaml --mul
   --height 480 \
   --width 720 \
   --fps 8 \
-  --max_num_frames 49 \
+  --max_num_frames 1 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 6 \
+  --train_batch_size 64 \
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
@@ -55,9 +55,9 @@ accelerate launch --config_file accelerate_config_machine_single_4gpu.yaml --mul
   --cross_pairs \
   --wo_bg \
   --use_latent \
-  --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents \
+  --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
-  --resume_from_checkpoint /mnt/carpedkm_data/finetune_result/241223/compare_controlnet_5b_w_latent_4000_xpairs_wobg/checkpoint-7250 \
+  --resume_from_checkpoint /mnt/carpedkm_data/finetune_result/241223/compare_controlnet_5b_w_latent_4000_xpairs_wobg_single_frame/checkpoint-500 \
   --inference
   # --validation_prompt "DISNEY A black and white animated scene unfolds with an anthropomorphic goat surrounded by musical notes and symbols, suggesting a playful environment. Mickey Mouse appears, leaning forward in curiosity as the goat remains still. The goat then engages with Mickey, who bends down to converse or react. The dynamics shift as Mickey grabs the goat, potentially in surprise or playfulness, amidst a minimalistic background. The scene captures the evolving relationship between the two characters in a whimsical, animated setting, emphasizing their interactions and emotions:::A panda, dressed in a small, red jacket and a tiny hat, sits on a wooden stool in a serene bamboo forest. The panda's fluffy paws strum a miniature acoustic guitar, producing soft, melodic tunes. Nearby, a few other pandas gather, watching curiously and some clapping in rhythm. Sunlight filters through the tall bamboo, casting a gentle glow on the scene. The panda's face is expressive, showing concentration and joy as it plays. The background includes a small, flowing stream and vibrant green foliage, enhancing the peaceful and magical atmosphere of this unique musical performance" \
   # --validation_prompt_separator ::: \

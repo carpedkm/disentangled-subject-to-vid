@@ -26,6 +26,7 @@ import numpy as np
 import torch
 from torch.nn import init
 import transformers
+import random
 
 from accelerate import Accelerator
 from accelerate.logging import get_logger
@@ -1854,7 +1855,10 @@ def main(args):
         if ref_images is not None:
             batch["ref_images"] = ref_images
         return batch
-
+    def worker_init_fn(worker_id):
+        seed = torch.initial_seed() % 2**32
+        np.random.seed(seed)
+        random.seed(seed)
     
     # collate_fn_with_args = partial(collate_fn, vae=vae, accelerator=accelerator)
 
@@ -1866,6 +1870,7 @@ def main(args):
         collate_fn=collate_fn,
         num_workers=args.dataloader_num_workers,
         prefetch_factor=4,
+        worker_init_fn=worker_init_fn,
     )
 
     # Scheduler and math around the number of training steps.
@@ -2184,6 +2189,7 @@ def main(args):
             break
     if args.inference:
         # exit program
+        import sys
         sys.exit(0)
 
 
