@@ -597,6 +597,8 @@ class ImageDataset(Dataset):
         self.instance_prompts = []
         self.id_token = id_token or ""
         
+        self.prefix = "Static Video, Non-dynamic, Non-moving, Stopped video."
+        
         self.instance_left_pixel_root = os.path.join(str(self.instance_data_root), 'left_images')
         self.instance_right_pixel_root = os.path.join(str(self.instance_data_root), 'right_images')
         self.dataset_name = dataset_name
@@ -626,7 +628,7 @@ class ImageDataset(Dataset):
         
         assert set(left_ids) == set(right_ids) # what about now? -> same ids in both left and right 
         ids = left_ids
-        self.ids = ids[:384]
+        self.ids = ids
         self.len_dataset = len(self.ids)
                 
         self.instance_left_pixel_root_map_with_id = {}
@@ -656,8 +658,8 @@ class ImageDataset(Dataset):
             meta_path = os.path.join(self.anno_path, f'meta_{id}.json')
             with open(meta_path, 'r') as f:
                 meta = json.load(f)
-            self.instance_prompts_0[id] = meta['description_0']
-            self.instance_prompts_1[id] = meta['description_1']
+            self.instance_prompts_0[id] = self.prefix + meta['description_0']
+            self.instance_prompts_1[id] = self.prefix + meta['description_1']
 
         
     def __getitem__(self, index):
