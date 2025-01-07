@@ -649,7 +649,7 @@ class ImageDataset(Dataset):
             self.instance_right_latent_root_map_with_id[id] = os.path.join(self.instance_right_latent_root, f'right_{id}_vae_latents.npy')
         
         
-        self.anno_path = os.path.join(str(self.instance_data_root), 'metadata_update_refined')
+        self.anno_path = os.path.join(str(self.instance_data_root), 'metadata_update_refined_with_prefix')
         self.instance_prompts_0 = {}
         self.instance_prompts_1 = {}
         
@@ -658,8 +658,8 @@ class ImageDataset(Dataset):
             meta_path = os.path.join(self.anno_path, f'meta_{id}.json')
             with open(meta_path, 'r') as f:
                 meta = json.load(f)
-            self.instance_prompts_0[id] = self.prefix + meta['description_0_refined']
-            self.instance_prompts_1[id] = self.prefix + meta['description_1_refined']
+            self.instance_prompts_0[id] = meta['description_0_refined_with_prefix'] # + self.prefix
+            self.instance_prompts_1[id] = meta['description_1_refined_with_prefix']
 
         
     def __getitem__(self, index):

@@ -96,23 +96,23 @@ def process_json_file(json_file_path, output_file_path):
         meta_dict = json.load(f)
     
     object_ = meta_dict['item']
-    description_0 = meta_dict['description_0']
-    description_1 = meta_dict['description_1']
+    description_0 = meta_dict['description_0_refined']
+    description_1 = meta_dict['description_1_refined']
     
     # Prepare the text for GPT
     refined_text0 = refine_prompt_with_retry(description_0, object_, retries=3)
     refined_text1 = refine_prompt_with_retry(description_1, object_, retries=3)
 
-    meta_dict["description_0_refined"] = refined_text0
-    meta_dict["description_1_refined"] = refined_text1
+    meta_dict["description_0_refined_with_prefix"] = refined_text0
+    meta_dict["description_1_refined_with_prefix"] = refined_text1
 
     with open(output_file_path, "w") as f:
         json.dump(meta_dict, f, indent=4)
 
 
 # Paths to input and output JSON files
-input_json_path = "/root/daneul/projects/refactored/CogVideo/output/metadata_updated"
-output_json_path = "/root/daneul/projects/refactored/CogVideo/output/metadata_update_refined/"
+input_json_path = "/root/daneul/projects/omini200k/metadata_update_refined"
+output_json_path = "/root/daneul/projects/omini200k/metadata_update_refined_with_prefix/"
 
 os.makedirs(output_json_path, exist_ok=True)
 # Process the JSON file
