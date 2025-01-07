@@ -30,3 +30,10 @@ wandb/
 annotation/
 
 *.parquet
+output/
+kosmosg_checkpoints/
+cache/
+
+finetune/finetun_4k_filtered_samples_vanilla_state_2b/
+
+*.pdf
