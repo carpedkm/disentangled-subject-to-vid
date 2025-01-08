@@ -1684,7 +1684,7 @@ def main(args):
     train_dataset = ImageDataset(
         instance_data_root=args.instance_data_root,
         dataset_name=args.dataset_name,
-        # anno_path=args.anno_root,
+        anno_path=args.anno_root,
         # dataset_name=args.dataset_name,
         # dataset_config_name=args.dataset_config_name,
         # caption_column=args.caption_column,
