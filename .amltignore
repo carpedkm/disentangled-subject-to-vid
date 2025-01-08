@@ -1,1 +1,3 @@
 output/
+result_check_200k_512x512_embedding/
+metadata_update_refined_with_prefix/
