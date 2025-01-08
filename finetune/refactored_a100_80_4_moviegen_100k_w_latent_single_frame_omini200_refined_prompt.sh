@@ -3,10 +3,10 @@
 export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k"
-export ANNO_PATH="../metadata_update_refined_with_prefix/"
+export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
 # export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241223/compare_controlnet_5b_w_latent_4000_xpairs_wobg_single_frame"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250107/result_check_200k_512x512_embedding_updated_prompt_with_prefix"
-export VALIDATION_REF_PATH="./val_samples2/"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250108/result_check_100k_512x512_embedding_refined_prompt_without_subject_moviegenstyle"
+export VALIDATION_REF_PATH="./val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
@@ -21,7 +21,7 @@ accelerate launch --config_file accelerate_config_machine_multi.yaml --multi_gpu
   --enable_slicing \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
-  --validation_epochs 1 \
+  --validation_epochs 5 \
   --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
@@ -52,9 +52,6 @@ accelerate launch --config_file accelerate_config_machine_multi.yaml --multi_gpu
   --max_grad_norm 1.0 \
   --allow_tf32 \
   --t5_first \
-  --zero_conv_add \
-  --cross_pairs \
-  --wo_bg \
   --use_latent \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb 

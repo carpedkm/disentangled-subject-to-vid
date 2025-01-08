@@ -593,7 +593,10 @@ class ImageDataset(Dataset):
         
         self.height = height
         self.width = width
-        self.val_instance_prompt_dict = {'854179':"two dogs running around", '2867756':"a bike with man riding, view from far away"}
+        self.val_instance_prompt_dict = {'oranges_omini':"A close up view of this item. It is placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+                                         'clock_omini':"In a Bauhaus style room, this item is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+                                         'rc_car_omini': "A film style shot. On the moon, this item drives across the moon surface. The background is that Earth looms large in the foreground.",
+                                         'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing this shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple."}
         self.instance_prompts = []
         self.id_token = id_token or ""
         
@@ -628,7 +631,7 @@ class ImageDataset(Dataset):
         
         assert set(left_ids) == set(right_ids) # what about now? -> same ids in both left and right 
         ids = left_ids
-        self.ids = ids
+        self.ids = ids[:100000]
         self.len_dataset = len(self.ids)
                 
         self.instance_left_pixel_root_map_with_id = {}
@@ -649,17 +652,24 @@ class ImageDataset(Dataset):
             self.instance_right_latent_root_map_with_id[id] = os.path.join(self.instance_right_latent_root, f'right_{id}_vae_latents.npy')
         
         
-        self.anno_path = os.path.join(str(self.instance_data_root), 'metadata_update_refined_with_prefix')
+        # self.anno_path = os.path.join(str(self.instance_data_root), 'metadata')
+        self.anno_path = anno_path
         self.instance_prompts_0 = {}
         self.instance_prompts_1 = {}
         
         print("LOADING METADATA")
+        # for id in tqdm(self.ids):
+        #     meta_path = os.path.join(self.anno_path, f'meta_{id}.json')
+        #     with open(meta_path, 'r') as f:
+        #         meta = json.load(f)
+        #     self.instance_prompts_0[id] = self.prefix + meta['description_0']
+        #     self.instance_prompts_1[id] = self.prefix + meta['description_1']
+        with open(self.anno_path, 'r') as f:
+            metadata = json.load(f)
         for id in tqdm(self.ids):
-            meta_path = os.path.join(self.anno_path, f'meta_{id}.json')
-            with open(meta_path, 'r') as f:
-                meta = json.load(f)
-            self.instance_prompts_0[id] = meta['description_0_refined_with_prefix'] # + self.prefix
-            self.instance_prompts_1[id] = meta['description_1_refined_with_prefix']
+            meta = metadata[str(id)]
+            self.instance_prompts_0[id] = meta['description_0_refined']
+            self.instance_prompts_1[id] = meta['description_1_refined']
 
         
     def __getitem__(self, index):
@@ -1877,8 +1887,8 @@ def main(args):
         # update random seed
         # set_seed(args.seed + epoch)
         for step, batch in enumerate(train_dataloader):
-            # if epoch == first_epoch and step == 0:
-            #     break
+            if epoch == first_epoch and step == 0:
+                break
             # set_seed(args.seed + epoch)
             models_to_accumulate = [transformer]
 
@@ -2059,7 +2069,7 @@ def main(args):
                 val_len = len(os.listdir(args.validation_reference_image))
                 for i in range(val_len):
                     validation_ref_img = os.path.join(args.validation_reference_image, os.listdir(args.validation_reference_image)[i])
-                    vid_id = os.listdir(args.validation_reference_image)[i].split('_')[0]
+                    vid_id = os.listdir(args.validation_reference_image)[i].split('.')[0]
                     validation_prompt = train_dataset.val_instance_prompt_dict[vid_id]
                     pipeline_args = {
                         "prompt": validation_prompt,

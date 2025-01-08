@@ -52,9 +52,6 @@ accelerate launch --config_file accelerate_config_machine_multi.yaml --multi_gpu
   --max_grad_norm 1.0 \
   --allow_tf32 \
   --t5_first \
-  --zero_conv_add \
-  --cross_pairs \
-  --wo_bg \
   --use_latent \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb 
