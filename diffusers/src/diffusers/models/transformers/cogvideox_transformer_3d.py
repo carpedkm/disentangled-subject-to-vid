@@ -528,10 +528,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             else:
                 enc_hidden_states0 = encoder_hidden_states
                 enc_hidden_states1 = ref_img_states
-                # enc_hidden_states2 = 
-                if eval:
-                    enc_hidden_states1 = torch.cat([enc_hidden_states1, enc_hidden_states1], dim=0)
-                encoder_hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1], dim=1)
+                
         else:
             # encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
             pass
@@ -564,12 +561,33 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         emb = self.time_embedding(t_emb, timestep_cond)
 
         # 2. Patch embedding
+        if vae_add:
+            enc_hidden_states0 = self.patch_embed.text_proj(enc_hidden_states0)
+            # text_seq_length = enc_hidden_states0.shape[1]
+            b_1, nf_1, c_1, h_1, w_1 = enc_hidden_states1.shape
+            enc_hidden_states1 = enc_hidden_states1.reshape(-1, c_1, h_1, w_1)
+            enc_hidden_states1 = self.patch_embed.proj(enc_hidden_states1)
+            enc_hidden_states1 = enc_hidden_states1.view(b_1, nf_1, *enc_hidden_states1.shape[1:])
+            enc_hidden_states1 = enc_hidden_states1.flatten(3).transpose(2, 3)  # [batch, num_frames, height x width, channels]
+            enc_hidden_states1 = enc_hidden_states1.flatten(1, 2)  # [batch, num_frames x height x width, channels]
+            
+            encoder_hidden_states_temp = torch.cat([enc_hidden_states0, enc_hidden_states1], dim=1)
+        
         hidden_states = self.patch_embed(encoder_hidden_states, hidden_states)
         hidden_states = self.embedding_dropout(hidden_states)
 
-        text_seq_length = encoder_hidden_states.shape[1]
-        encoder_hidden_states = hidden_states[:, :text_seq_length]
+        
+        if not vae_add:
+            text_seq_length = encoder_hidden_states.shape[1]
+            encoder_hidden_states = hidden_states[:, :text_seq_length]
+        else:
+            text_seq_length = encoder_hidden_states.shape[1] # to handle the hidden_states after
+            text_seq_length_temp = encoder_hidden_states_temp.shape[1]
+            encoder_hidden_states = encoder_hidden_states_temp # replace the encoder_hidden_states with the concatenated tensor
+            
         hidden_states = hidden_states[:, text_seq_length:]
+        if vae_add:
+            text_seq_length = text_seq_length_temp
 
         # 3. Transformer blocks
         for i, block in enumerate(self.transformer_blocks):
