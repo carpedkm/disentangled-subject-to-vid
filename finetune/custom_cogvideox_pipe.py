@@ -26,6 +26,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         clip_tokenizer=None,
         clip_text_encoder=None,
         customization=False,
+        vae_add=False,
     ):
         # Call the base class __init__ without the 'customization' argument
         super().__init__(tokenizer, text_encoder, vae, transformer, scheduler)
@@ -42,9 +43,10 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                 self.clip_text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch16")
             else:
                 self.clip_text_encoder = clip_text_encoder
-
             # Move CLIP text encoder to the same device as text_encoder
             self.clip_text_encoder.to(self.text_encoder.device)
+
+
     
     def _get_clip_prompt_embeds(
         self,
@@ -272,6 +274,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         reduce_token: bool = False,
         add_token: bool = False,
         zero_conv_add: bool = False,
+        vae_add: bool = False,
     ) -> Union[CogVideoXPipelineOutput, Tuple]:
         if num_frames > 49:
             raise ValueError(
@@ -394,6 +397,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     reduce_token=reduce_token,
                     add_token=add_token,
                     zero_conv_add=zero_conv_add,
+                    vae_add=vae_add,
                 )[0]
                 noise_pred = noise_pred.float()
 
