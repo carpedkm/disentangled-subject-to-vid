@@ -570,7 +570,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             enc_hidden_states1 = enc_hidden_states1.view(b_1, nf_1, *enc_hidden_states1.shape[1:])
             enc_hidden_states1 = enc_hidden_states1.flatten(3).transpose(2, 3)  # [batch, num_frames, height x width, channels]
             enc_hidden_states1 = enc_hidden_states1.flatten(1, 2)  # [batch, num_frames x height x width, channels]
-            
+            if eval:
+                enc_hidden_states1 = torch.cat([enc_hidden_states1, enc_hidden_states1], dim=0)
             encoder_hidden_states_temp = torch.cat([enc_hidden_states0, enc_hidden_states1], dim=1)
         
         hidden_states = self.patch_embed(encoder_hidden_states, hidden_states)
