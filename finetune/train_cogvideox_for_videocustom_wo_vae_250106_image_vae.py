@@ -648,7 +648,7 @@ class ImageDataset(Dataset):
         
         assert set(left_ids) == set(right_ids) # what about now? -> same ids in both left and right 
         ids = left_ids
-        self.ids = ids[:100000]
+        self.ids = ids
         self.len_dataset = len(self.ids)
                 
         self.instance_left_pixel_root_map_with_id = {}
