@@ -520,6 +520,11 @@ def get_args():
         action='store_true',
         help='Whether to use vae latent of reference image directly or not'
     )
+    parser.add_argument(
+        '--load_to_ram',
+        action='store_true',
+        help='Whether to load the dataset to RAM or not'
+    )
     return parser.parse_args()
 
 
@@ -592,8 +597,10 @@ class ImageDataset(Dataset):
         use_latent: bool = False,
         wo_bg : bool = False,
         vae_add : bool = False,
+        load_to_ram : bool = False,
     ) -> None:
         super().__init__()
+        print('Data loader init')
         self.vae_add = vae_add
         self.use_latent = use_latent
         self.instance_data_root = Path(instance_data_root) if instance_data_root is not None else None
@@ -613,11 +620,14 @@ class ImageDataset(Dataset):
         self.instance_right_pixel_root = os.path.join(str(self.instance_data_root), 'right_images')
         self.dataset_name = dataset_name
         
+        self.load_to_ram = load_to_ram
+        
+        print('Get list for image IDs')
         left_ids = os.listdir(self.instance_left_pixel_root)
-        left_ids = [int(id.split('_')[1].split('.')[0]) for id in left_ids]
+        left_ids = [int(id.split('_')[1].split('.')[0]) for id in tqdm(left_ids)]
         
         right_ids = os.listdir(self.instance_right_pixel_root)
-        right_ids = [int(id.split('_')[1].split('.')[0]) for id in right_ids]
+        right_ids = [int(id.split('_')[1].split('.')[0]) for id in tqdm(right_ids)]
         
         # check if there exists non-existing ids in right_ids
         print("CHECKING MISSING IDS")
@@ -677,6 +687,15 @@ class ImageDataset(Dataset):
             meta = metadata[str(id)]
             self.instance_prompts_0[id] = meta['description_0_refined']
             self.instance_prompts_1[id] = meta['description_1_refined']
+        
+        if self.load_to_ram is True:
+                self.instance_left_latent_root_map_with_id = {}
+                self.instance_right_latent_root_map_with_id = {}
+                print("LOAD INTO RAM")
+                for id in tqdm(self.ids):
+                    self.instance_left_latent_root_map_with_id[id] = np.load(os.path.join(self.instance_left_latent_root, f'left_{id}_vae_latents.npy'))
+                    self.instance_right_latent_root_map_with_id[id] = np.load(os.path.join(self.instance_right_latent_root, f'right_{id}_vae_latents.npy'))
+        
 
         
     def __getitem__(self, index):
@@ -685,24 +704,38 @@ class ImageDataset(Dataset):
             index = self.ids[index % self.len_dataset]
             # print(index)
             try:
-                if target == 0: # left : condition / right : target
-                    prompt = self.id_token + self.instance_prompts_1[index]
-                    if self.vae_add :
-                        image = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
-                    else:
-                        image = self._process_single_ref_image(self.instance_left_pixel_root_map_with_id[index])
-                    # image = image.unsqueeze(0) # deal it as single-frame video
-                    latent = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index])) # already expanded //// expand to deal it as single frame video of shape [seq_len, height, width , 3] of seq_len = 1
-                    # latent = latent.unsqueeze(0)
-                else: # left : target / right : condition
-                    prompt = self.id_token + self.instance_prompts_0[index]
-                    if self.vae_add:
-                        image = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index]))
-                    else:
-                        image = self._process_single_ref_image(self.instance_right_pixel_root_map_with_id[index])
-                    # image = image.unsqueeze(0) # deal it as single-frame video
+                if not self.load_to_ram:
+                    if target == 0: # left : condition / right : target
+                        prompt = self.id_token + self.instance_prompts_1[index]
+                        if self.vae_add :
+                            if not self.load_to_ram:
+                                image = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
+                            else:
+                                image = torch.from_numpy(self.instance_left_latent_root_map_with_id[index])
+                        else:
+                            image = self._process_single_ref_image(self.instance_left_pixel_root_map_with_id[index])
+                        # image = image.unsqueeze(0) # deal it as single-frame video
+                        if not self.load_to_ram:
+                            latent = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index])) # already expanded //// expand to deal it as single frame video of shape [seq_len, height, width , 3] of seq_len = 1
+                        else:
+                            latent = torch.from_numpy(self.instance_right_latent_root_map_with_id[index])
+                        # latent = latent.unsqueeze(0)
+                    else: # left : target / right : condition
+                        prompt = self.id_token + self.instance_prompts_0[index]
+                        if self.vae_add:
+                            if not self.load_to_ram:
+                                image = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index]))
+                            else:
+                                image = torch.from_numpy(self.instance_right_latent_root_map_with_id[index])
+                        else:
+                            image = self._process_single_ref_image(self.instance_right_pixel_root_map_with_id[index])
+                        # image = image.unsqueeze(0) # deal it as single-frame video
+                        
+                        if not self.load_to_ram:
+                            latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
+                        else:
+                            latent = torch.from_numpy(self.instance_left_latent_root_map_with_id[index])
                     
-                    latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
                     # latent = latent.unsqueeze(0)
                 return {
                     "instance_prompt": prompt,
@@ -1788,7 +1821,10 @@ def main(args):
             "prompts": prompts,
         }
         if ref_images is not None:
-            batch["ref_images"] = ref_images
+            if not args.vae_add:
+                batch["ref_images"] = ref_images
+            else:
+                batch["ref_images"] = torch.cat(ref_images, dim=0).to(memory_format=torch.contiguous_format).float()
         return batch
     def worker_init_fn(worker_id):
         seed = torch.initial_seed() % 2**32
@@ -1943,6 +1979,7 @@ def main(args):
                     else:
                         images = batch["ref_images"].permute(0, 2, 1, 3, 4).to(dtype=weight_dtype)  # [B, F, C, H, W]
                         images = images * 0.7
+                        # print(images.shape)
                         
                 # encode prompts
                 prompt_embeds, clip_prompt_embeds = compute_prompt_embeddings(
@@ -1957,8 +1994,11 @@ def main(args):
                     requires_grad=False,
                 )
                 # Process images
-                if images is not None and 'pixel_values' in images:
-                    image_input = images['pixel_values'].to(device=accelerator.device, dtype=weight_dtype)
+                if not args.vae_add:
+                    if images is not None and 'pixel_values' in images:
+                        image_input = images['pixel_values'].to(device=accelerator.device, dtype=weight_dtype)
+                else:
+                    image_input = images
                 # # Projection through the linear layer to match dimension
                 # prompt_embeds = torch.cat([prompt_embeds, clip_prompt_embeds, image_embeds], dim=1) # FIXME (Learn additional separate projection layer to match the dimension)
 
