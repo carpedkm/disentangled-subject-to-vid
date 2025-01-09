@@ -21,7 +21,7 @@ def filter_func(item):
     )
 
 data_valid = dataset["train"].filter(
-    filter_func, num_proc=16, cache_file_name="./cache/dataset/data_valid2.arrow"
+    filter_func, num_proc=16, cache_file_name="./cache/dataset/data_valid.arrow"
 )
 
 # ✅ Initialize the dataset class
@@ -38,16 +38,28 @@ class Subject200KDataset(Dataset):
         image = item["image"]
 
         # Crop and resize images
-        left_img = image.crop((0, 0, 512, 512)).resize((512, 512)).convert("RGB")
-        # right_img = image.crop((512, 0, 1024, 512)).resize((512, 512)).convert("RGB")
+        padding = 8
+        left_img = image.crop((padding, padding, 512 + padding, 512 + padding)).resize((720, 720)).convert("RGB")
+        right_img = image.crop((512 + 2 * padding, padding, 1024 + 2 * padding, 512 + padding)).resize((720, 720)).convert("RGB")
+        width, height = 720, 720
+        target_width, target_height = 720, 480
 
+        # Calculate coordinates for center crop
+        left = (width - target_width) // 2
+        top = (height - target_height) // 2
+        right = left + target_width
+        bottom = top + target_height
+
+        # Center-crop the image
+        left_img = left_img.crop((left, top, right, bottom))
+        right_img = right_img.crop((left, top, right, bottom))
         description_0 = item["description"]["description_0"]
         description_1 = item["description"]["description_1"]
         # Safely access nested fields, replace None with 0
         item_desc = item.get("description", {})
         return {
             "left_image": self.to_tensor(left_img),
-            # "right_image": self.to_tensor(right_img),
+            "right_image": self.to_tensor(right_img),
             "description_0": description_0,
             "description_1": description_1,
             "item": item_desc.get("item", 0),
@@ -74,7 +86,7 @@ def collate_fn(batch):
         # print('None detected in category, item, collection')
     return {
         "left_image": torch.stack([item["left_image"] for item in batch]),
-        # "right_image": torch.stack([item["right_image"] for item in batch]),
+        "right_image": torch.stack([item["right_image"] for item in batch]),
         "description_0": [item["description_0"] for item in batch],
         "description_1": [item["description_1"] for item in batch],
         "item": [item["item"] for item in batch],
@@ -88,26 +100,29 @@ def collate_fn(batch):
     }
 
 # ✅ Use DataLoader for batch processing
-dataloader = DataLoader(subject_dataset, batch_size=512, num_workers=96, collate_fn=collate_fn)
+dataloader = DataLoader(subject_dataset, batch_size=480, num_workers=64, collate_fn=collate_fn)
 
 # ✅ Create output directories
-os.makedirs("output/left_images_updated", exist_ok=True)
-# os.makedirs("output/right_images_updated", exist_ok=True)
-os.makedirs("output/metadata_updated", exist_ok=True)
+os.makedirs("output_720/left_images_updated", exist_ok=True)
+os.makedirs("output_720/right_images_updated", exist_ok=True)
+os.makedirs("output_720/metadata_updated", exist_ok=True)
 
 # ✅ Define function to save images and metadata
-def save_image_and_metadata(idx, left_image, metadata):
-    left_image.save(f"output/left_images_updated/left_{idx}.png")
-    # right_image.save(f"output/right_images_updated/right_{idx}.png")
+def save_image_and_metadata(idx, left_image, right_image, metadata):
+    left_image = left_image.convert("RGB")
+    right_image = right_image.convert("RGB")
+    
+    left_image.save(f"output_720/left_images_updated/left_{idx}.png")
+    right_image.save(f"output_720/right_images_updated/right_{idx}.png")
 
-    metadata_path = f"output/metadata_updated/meta_{idx}.json"
+    metadata_path = f"output_720/metadata_updated/meta_{idx}.json"
     with open(metadata_path, "w") as f:
         json.dump(metadata, f, indent=4)
 
 # ✅ Use ThreadPoolExecutor for parallel I/O
 to_pil_image = ToPILImage()
 
-with ThreadPoolExecutor(max_workers=96) as executor:
+with ThreadPoolExecutor(max_workers=64) as executor:
     for batch_idx, batch in enumerate(tqdm(dataloader)):
         futures = []
         for i in range(len(batch["left_image"])):
@@ -115,7 +130,7 @@ with ThreadPoolExecutor(max_workers=96) as executor:
 
             # Convert tensors to PIL images
             left_image = to_pil_image(batch["left_image"][i])
-            # right_image = to_pil_image(batch["right_image"][i])
+            right_image = to_pil_image(batch["right_image"][i])
 
             # Prepare metadata
             metadata = {
@@ -125,13 +140,13 @@ with ThreadPoolExecutor(max_workers=96) as executor:
                 "description_1": batch["description_1"][i],
                 "collection": batch["collection"][i],
                 "quality_assessment": {key: batch["quality_assessment"][key][i].item() for key in batch["quality_assessment"]},
-                "target_image_path": f"output/left_images/left_{idx}.png",
-                "condition_image_path": f"output/right_images/right_{idx}.png",
+                "target_image_path": f"output_720/left_images_updated/left_{idx}.png",
+                "condition_image_path": f"output_720/right_images_updated/right_{idx}.png",
             }
 
             # Submit the image and metadata saving task to the executor
             futures.append(
-                executor.submit(save_image_and_metadata, idx, left_image, metadata)
+                executor.submit(save_image_and_metadata, idx, left_image, right_image,  metadata)
             )
 
         # Wait for all futures in the batch to complete
