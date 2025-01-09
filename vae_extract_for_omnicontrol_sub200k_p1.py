@@ -123,8 +123,8 @@ def extract_vae_latents(
     for process in processes:
         process.join()
         
-video_dir1 = "output/left_images"
-video_dir2 = "output/right_images"
+video_dir1 = "/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/left_images_updated"
+# video_dir2 = "output/right_images"
 video_paths = sorted([os.path.join(video_dir1, f) for f in os.listdir(video_dir1) if f.endswith(".png")]) # single frame video (image)
 total_cnt = len(video_paths)
 # half of the videos
@@ -136,7 +136,7 @@ print(f"Total video paths: {len(video_paths)}")
 extract_vae_latents(
     video_paths,
     vae_model_path="THUDM/CogVideoX-5b",
-    output_dir="output/latents",
+    output_dir="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/left_latents_updated",
     height=480,
     width=720,
     max_frames=1,
