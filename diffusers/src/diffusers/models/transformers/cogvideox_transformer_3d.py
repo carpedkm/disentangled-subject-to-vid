@@ -256,6 +256,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         concatenated_all: bool = False,
         reduce_token: bool = False,
         zero_conv_add : bool = False,
+        vae_add: bool = False,
     ):
         super().__init__()
         inner_dim = num_attention_heads * attention_head_dim
@@ -268,21 +269,24 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             )
         # if customization:
         clip_vision_config = None # CLIPVisionConfig.from_pretrained("openai/clip-vit-base-patch16")
-        if zero_conv_add:
-            self.text_sequence_aligner = None
-            self.vision_sequence_aligner = None
-            self.CLIPTextProjectionLayer2 = None
-            self.CLIPVisionProjectionLayer2 = None
-            # self.alpha = None
-            # self.beta = None
-        if concatenated_all is not True:
-            self.reference_vision_encoder = None # CLIPVisionModel(clip_vision_config)
-            self.T5ProjectionLayer = None # ProjectionLayer(in_features=4096, out_features=4096).to(dtype=torch.bfloat16)
-            self.CLIPTextProjectionLayer = None # ProjectionLayer(in_features=512, out_features=4096).to(dtype=torch.bfloat16)
-            self.CLIPVisionProjectionLayer = None # ProjectionLayer(in_features=768, out_features=4096).to(dtype=torch.bfloat16)
+        if not vae_add:
+            if zero_conv_add:
+                self.text_sequence_aligner = None
+                self.vision_sequence_aligner = None
+                self.CLIPTextProjectionLayer2 = None
+                self.CLIPVisionProjectionLayer2 = None
+                # self.alpha = None
+                # self.beta = None
+            if concatenated_all is not True:
+                self.reference_vision_encoder = None # CLIPVisionModel(clip_vision_config)
+                self.T5ProjectionLayer = None # ProjectionLayer(in_features=4096, out_features=4096).to(dtype=torch.bfloat16)
+                self.CLIPTextProjectionLayer = None # ProjectionLayer(in_features=512, out_features=4096).to(dtype=torch.bfloat16)
+                self.CLIPVisionProjectionLayer = None # ProjectionLayer(in_features=768, out_features=4096).to(dtype=torch.bfloat16)
+            else:
+                self.reference_vision_encoder = None
+                self.T5ProjectionLayer = None
         else:
-            self.reference_vision_encoder = None
-            self.T5ProjectionLayer = None
+            pass
 
 
             
@@ -474,51 +478,60 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         reduce_token: bool = False,
         add_token: bool = False,
         zero_conv_add: bool = False,
+        vae_add: bool = False,
     ):
         if customization:
-            if add_token:
-                ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
-                ref_img_states = torch.cat([ref_img_states, torch.zeros((ref_img_states.shape[0], ref_img_states.shape[1], 4096 - ref_img_states.shape[2])).to(ref_img_states.device)], dim=2)
-                clip_text_states = torch.cat([clip_prompt_embeds, torch.zeros((clip_prompt_embeds.shape[0], clip_prompt_embeds.shape[1], 4096 - clip_prompt_embeds.shape[2])).to(clip_prompt_embeds.device)], dim=2)
-                ref_img_states = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16).transpose(1,2)).transpose(1,2)
-                clip_text_states = self.CLIPTextProjectionLayer(clip_text_states.to(dtype=torch.bfloat16).transpose(1,2)).transpose(1,2)
-                # encoder_hidden_states = (encoder_hidden_states + ref_img_states + clip_text_states) / 3
-                encoder_hidden_states = (encoder_hidden_states + ref_img_states + clip_text_states) / (1 + torch.mean(torch.abs(ref_img_states), dim=(0,1,2)) + torch.mean(torch.abs(clip_text_states), dim=(0,1,2)))
-                encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
-            elif zero_conv_add:
-                ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
-                ref_img_states = self.vision_sequence_aligner(ref_img_states)
-                clip_text_states = self.text_sequence_aligner(clip_prompt_embeds)
-                ref_img_states = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16).transpose(1, 2)).transpose(1, 2)     
-                clip_text_states = self.CLIPTextProjectionLayer(clip_text_states.to(dtype=torch.bfloat16).transpose(1, 2)).transpose(1, 2)
-                ref_img_states = self.CLIPVisionProjectionLayer2(ref_img_states.transpose(1, 2)).transpose(1, 2)
-                clip_text_states = self.CLIPTextProjectionLayer2(clip_text_states.transpose(1, 2)).transpose(1, 2)
-                encoder_hidden_states = encoder_hidden_states + ref_img_states + clip_text_states
-                # encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
-            else:
-                if concatenated_all:
+            if not vae_add:
+                if add_token:
                     ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
-                    #  match the feature dimension 4096 by padding zeros
                     ref_img_states = torch.cat([ref_img_states, torch.zeros((ref_img_states.shape[0], ref_img_states.shape[1], 4096 - ref_img_states.shape[2])).to(ref_img_states.device)], dim=2)
                     clip_text_states = torch.cat([clip_prompt_embeds, torch.zeros((clip_prompt_embeds.shape[0], clip_prompt_embeds.shape[1], 4096 - clip_prompt_embeds.shape[2])).to(clip_prompt_embeds.device)], dim=2)
-                    if eval:
-                        ref_img_states = torch.cat([ref_img_states, ref_img_states], dim=0)
-                    encoder_hidden_states = torch.cat([encoder_hidden_states, clip_text_states, ref_img_states], dim=1)
-                    if reduce_token is True: # reduce 500 -> 226
-                        encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states.transpose(1,2)).transpose(1,2)
-                    else: # mix 4096 -> 4096
-                        encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
-                else:
+                    ref_img_states = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16).transpose(1,2)).transpose(1,2)
+                    clip_text_states = self.CLIPTextProjectionLayer(clip_text_states.to(dtype=torch.bfloat16).transpose(1,2)).transpose(1,2)
+                    # encoder_hidden_states = (encoder_hidden_states + ref_img_states + clip_text_states) / 3
+                    encoder_hidden_states = (encoder_hidden_states + ref_img_states + clip_text_states) / (1 + torch.mean(torch.abs(ref_img_states), dim=(0,1,2)) + torch.mean(torch.abs(clip_text_states), dim=(0,1,2)))
+                    encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
+                elif zero_conv_add:
                     ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
-                    enc_hidden_states0 = self.T5ProjectionLayer(encoder_hidden_states.to(dtype=torch.bfloat16))
-                    enc_hidden_states1 = self.CLIPTextProjectionLayer(clip_prompt_embeds.to(dtype=torch.bfloat16))
-                    enc_hidden_states2 = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16))
-                    if eval:
-                        enc_hidden_states2 = torch.cat([enc_hidden_states2, enc_hidden_states2], dim=0)
-                    if t5_first is True:
-                        encoder_hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, enc_hidden_states2], dim=1)
+                    ref_img_states = self.vision_sequence_aligner(ref_img_states)
+                    clip_text_states = self.text_sequence_aligner(clip_prompt_embeds)
+                    ref_img_states = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16).transpose(1, 2)).transpose(1, 2)     
+                    clip_text_states = self.CLIPTextProjectionLayer(clip_text_states.to(dtype=torch.bfloat16).transpose(1, 2)).transpose(1, 2)
+                    ref_img_states = self.CLIPVisionProjectionLayer2(ref_img_states.transpose(1, 2)).transpose(1, 2)
+                    clip_text_states = self.CLIPTextProjectionLayer2(clip_text_states.transpose(1, 2)).transpose(1, 2)
+                    encoder_hidden_states = encoder_hidden_states + ref_img_states + clip_text_states
+                    # encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
+                else:
+                    if concatenated_all:
+                        ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
+                        #  match the feature dimension 4096 by padding zeros
+                        ref_img_states = torch.cat([ref_img_states, torch.zeros((ref_img_states.shape[0], ref_img_states.shape[1], 4096 - ref_img_states.shape[2])).to(ref_img_states.device)], dim=2)
+                        clip_text_states = torch.cat([clip_prompt_embeds, torch.zeros((clip_prompt_embeds.shape[0], clip_prompt_embeds.shape[1], 4096 - clip_prompt_embeds.shape[2])).to(clip_prompt_embeds.device)], dim=2)
+                        if eval:
+                            ref_img_states = torch.cat([ref_img_states, ref_img_states], dim=0)
+                        encoder_hidden_states = torch.cat([encoder_hidden_states, clip_text_states, ref_img_states], dim=1)
+                        if reduce_token is True: # reduce 500 -> 226
+                            encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states.transpose(1,2)).transpose(1,2)
+                        else: # mix 4096 -> 4096
+                            encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
                     else:
-                        encoder_hidden_states = torch.cat([enc_hidden_states2, enc_hidden_states1, enc_hidden_states0], dim=1)
+                        ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
+                        enc_hidden_states0 = self.T5ProjectionLayer(encoder_hidden_states.to(dtype=torch.bfloat16))
+                        enc_hidden_states1 = self.CLIPTextProjectionLayer(clip_prompt_embeds.to(dtype=torch.bfloat16))
+                        enc_hidden_states2 = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16))
+                        if eval:
+                            enc_hidden_states2 = torch.cat([enc_hidden_states2, enc_hidden_states2], dim=0)
+                        if t5_first is True:
+                            encoder_hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, enc_hidden_states2], dim=1)
+                        else:
+                            encoder_hidden_states = torch.cat([enc_hidden_states2, enc_hidden_states1, enc_hidden_states0], dim=1)
+            else:
+                enc_hidden_states0 = encoder_hidden_states
+                enc_hidden_states1 = ref_img_states
+                # enc_hidden_states2 = 
+                if eval:
+                    enc_hidden_states1 = torch.cat([enc_hidden_states1, enc_hidden_states1], dim=0)
+                encoder_hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1], dim=1)
         else:
             # encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
             pass
