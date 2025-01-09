@@ -128,7 +128,7 @@ video_dir1 = "/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/right_images_u
 video_paths = sorted([os.path.join(video_dir1, f) for f in os.listdir(video_dir1) if f.endswith(".png")]) # single frame video (image)
 total_cnt = len(video_paths)
 # half of the videos
-video_paths = video_paths[:total_cnt//2]
+# video_paths = video_paths[:total_cnt//2]
 print(f"Total video paths: {len(video_paths)}")
 # video_paths += [os.path.join(video_dir2, f) for f in os.listdir(video_dir2) if f.endswith(".png")] # single frame video (image)
 
