@@ -1566,12 +1566,32 @@ def main(args):
         transformer.enable_gradient_checkpointing()
 
     # now we will add new LoRA weights to the attention layers
+    # transformer_lora_config = LoraConfig(
+    #     r=args.rank,
+    #     lora_alpha=args.lora_alpha,
+    #     init_lora_weights=True,
+    #     target_modules=["to_k", "to_q", "to_v", "to_out.0"],
+    # )
     transformer_lora_config = LoraConfig(
         r=args.rank,
         lora_alpha=args.lora_alpha,
         init_lora_weights=True,
         target_modules=["to_k", "to_q", "to_v", "to_out.0"],
     )
+    # transformer_lora_config_mlp = LoraConfig(
+    #     r=args.rank,
+    #     lora_alpha=args.lora_alpha,
+    #     init_lora_weights=True,
+    #     target_modules=["mlp.fc1", "mlp.fc2"],
+    # )
+    # transformer_lora_config_norm = LoraConfig(
+    #     r=args.rank,
+    #     lora_alpha=args.lora_alpha,
+    #     init_lora_weights=True,
+    #     target_modules=["norm1", "norm2"],
+    # )
+    # transformer.add_adapter(transformer_lora_config_mlp)
+    # transformer.add_adapter(transformer_lora_config_norm)
     transformer.add_adapter(transformer_lora_config)
 
     def unwrap_model(model):
