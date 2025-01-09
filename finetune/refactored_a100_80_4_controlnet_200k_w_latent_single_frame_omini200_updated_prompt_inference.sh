@@ -57,7 +57,7 @@ accelerate launch --config_file accelerate_config_machine_single_4gpu.yaml --mul
   --wo_bg \
   --use_latent \
   --inference \
-  --resume_from_checkpoint /mnt/carpedkm_data/result250109/result_check_200k_512x512_embedding_updated_prompt_with_prefix_dataloader_fixed/check-100/ \
+  --resume_from_checkpoint /mnt/carpedkm_data/result250109/result_check_200k_512x512_embedding_updated_prompt_with_prefix_dataloader_fixed/checkpoint-100/ \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb 
