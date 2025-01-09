@@ -137,8 +137,8 @@ extract_vae_latents(
     video_paths,
     vae_model_path="THUDM/CogVideoX-5b",
     output_dir="output/latents",
-    height=512,
-    width=512,
+    height=480,
+    width=720,
     max_frames=1,
     # fps=8,
 )

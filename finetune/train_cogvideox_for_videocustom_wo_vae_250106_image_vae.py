@@ -886,41 +886,73 @@ def log_validation(
             if 'validation_reference_image' in pipeline_args:
                 try:
                     from PIL import Image
-                    
-                    # Load and preprocess the reference image
+                    import cv2
                     ref_image = Image.open(pipeline_args['validation_reference_image']).convert('RGB')
-                    # vid_id = p.split('_')[0]
-                    # prompt = prompt_list_train[vid_id]
-                    # current_pipeline_args['prompt'] = prompt
-                    # ref_image = ref_image.resize((224, 224))
+                    # Load and preprocess the reference image
+
                     # Process image using CLIP processor
-                    processed_image = clip_processor.image_processor(
-                        images=ref_image,
-                        return_tensors="pt"
-                    )
-                    
-                    # Move to correct device and dtype
-                    pixel_values = processed_image['pixel_values'].to(
-                        device=accelerator.device,
-                        dtype=pipe.transformer.dtype
-                    )
-                    
-                    # Ensure correct shape using sample_height and sample_width from config
-                    target_height = pipe.transformer.config.sample_height
-                    target_width = pipe.transformer.config.sample_width
-                    
-                    if pixel_values.shape[-2:] != (target_height, target_width):
-                        from torchvision import transforms
-                        resize = transforms.Resize(
-                            (224, 224),
-                            interpolation=transforms.InterpolationMode.BILINEAR
+                    if not args.vae_add:
+                        # ref_image = Image.open(pipeline_args['validation_reference_image']).convert('RGB')
+                        processed_image = clip_processor.image_processor(
+                            images=ref_image,
+                            return_tensors="pt"
                         )
-                        pixel_values = resize(pixel_values)
+                        
+                        # Move to correct device and dtype
+                        pixel_values = processed_image['pixel_values'].to(
+                            device=accelerator.device,
+                            dtype=pipe.transformer.dtype
+                        )
+                        
+                        # Ensure correct shape using sample_height and sample_width from config
+                        target_height = pipe.transformer.config.sample_height
+                        target_width = pipe.transformer.config.sample_width
+                        
+                        if pixel_values.shape[-2:] != (target_height, target_width):
+                            from torchvision import transforms
+                            resize = transforms.Resize(
+                                (224, 224),
+                                interpolation=transforms.InterpolationMode.BILINEAR
+                            )
+                            pixel_values = resize(pixel_values)
+                        
+                        current_pipeline_args['ref_img_states'] = pixel_values
+                        current_pipeline_args.pop('validation_reference_image', None)
                     
-                    current_pipeline_args['ref_img_states'] = pixel_values
-                    current_pipeline_args.pop('validation_reference_image', None)
-                    
-                    logger.info(f"Successfully processed reference image with shape: {pixel_values.shape}")
+                        logger.info(f"Successfully processed reference image with shape: {pixel_values.shape}")
+                    else:
+                        # Resize and crop to the target resolution
+                        ref_image = ref_image.resize((720, 720))
+                        width, height = 720, 720
+                        target_width, target_height = 720, 480
+
+                        # Calculate coordinates for center crop
+                        left = (width - target_width) // 2
+                        top = (height - target_height) // 2
+                        right = left + target_width
+                        bottom = top + target_height
+
+                        # Perform cropping
+                        ref_image = ref_image.crop((left, top, right, bottom))
+                        ref_image = cv2.cvtColor(np.array(ref_image), cv2.COLOR_RGB2BGR)
+                        ref_image = np.expand_dims(ref_image, axis=0)  # Add frame dimension
+                        
+                        ref_image = torch.from_numpy(ref_image).float() / 255.0 * 2.0 - 1.0
+                        ref_image = ref_image.permute(0, 3, 1, 2)  # [B, H, W, C] -> [B, C, H, W]
+                        
+                        ref_image = ref_image.unsqueeze(0).permute(0, 2, 1, 3, 4).to(device=accelerator.device, dtype=pipe.transformer.dtype)
+                        
+                        with torch.no_grad():
+                            ref_image_latents = pipe.vae.encode(ref_image).latent_dist
+                            ref_image_latents = ref_image_latents.sample() * pipe.vae.config.scaling_factor
+                        ref_image_latents = ref_image_latents.permute(0, 2, 1, 3, 4)
+
+                        current_pipeline_args['ref_img_states'] = ref_image_latents
+                        current_pipeline_args.pop('validation_reference_image', None)
+                        
+                        logger.info(f"Successfully processed reference image & latent with shape: {ref_image_latents.shape}")
+                        # Now ref_image_latents has the correct dimensions: [B, C, F, H, W]
+
                 except Exception as e:
                     logger.error(f"Error processing reference image: {str(e)}")
                     logger.error(f"Available config keys: {pipe.transformer.config.keys()}")
