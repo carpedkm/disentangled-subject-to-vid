@@ -591,8 +591,10 @@ class ImageDataset(Dataset):
         latent_data_root: str = None,
         use_latent: bool = False,
         wo_bg : bool = False,
+        vae_add : bool = False,
     ) -> None:
         super().__init__()
+        self.vae_add = vae_add
         self.use_latent = use_latent
         self.instance_data_root = Path(instance_data_root) if instance_data_root is not None else None
         
@@ -685,15 +687,22 @@ class ImageDataset(Dataset):
             try:
                 if target == 0: # left : condition / right : target
                     prompt = self.id_token + self.instance_prompts_1[index]
-                    image = self._process_single_ref_image(self.instance_left_pixel_root_map_with_id[index])
+                    if self.vae_add :
+                        image = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
+                    else:
+                        image = self._process_single_ref_image(self.instance_left_pixel_root_map_with_id[index])
                     # image = image.unsqueeze(0) # deal it as single-frame video
-                    latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index])) # already expanded //// expand to deal it as single frame video of shape [seq_len, height, width , 3] of seq_len = 1
+                    latent = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index])) # already expanded //// expand to deal it as single frame video of shape [seq_len, height, width , 3] of seq_len = 1
                     # latent = latent.unsqueeze(0)
                 else: # left : target / right : condition
                     prompt = self.id_token + self.instance_prompts_0[index]
-                    image = self._process_single_ref_image(self.instance_right_pixel_root_map_with_id[index])
+                    if self.vae_add:
+                        image = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index]))
+                    else:
+                        image = self._process_single_ref_image(self.instance_right_pixel_root_map_with_id[index])
                     # image = image.unsqueeze(0) # deal it as single-frame video
-                    latent = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index]))
+                    
+                    latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
                     # latent = latent.unsqueeze(0)
                 return {
                     "instance_prompt": prompt,
@@ -1720,6 +1729,7 @@ def main(args):
         # sub_driven=args.sub_driven,
         # wo_bg=args.wo_bg,
         use_latent=args.use_latent,
+        vae_add=args.vae_add,
         # latent_data_root=args.latent_data_root,
         # quick_poc_subset=args.quick_poc_subset,
     )
