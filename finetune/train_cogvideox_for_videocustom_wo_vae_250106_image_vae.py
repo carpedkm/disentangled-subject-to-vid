@@ -612,6 +612,7 @@ class ImageDataset(Dataset):
                                          'rc_car_omini': "A film style shot. On the moon, this item drives across the moon surface. The background is that Earth looms large in the foreground.",
                                          'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing this shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
                                         #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
+                                        }
         self.instance_prompts = []
         self.id_token = id_token or ""
         
