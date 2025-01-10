@@ -651,7 +651,7 @@ class ImageDataset(Dataset):
         ids = left_ids
         self.ids = ids
         # randomly select ids
-        # self.ids = random.sample(ids, 50000)
+        self.ids = random.sample(ids, 50000)
         self.len_dataset = len(self.ids)
                 
         self.instance_left_pixel_root_map_with_id = {}
