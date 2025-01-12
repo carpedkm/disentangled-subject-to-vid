@@ -1577,7 +1577,7 @@ def main(args):
         r=args.rank,
         lora_alpha=args.lora_alpha,
         init_lora_weights=True,
-        target_modules=["to_k", "to_q", "to_v", "to_out.0", "all-linear", "norm", "norm_q", "norm_k"],
+        target_modules=["to_k", "to_q", "to_v", "to_out.0", "all-linear"],
     )
 
     # transformer_lora_config_mlp = LoraConfig(
