@@ -21,7 +21,7 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --enable_slicing \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
-  --validation_epochs 5 \
+  --validation_epochs 500 \
   --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
