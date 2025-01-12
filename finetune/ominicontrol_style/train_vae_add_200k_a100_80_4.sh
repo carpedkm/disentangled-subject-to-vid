@@ -13,7 +13,7 @@ export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 # if you are not using wth 8 gus, change `accelerate_config_machine_single.yaml` num_processes as your gpu number
 accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --multi_gpu \
-  ../train_cogvideox_for_videocustom_wo_vae_250106_image_vae.py \
+  ../train_cogvideox_for_videocustom_wo_vae_250106_image_vae_like_ominicontrol.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
   --cache_dir $CACHE_PATH \
