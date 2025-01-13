@@ -525,6 +525,16 @@ def get_args():
         action='store_true',
         help='Whether to load the dataset to RAM or not'
     )
+    parser.add_argument(
+        "--seen_validation",
+        action="store_true",
+        help="Whether to use seen validation or not"
+    )
+    parser.add_argument(
+        '--pos_embed',
+        action='store_true',
+        help='Whether to use positional embedding or not on reference image'
+    )
     return parser.parse_args()
 
 
@@ -598,21 +608,35 @@ class ImageDataset(Dataset):
         wo_bg : bool = False,
         vae_add : bool = False,
         load_to_ram : bool = False,
+        seen_validation : bool = False, 
     ) -> None:
         super().__init__()
         print('Data loader init')
         self.vae_add = vae_add
         self.use_latent = use_latent
         self.instance_data_root = Path(instance_data_root) if instance_data_root is not None else None
-        
+        self.seen_validation = seen_validation
         self.height = height
         self.width = width
         self.val_instance_prompt_dict = {'oranges_omini':"A close up view of this item. It is placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
                                          'clock_omini':"In a Bauhaus style room, this item is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
-                                         'rc_car_omini': "A film style shot. On the moon, this item drives across the moon surface. The background is that Earth looms large in the foreground.",
-                                         'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing this shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                                         'rc_car_omini': "A film style shot. On the moon, this item goes across the moon surface. The background is that Earth looms large in the foreground.",
+                                         'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing this item and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
                                         #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
                                         }
+        # self.seen_samples = {
+
+        # }
+        if self.seen_validation is True:
+            self.val_instance_prompt_dict = {}
+            path_for_seen_meta = '../seen_samples/omini_meta/'
+            for file in os.listdir(path_for_seen_meta):
+                with open(os.path.join(path_for_seen_meta, file), 'r') as f:
+                    meta_seen = json.load(f)
+                id_ = 'right_' + file.split('_')[1].split('.')[0]
+                # id_  = file.split('.')[0]
+                tmp_desc = meta_seen['description_0_refined']
+                self.val_instance_prompt_dict[id_] = tmp_desc
         self.instance_prompts = []
         self.id_token = id_token or ""
         
@@ -924,9 +948,9 @@ def log_validation(
                         logger.info(f"Successfully processed reference image with shape: {pixel_values.shape}")
                     else:
                         # Resize and crop to the target resolution
-                        ref_image = ref_image.resize((720, 720))
-                        width, height = 720, 720
-                        target_width, target_height = 720, 480
+                        ref_image = ref_image.resize((512, 512))
+                        width, height = 512, 512
+                        target_width, target_height = 512, 512
 
                         # Calculate coordinates for center crop
                         left = (width - target_width) // 2
@@ -1496,9 +1520,9 @@ def main(args):
                     transformer.T5ProjectionLayer.requires_grad_(True)
       
     # Print out parameter names to verify # FOR DEBUGGING
-    for name, param in transformer.named_parameters():
-        if param.requires_grad:
-            print(f"{name}: {param.size()}")
+    # for name, param in transformer.named_parameters():
+    #     if param.requires_grad:
+    #         print(f"{name}: {param.size()}")
 
     ## ADCDITIONAL projection l
     if args.use_latent is True:
@@ -1820,6 +1844,7 @@ def main(args):
         # wo_bg=args.wo_bg,
         use_latent=args.use_latent,
         vae_add=args.vae_add,
+        seen_validation=args.seen_validation,
         # latent_data_root=args.latent_data_root,
         # quick_poc_subset=args.quick_poc_subset,
     )
@@ -1958,6 +1983,14 @@ def main(args):
     logger.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
     logger.info(f"  Gradient accumulation steps = {args.gradient_accumulation_steps}")
     logger.info(f"  Total optimization steps = {args.max_train_steps}")
+    print("***** Running training *****")
+    print(f"  Num trainable parameters = {num_trainable_parameters}")
+    print(f"  Num examples = {len(train_dataset)}")
+    print(f"  Num batches each epoch = {len(train_dataloader)}")
+    print(f"  Num epochs = {args.num_train_epochs}")
+    print(f"  Instantaneous batch size per device = {args.train_batch_size}")
+    print(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
+    print(f"  Gradient accumulation steps = {args.gradient_accumulation_steps}")
     global_step = 0
     first_epoch = 0
 
@@ -2008,7 +2041,7 @@ def main(args):
         # update random seed
         # set_seed(args.seed + epoch)
         for step, batch in enumerate(train_dataloader):
-            if epoch == first_epoch and step == 0 and args.inference:
+            if (epoch == first_epoch and step == 0) and args.inference:
                 break
             # set_seed(args.seed + epoch)
             models_to_accumulate = [transformer]
@@ -2104,6 +2137,7 @@ def main(args):
                     add_token=args.add_token,
                     zero_conv_add=args.zero_conv_add,
                     vae_add=args.vae_add,
+                    pos_embed=args.pos_embed,
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
@@ -2169,8 +2203,10 @@ def main(args):
         if accelerator.is_main_process: 
                 # print('saving now')
                 # epoch = 1
-            if args.validation_prompt is not None and (epoch + 1) % args.validation_epochs == 0:
+            
+            if args.inference or (args.validation_prompt is not None and (epoch + 1) % args.validation_epochs == 0):
                 # Create pipeline
+                print('Doing INFERENCE')
                 vae = AutoencoderKLCogVideoX.from_pretrained(
                         args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision, variant=args.variant
                     )
@@ -2198,6 +2234,8 @@ def main(args):
 
                 # validation_prompts = args.validation_prompt.split(args.validation_prompt_separator)
                 # for validation_prompt in validation_prompts:
+                if args.seen_validation:
+                    args.validation_reference_image = "../seen_samples/omini_right/"
                 val_len = len(os.listdir(args.validation_reference_image))
                 for i in range(val_len):
                     validation_ref_img = os.path.join(args.validation_reference_image, os.listdir(args.validation_reference_image)[i])
@@ -2208,14 +2246,15 @@ def main(args):
                         "guidance_scale": args.guidance_scale,
                         "use_dynamic_cfg": args.use_dynamic_cfg,
                         "validation_reference_image": validation_ref_img,
-                        "height": args.height_val,
-                        "width": args.width_val,
+                        "height": 512,
+                        "width": 512,
                         "eval" : True,
                         "concatenated_all" : concatenated_all,
                         "reduce_token" : reduce_token,
                         "add_token": args.add_token,
                         'zero_conv_add': args.zero_conv_add,
-                        'vae_add' : args.vae_add
+                        'vae_add' : args.vae_add,
+                        'pos_embed' : args.pos_embed
                     }
 
                     validation_outputs = log_validation(

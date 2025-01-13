@@ -459,6 +459,10 @@ class Attention(nn.Module):
         hidden_states: torch.Tensor,
         encoder_hidden_states: Optional[torch.Tensor] = None,
         attention_mask: Optional[torch.Tensor] = None,
+        embed_ref_img: Optional[torch.Tensor] = None,
+        ref_img_seq_start: Optional[int] = 0,
+        ref_img_seq_end: Optional[int] = 0,
+        position_delta: Optional[torch.Tensor] = None,
         **cross_attention_kwargs,
     ) -> torch.Tensor:
         r"""
@@ -497,6 +501,10 @@ class Attention(nn.Module):
             hidden_states,
             encoder_hidden_states=encoder_hidden_states,
             attention_mask=attention_mask,
+            embed_ref_img=embed_ref_img,
+            ref_img_seq_start=ref_img_seq_start,
+            ref_img_seq_end=ref_img_seq_end,
+            position_delta=position_delta,
             **cross_attention_kwargs,
         )
 
@@ -2004,6 +2012,10 @@ class CogVideoXAttnProcessor2_0:
         encoder_hidden_states: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None,
         image_rotary_emb: Optional[torch.Tensor] = None,
+        ref_img_seq_start: Optional[int] = 0,
+        ref_img_seq_end: Optional[int] = 0,
+        position_delta: Optional[torch.Tensor] = None,
+        embed_ref_img: Optional[bool] = False,
     ) -> torch.Tensor:
         text_seq_length = encoder_hidden_states.size(1)
 
@@ -2036,10 +2048,21 @@ class CogVideoXAttnProcessor2_0:
         # Apply RoPE if needed
         if image_rotary_emb is not None:
             from .embeddings import apply_rotary_emb
-
+            # if embed_ref_img is False:
             query[:, :, text_seq_length:] = apply_rotary_emb(query[:, :, text_seq_length:], image_rotary_emb)
             if not attn.is_cross_attention:
                 key[:, :, text_seq_length:] = apply_rotary_emb(key[:, :, text_seq_length:], image_rotary_emb)
+            # else: # if it is True
+            if embed_ref_img is True:
+                query[:, :, ref_img_seq_start:ref_img_seq_end] = apply_rotary_emb(
+                    query[:, :, ref_img_seq_start:ref_img_seq_end], image_rotary_emb
+                ) + position_delta
+                if not attn.is_cross_attention:
+                    key[:, :, ref_img_seq_start:ref_img_seq_end] = apply_rotary_emb(
+                        key[:, :, ref_img_seq_start:ref_img_seq_end], image_rotary_emb
+                    ) + position_delta
+                    
+                
 
         hidden_states = F.scaled_dot_product_attention(
             query, key, value, attn_mask=attention_mask, dropout_p=0.0, is_causal=False
