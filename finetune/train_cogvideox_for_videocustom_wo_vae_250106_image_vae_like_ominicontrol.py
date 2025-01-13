@@ -252,13 +252,13 @@ def get_args():
     parser.add_argument(
         "--height_val",
         type=int,
-        default=480,
+        default=512,
         help="All input videos are resized to this height.",
     )
     parser.add_argument(
         "--width_val",
         type=int,
-        default=720,
+        default=512,
         help="All input videos are resized to this width.",
     )
     parser.add_argument("--fps", type=int, default=8, help="All input videos will be used at this FPS.")
@@ -1601,7 +1601,7 @@ def main(args):
         r=args.rank,
         lora_alpha=args.lora_alpha,
         init_lora_weights=True,
-        target_modules=["to_k", "to_q", "to_v", "to_out.0", "all-linear"],
+        target_modules=["to_k", "to_q", "to_v", "to_out.0", "proj", "text_proj","norm1.linear", "norm2.linear", "ff.net.2"],
     )
 
     # transformer_lora_config_mlp = LoraConfig(
@@ -1619,7 +1619,7 @@ def main(args):
     # transformer.add_adapter(transformer_lora_config_mlp)
     # transformer.add_adapter(transformer_lora_config_norm)
     transformer.add_adapter(transformer_lora_config)
-
+    print(transformer.active_adapters)
     def unwrap_model(model):
         model = accelerator.unwrap_model(model)
         model = model._orig_mod if is_compiled_module(model) else model
