@@ -351,6 +351,7 @@ class CogVideoXPatchEmbed(nn.Module):
         temporal_interpolation_scale: float = 1.0,
         use_positional_embeddings: bool = True,
         use_learned_positional_embeddings: bool = True,
+        embed_ref_img: bool = False,
     ) -> None:
         super().__init__()
 

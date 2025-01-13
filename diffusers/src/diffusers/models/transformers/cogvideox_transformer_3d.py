@@ -122,6 +122,10 @@ class CogVideoXBlock(nn.Module):
         encoder_hidden_states: torch.Tensor,
         temb: torch.Tensor,
         image_rotary_emb: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
+        embed_ref_img: bool = False,
+        ref_img_seq_start: Optional[int] = None,
+        ref_img_seq_end: Optional[int] = None,
+        position_delta: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         text_seq_length = encoder_hidden_states.size(1)
 
@@ -135,6 +139,10 @@ class CogVideoXBlock(nn.Module):
             hidden_states=norm_hidden_states,
             encoder_hidden_states=norm_encoder_hidden_states,
             image_rotary_emb=image_rotary_emb,
+            embed_ref_img=embed_ref_img,
+            ref_img_seq_start=ref_img_seq_start,
+            ref_img_seq_end=ref_img_seq_end,
+            position_delta=position_delta,
         )
 
         hidden_states = hidden_states + gate_msa * attn_hidden_states
@@ -257,6 +265,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         reduce_token: bool = False,
         zero_conv_add : bool = False,
         vae_add: bool = False,
+        embed_ref_img : bool = False,
     ):
         super().__init__()
         inner_dim = num_attention_heads * attention_head_dim
@@ -479,6 +488,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         add_token: bool = False,
         zero_conv_add: bool = False,
         vae_add: bool = False,
+        pos_embed: bool = False,
     ):
         if customization:
             if not vae_add:
@@ -560,6 +570,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         t_emb = t_emb.to(dtype=hidden_states.dtype)
         emb = self.time_embedding(t_emb, timestep_cond)
 
+
+        
         # 2. Patch embedding
         if vae_add:
             enc_hidden_states0 = self.patch_embed.text_proj(enc_hidden_states0)
@@ -572,10 +584,20 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             enc_hidden_states1 = enc_hidden_states1.flatten(1, 2)  # [batch, num_frames x height x width, channels]
             if eval:
                 enc_hidden_states1 = torch.cat([enc_hidden_states1, enc_hidden_states1], dim=0)
-            encoder_hidden_states_temp = torch.cat([enc_hidden_states0, enc_hidden_states1], dim=1)
+            encoder_hidden_states_temp = torch.cat([enc_hidden_states1, enc_hidden_states0], dim=1)
         
         hidden_states = self.patch_embed(encoder_hidden_states, hidden_states)
         hidden_states = self.embedding_dropout(hidden_states)
+        
+        if vae_add is True and pos_embed is True:
+            embed_ref_img = True
+            ref_img_seq_start = 0
+            ref_img_seq_end = enc_hidden_states1.shape[1]
+            position_delta = -h_1
+        else:
+            embed_ref_img = False
+            ref_img_seq_start = 0
+            ref_img_seq_end = 0
 
         
         if not vae_add:
@@ -607,6 +629,10 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                     encoder_hidden_states,
                     emb,
                     image_rotary_emb,
+                    embed_ref_img,
+                    ref_img_seq_start,
+                    ref_img_seq_end,
+                    position_delta,
                     **ckpt_kwargs,
                 )
             else:
@@ -615,6 +641,10 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                     encoder_hidden_states=encoder_hidden_states,
                     temb=emb,
                     image_rotary_emb=image_rotary_emb,
+                    embed_ref_img=embed_ref_img,
+                    ref_img_seq_start=ref_img_seq_start,
+                    ref_img_seq_end=ref_img_seq_end,
+                    position_delta=position_delta,
                 )
 
         if not self.config.use_rotary_positional_embeddings:
