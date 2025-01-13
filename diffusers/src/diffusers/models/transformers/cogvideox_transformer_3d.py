@@ -598,6 +598,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             embed_ref_img = False
             ref_img_seq_start = 0
             ref_img_seq_end = 0
+            position_delta = 0
 
         
         if not vae_add:
