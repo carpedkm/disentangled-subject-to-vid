@@ -674,9 +674,12 @@ class ImageDataset(Dataset):
         
         assert set(left_ids) == set(right_ids) # what about now? -> same ids in both left and right 
         ids = left_ids
-        self.ids = ids
+        # self.ids = ids
         # randomly select ids
-        self.ids = random.sample(ids, subset_cnt)
+        if subset_cnt != -1:
+            self.ids = random.sample(ids, subset_cnt)
+        else:
+            self.ids = ids
         self.len_dataset = len(self.ids)
                 
         self.instance_left_pixel_root_map_with_id = {}
