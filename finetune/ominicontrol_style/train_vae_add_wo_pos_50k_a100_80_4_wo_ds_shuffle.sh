@@ -13,7 +13,7 @@ export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 # if you are not using wth 8 gus, change `accelerate_config_machine_single.yaml` num_processes as your gpu number
 accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --multi_gpu \
-  ../train_cogvideox_for_videocustom_wo_vae_250106_image_vae_like_ominicontrol.py \
+  ../train_cogvideox_for_videocustom_wo_vae_250106_image_vae_like_ominicontrol_wo_ds_shuffle.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
   --cache_dir $CACHE_PATH \
@@ -21,7 +21,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --enable_slicing \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
-  --validation_epochs 1 \
+  --validation_epochs 500 \
   --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
@@ -58,8 +58,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
   --subset_cnt 50000 \
-  --inference \
-  --resume_from_checkpoint /mnt/carpedkm_data/result25013/512x512embedding_refined_oministyle_vaeadd_wo_posembed_50k_w_embed_lora/checkpoint-1050
+  --seen_validation
   # --validation_prompt "DISNEY A black and white animated scene unfolds with an anthropomorphic goat surrounded by musical notes and symbols, suggesting a playful environment. Mickey Mouse appears, leaning forward in curiosity as the goat remains still. The goat then engages with Mickey, who bends down to converse or react. The dynamics shift as Mickey grabs the goat, potentially in surprise or playfulness, amidst a minimalistic background. The scene captures the evolving relationship between the two characters in a whimsical, animated setting, emphasizing their interactions and emotions:::A panda, dressed in a small, red jacket and a tiny hat, sits on a wooden stool in a serene bamboo forest. The panda's fluffy paws strum a miniature acoustic guitar, producing soft, melodic tunes. Nearby, a few other pandas gather, watching curiously and some clapping in rhythm. Sunlight filters through the tall bamboo, casting a gentle glow on the scene. The panda's face is expressive, showing concentration and joy as it plays. The background includes a small, flowing stream and vibrant green foliage, enhancing the peaceful and magical atmosphere of this unique musical performance" \
   # --validation_prompt_separator ::: \
   # --num_validation_videos 1 \
