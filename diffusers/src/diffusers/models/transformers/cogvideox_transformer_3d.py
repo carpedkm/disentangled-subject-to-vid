@@ -593,7 +593,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             embed_ref_img = True
             ref_img_seq_start = 0
             ref_img_seq_end = enc_hidden_states1.shape[1]
-            position_delta = -h_1
+            position_delta = 0
         else:
             embed_ref_img = False
             ref_img_seq_start = 0
