@@ -635,7 +635,7 @@ class ImageDataset(Dataset):
                     meta_seen = json.load(f)
                 id_ = 'right_' + file.split('_')[1].split('.')[0]
                 # id_  = file.split('.')[0]
-                tmp_desc = meta_seen['description_0_refined']
+                tmp_desc = meta_seen['description_0']
                 self.val_instance_prompt_dict[id_] = tmp_desc
         self.instance_prompts = []
         self.id_token = id_token or ""
@@ -716,8 +716,8 @@ class ImageDataset(Dataset):
             metadata = json.load(f)
         for id in tqdm(self.ids):
             meta = metadata[str(id)]
-            self.instance_prompts_0[id] = meta['description_0_refined']
-            self.instance_prompts_1[id] = meta['description_1_refined']
+            self.instance_prompts_0[id] = meta['description_0']
+            self.instance_prompts_1[id] = meta['description_1']
         
         if self.load_to_ram is True:
                 self.instance_left_latent_root_map_with_id = {}
