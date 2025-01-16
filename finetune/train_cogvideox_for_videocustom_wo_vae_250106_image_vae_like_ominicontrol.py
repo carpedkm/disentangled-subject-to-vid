@@ -1604,7 +1604,7 @@ def main(args):
         r=args.rank,
         lora_alpha=args.lora_alpha,
         init_lora_weights=True,
-        target_modules=["to_k", "to_q", "to_v", "to_out.0", "proj", "text_proj","norm1.linear", "norm2.linear", "ff.net.2"] #"time_embedding.linear_1", "time_embedding.linear_2"],
+        target_modules=["to_k", "to_q", "to_v", "to_out.0", "proj", "text_proj","norm1.linear", "norm2.linear", "ff.net.2"] #, "time_embedding.linear_1", "time_embedding.linear_2"],
     )
 
     # transformer_lora_config_mlp = LoraConfig(
