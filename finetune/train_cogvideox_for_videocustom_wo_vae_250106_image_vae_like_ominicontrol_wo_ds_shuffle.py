@@ -642,8 +642,8 @@ class ImageDataset(Dataset):
         
         self.prefix = "Static Video, Non-dynamic, Non-moving, Stopped video."
         
-        self.instance_left_pixel_root = os.path.join(str(self.instance_data_root), 'left_images')
-        self.instance_right_pixel_root = os.path.join(str(self.instance_data_root), 'right_images')
+        self.instance_left_pixel_root = os.path.join(str(self.instance_data_root), 'left_images_updated')
+        self.instance_right_pixel_root = os.path.join(str(self.instance_data_root), 'right_images_updated')
         self.dataset_name = dataset_name
         
         self.load_to_ram = load_to_ram
@@ -689,8 +689,8 @@ class ImageDataset(Dataset):
             self.instance_left_pixel_root_map_with_id[id] = os.path.join(self.instance_left_pixel_root, f'left_{id}.png')
             self.instance_right_pixel_root_map_with_id[id] = os.path.join(self.instance_right_pixel_root, f'right_{id}.png')
         
-        self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'omini_latents_left')
-        self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'omini_latents_right')
+        self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_updated')
+        self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_updated')
         
         self.instance_left_latent_root_map_with_id = {}
         self.instance_right_latent_root_map_with_id = {}
