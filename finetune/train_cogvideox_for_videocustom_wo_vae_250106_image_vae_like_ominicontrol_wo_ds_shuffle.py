@@ -252,13 +252,13 @@ def get_args():
     parser.add_argument(
         "--height_val",
         type=int,
-        default=512,
+        default=480,
         help="All input videos are resized to this height.",
     )
     parser.add_argument(
         "--width_val",
         type=int,
-        default=512,
+        default=720,
         help="All input videos are resized to this width.",
     )
     parser.add_argument("--fps", type=int, default=8, help="All input videos will be used at this FPS.")
@@ -951,9 +951,9 @@ def log_validation(
                         logger.info(f"Successfully processed reference image with shape: {pixel_values.shape}")
                     else:
                         # Resize and crop to the target resolution
-                        ref_image = ref_image.resize((512, 512))
-                        width, height = 512, 512
-                        target_width, target_height = 512, 512
+                        ref_image = ref_image.resize((720, 720))
+                        width, height = 720, 720
+                        target_width, target_height = 720, 480
 
                         # Calculate coordinates for center crop
                         left = (width - target_width) // 2
@@ -1604,7 +1604,7 @@ def main(args):
         r=args.rank,
         lora_alpha=args.lora_alpha,
         init_lora_weights=True,
-        target_modules=["to_k", "to_q", "to_v", "to_out.0", "proj", "text_proj","norm1.linear", "norm2.linear", "ff.net.2"],
+        target_modules=["to_k", "to_q", "to_v", "to_out.0", "proj", "text_proj","norm1.linear", "norm2.linear", "ff.net.2", "time_embedding.linear_1", "time_embedding.linear_2"],
     )
 
     # transformer_lora_config_mlp = LoraConfig(
@@ -2249,8 +2249,8 @@ def main(args):
                         "guidance_scale": args.guidance_scale,
                         "use_dynamic_cfg": args.use_dynamic_cfg,
                         "validation_reference_image": validation_ref_img,
-                        "height": 512,
-                        "width": 512,
+                        "height": 480,
+                        "width": 720,
                         "eval" : True,
                         "concatenated_all" : concatenated_all,
                         "reduce_token" : reduce_token,
