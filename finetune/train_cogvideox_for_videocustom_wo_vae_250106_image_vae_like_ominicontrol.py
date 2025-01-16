@@ -252,13 +252,13 @@ def get_args():
     parser.add_argument(
         "--height_val",
         type=int,
-        default=512,
+        default=480,
         help="All input videos are resized to this height.",
     )
     parser.add_argument(
         "--width_val",
         type=int,
-        default=512,
+        default=720,
         help="All input videos are resized to this width.",
     )
     parser.add_argument("--fps", type=int, default=8, help="All input videos will be used at this FPS.")
@@ -642,8 +642,8 @@ class ImageDataset(Dataset):
         
         self.prefix = "Static Video, Non-dynamic, Non-moving, Stopped video."
         
-        self.instance_left_pixel_root = os.path.join(str(self.instance_data_root), 'left_images')
-        self.instance_right_pixel_root = os.path.join(str(self.instance_data_root), 'right_images')
+        self.instance_left_pixel_root = os.path.join(str(self.instance_data_root), 'left_images_updated')
+        self.instance_right_pixel_root = os.path.join(str(self.instance_data_root), 'right_images_updated')
         self.dataset_name = dataset_name
         
         self.load_to_ram = load_to_ram
@@ -689,8 +689,8 @@ class ImageDataset(Dataset):
             self.instance_left_pixel_root_map_with_id[id] = os.path.join(self.instance_left_pixel_root, f'left_{id}.png')
             self.instance_right_pixel_root_map_with_id[id] = os.path.join(self.instance_right_pixel_root, f'right_{id}.png')
         
-        self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'omini_latents_left')
-        self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'omini_latents_right')
+        self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_updated')
+        self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_updated')
         
         self.instance_left_latent_root_map_with_id = {}
         self.instance_right_latent_root_map_with_id = {}
@@ -951,9 +951,9 @@ def log_validation(
                         logger.info(f"Successfully processed reference image with shape: {pixel_values.shape}")
                     else:
                         # Resize and crop to the target resolution
-                        ref_image = ref_image.resize((512, 512))
-                        width, height = 512, 512
-                        target_width, target_height = 512, 512
+                        ref_image = ref_image.resize((720, 720)) 
+                        width, height = 720, 720
+                        target_width, target_height = args.width_val, args.height_val
 
                         # Calculate coordinates for center crop
                         left = (width - target_width) // 2
