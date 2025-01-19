@@ -27,28 +27,8 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             break
 
         try:
-            # Load video using Decord
-            # decord.bridge.set_bridge("native")
-            # vr = VideoReader(video_path, ctx=decord.cpu(0))
-
-            # Calculate frame interval
-            # original_fps = 8
-            # frame_interval = int(original_fps / fps)
-
-            # # Extract frames
-            # # frames = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
-            # frames = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
-
-            # # Ensure exact number of frames
-            # if frames.shape[0] < max_frames:
-            #     pad_frames = max_frames - frames.shape[0]
-            #     print('>> shorter than max_frames : doing padding')
-            #     frames = np.pad(frames, ((0, pad_frames), (0, 0), (0, 0), (0, 0)), mode="constant")
-            # elif frames.shape[0] > max_frames:
-            #     frames = frames[:max_frames]
-            # # Resize frames using OpenCV
-            # frames = np.array([cv2.resize(frame, (width, height), interpolation=cv2.INTER_LINEAR) for frame in frames])
             frames = cv2.imread(video_path) 
+            frames = cv2.cvtColor(frames, cv2.COLOR_BGR2RGB)
             frames = cv2.resize(frames, (width, height), interpolation=cv2.INTER_LINEAR)
             frames = np.expand_dims(frames, axis=0)  # Add frame dimension# single frame so open with cv2
             # frames = np.array([cv2.resize(frames, (width, height), interpolation=cv2.INTER_LINEAR)])
@@ -63,12 +43,13 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             # Encode video to latent space
             with torch.no_grad():
                 latent_dist = vae.encode(frames).latent_dist
-                latents = latent_dist.sample() * vae.config.scaling_factor
+                latents = latent_dist.sample()
 
             # Save latents
             output_path = os.path.join(output_dir, Path(video_path).stem + "_vae_latents.npy")
             np.save(output_path, latents.cpu().numpy())
-
+            # shape of latent : # (1, 4, 49, 32, 32)
+ 
         except Exception as e:
             print(f"Error processing video {video_path}: {e}")
 
@@ -136,7 +117,7 @@ print(f"Total video paths: {len(video_paths)}")
 extract_vae_latents(
     video_paths,
     vae_model_path="THUDM/CogVideoX-5b",
-    output_dir="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/right_latents_updated",
+    output_dir="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/right_latents_updated_rgb",
     # output_dir = "/dev/shm/vae_latents",
     height=480,
     width=720,

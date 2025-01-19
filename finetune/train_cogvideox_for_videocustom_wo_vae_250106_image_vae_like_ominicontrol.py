@@ -766,7 +766,8 @@ class ImageDataset(Dataset):
                             latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
                         else:
                             latent = torch.from_numpy(self.instance_left_latent_root_map_with_id[index])
-                    
+                # latent is preprocessed from cv2.imread, so convert BGR to RGB
+                latent = latent[...,::-1]
                     # latent = latent.unsqueeze(0)
                 return {
                     "instance_prompt": prompt,
@@ -964,6 +965,7 @@ def log_validation(
                         # Perform cropping
                         ref_image = ref_image.crop((left, top, right, bottom))
                         ref_image = cv2.cvtColor(np.array(ref_image), cv2.COLOR_RGB2BGR)
+                        ref_images = np.array(ref_image)
                         ref_image = np.expand_dims(ref_image, axis=0)  # Add frame dimension
                         
                         ref_image = torch.from_numpy(ref_image).float() / 255.0 * 2.0 - 1.0
