@@ -9,6 +9,9 @@ from diffusers import AutoencoderKLCogVideoX
 # import decord
 # from decord import VideoReader
 from multiprocessing import Process, Queue, Value
+import multiprocessing
+
+
 
 def process_video(queue, progress_queue, vae_model_path, max_frames, width, height, gpu_id, output_dir, fps):
     """
@@ -103,24 +106,25 @@ def extract_vae_latents(
     # Wait for all processes to finish
     for process in processes:
         process.join()
-        
-video_dir1 = "/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/right_images_updated"
-# video_dir2 = "output/right_images"
-video_paths = sorted([os.path.join(video_dir1, f) for f in os.listdir(video_dir1) if f.endswith(".png")]) # single frame video (image)
-total_cnt = len(video_paths)
-# half of the videos
-video_paths = video_paths[:total_cnt//2]
-print(f"Total video paths: {len(video_paths)}")
-# video_paths += [os.path.join(video_dir2, f) for f in os.listdir(video_dir2) if f.endswith(".png")] # single frame video (image)
+if __name__ == "__main__":
+    multiprocessing.set_start_method("spawn")
+    video_dir1 = "/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/right_images_updated"
+    # video_dir2 = "output/right_images"
+    video_paths = sorted([os.path.join(video_dir1, f) for f in os.listdir(video_dir1) if f.endswith(".png")]) # single frame video (image)
+    total_cnt = len(video_paths)
+    # half of the videos
+    video_paths = video_paths[:total_cnt//2]
+    print(f"Total video paths: {len(video_paths)}")
+    # video_paths += [os.path.join(video_dir2, f) for f in os.listdir(video_dir2) if f.endswith(".png")] # single frame video (image)
 
-# Extract VAE latents
-extract_vae_latents(
-    video_paths,
-    vae_model_path="THUDM/CogVideoX-5b",
-    output_dir="./right_latents_fixed_updated_rgb",
-    # output_dir = "/dev/shm/vae_latents",
-    height=480,
-    width=720,
-    max_frames=1,
-    # fps=8,
-)
+    # Extract VAE latents
+    extract_vae_latents(
+        video_paths,
+        vae_model_path="THUDM/CogVideoX-5b",
+        output_dir="./right_latents_fixed_updated_rgb",
+        # output_dir = "/dev/shm/vae_latents",
+        height=480,
+        width=720,
+        max_frames=1,
+        # fps=8,
+    )
