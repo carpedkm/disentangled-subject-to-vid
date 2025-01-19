@@ -117,7 +117,7 @@ print(f"Total video paths: {len(video_paths)}")
 extract_vae_latents(
     video_paths,
     vae_model_path="THUDM/CogVideoX-5b",
-    output_dir="/scratch/amlt_code/videocustom/p4",
+    output_dir="./right_latents_fixed_updated_rgb",
     height=480,
     width=720,
     max_frames=1,
