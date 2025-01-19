@@ -117,7 +117,7 @@ print(f"Total video paths: {len(video_paths)}")
 extract_vae_latents(
     video_paths,
     vae_model_path="THUDM/CogVideoX-5b",
-    output_dir="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/left_latents_updated_rgb",
+    output_dir="/scratch/amlt_code/videocustom/p2",
     height=480,
     width=720,
     max_frames=1,
