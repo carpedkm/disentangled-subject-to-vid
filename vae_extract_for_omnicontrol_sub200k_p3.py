@@ -32,7 +32,7 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             frames = cv2.cvtColor(frames, cv2.COLOR_BGR2RGB)
             frames = cv2.resize(frames, (width, height), interpolation=cv2.INTER_LINEAR)
             frames = np.expand_dims(frames, axis=0)  # Add frame dimension# single frame so open with cv2
-            frames = np.stack([frames] * max_frames, axis=0)  # Ensure we have max_frames
+            frames = np.concatenate([frames] * max_frames, axis=0)  # Ensure we have max_frames
             # frames = np.array([cv2.resize(frames, (width, height), interpolation=cv2.INTER_LINEAR)])
             frames = np.array(frames)
             # Convert to torch tensor and preprocess
