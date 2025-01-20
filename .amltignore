@@ -5,3 +5,9 @@ metadata_update_refined_with_prefix/
 omini200k_720p/
 omini200k_720p_full/
 output_720/
+
+*.npy
+right_latents_fixed_updated_rgb/
+left_latents_fixed_updated_rgb/
+vae_latents_sub200k_rgb_p1/
+vae_latents_sub200k_rgb_p2/
