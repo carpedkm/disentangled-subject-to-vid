@@ -124,6 +124,6 @@ if __name__ == "__main__":
         # output_dir = "/dev/shm/vae_latents",
         height=480,
         width=720,
-        max_frames=12,
+        max_frames=13,
         # fps=8,
     )
