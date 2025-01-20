@@ -689,8 +689,8 @@ class ImageDataset(Dataset):
             self.instance_left_pixel_root_map_with_id[id] = os.path.join(self.instance_left_pixel_root, f'left_{id}.png')
             self.instance_right_pixel_root_map_with_id[id] = os.path.join(self.instance_right_pixel_root, f'right_{id}.png')
         
-        self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_fixed_updated_rgb')
-        self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_fixed_updated_rgb')
+        self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_rgb_full')
+        self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_rgb_full')
         
         self.instance_left_latent_root_map_with_id = {}
         self.instance_right_latent_root_map_with_id = {}
