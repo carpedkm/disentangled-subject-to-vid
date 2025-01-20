@@ -124,6 +124,6 @@ if __name__ == "__main__":
         output_dir="./left_latents_fixed_updated_rgb_12",
         height=480,
         width=720,
-        max_frames=12,
+        max_frames=13,
         # fps=8,
     )
