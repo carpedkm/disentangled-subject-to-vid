@@ -2,7 +2,7 @@
 
 export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
-export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k"
+export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
 # export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241223/compare_controlnet_5b_w_latent_4000_xpairs_wobg_single_frame"
 export OUTPUT_PATH="/mnt/carpedkm_data/result250120/720x480embedding_refined_oministyle_vaeadd_original_channel_fix_20k_debug"
