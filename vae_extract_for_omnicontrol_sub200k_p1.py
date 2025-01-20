@@ -121,9 +121,9 @@ if __name__ == "__main__":
     extract_vae_latents(
         video_paths,
         vae_model_path="THUDM/CogVideoX-5b",
-        output_dir="./left_latents_fixed_updated_rgb_25",
+        output_dir="./left_latents_fixed_updated_rgb_12",
         height=480,
         width=720,
-        max_frames=25,
+        max_frames=12,
         # fps=8,
     )

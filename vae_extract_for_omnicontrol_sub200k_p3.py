@@ -11,8 +11,6 @@ from diffusers import AutoencoderKLCogVideoX
 from multiprocessing import Process, Queue, Value
 import multiprocessing
 
-
-
 def process_video(queue, progress_queue, vae_model_path, max_frames, width, height, gpu_id, output_dir, fps):
     """
     Process videos assigned to a specific GPU.
@@ -34,6 +32,7 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             frames = cv2.cvtColor(frames, cv2.COLOR_BGR2RGB)
             frames = cv2.resize(frames, (width, height), interpolation=cv2.INTER_LINEAR)
             frames = np.expand_dims(frames, axis=0)  # Add frame dimension# single frame so open with cv2
+            frames = np.stack([frames] * max_frames, axis=0)  # Ensure we have max_frames
             # frames = np.array([cv2.resize(frames, (width, height), interpolation=cv2.INTER_LINEAR)])
             frames = np.array(frames)
             # Convert to torch tensor and preprocess
@@ -121,10 +120,10 @@ if __name__ == "__main__":
     extract_vae_latents(
         video_paths,
         vae_model_path="THUDM/CogVideoX-5b",
-        output_dir="./right_latents_fixed_updated_rgb",
+        output_dir="./right_latents_fixed_updated_rgb_12",
         # output_dir = "/dev/shm/vae_latents",
         height=480,
         width=720,
-        max_frames=1,
+        max_frames=12,
         # fps=8,
     )
