@@ -29,8 +29,8 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --lora_alpha 64 \
   --mixed_precision bf16 \
   --output_dir $OUTPUT_PATH \
-  --height 512 \
-  --width 512 \
+  --height 480 \
+  --width 720 \
   --fps 8 \
   --max_num_frames 1 \
   --skip_frames_start 0 \
