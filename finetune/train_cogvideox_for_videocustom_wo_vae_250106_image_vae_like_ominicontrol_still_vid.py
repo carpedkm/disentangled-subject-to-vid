@@ -647,38 +647,71 @@ class ImageDataset(Dataset):
         
         self.instance_left_pixel_root = os.path.join(str(self.instance_data_root), 'left_images_updated')
         self.instance_right_pixel_root = os.path.join(str(self.instance_data_root), 'right_images_updated')
+        
+        self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_rgb_full')
+        self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_rgb_full')
+        
+        self.instance_left_multi_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_fixed_updated_rgb_13')
+        self.instance_right_multi_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_fixed_updated_rgb_13')
+        
         self.dataset_name = dataset_name
         
         self.load_to_ram = load_to_ram
         
-        print('Get list for image IDs')
-        left_ids = os.listdir(self.instance_left_pixel_root)
-        left_ids = [int(id.split('_')[1].split('.')[0]) for id in tqdm(left_ids)]
-        
-        right_ids = os.listdir(self.instance_right_pixel_root)
-        right_ids = [int(id.split('_')[1].split('.')[0]) for id in tqdm(right_ids)]
-        
-        # check if there exists non-existing ids in right_ids
-        print("CHECKING MISSING IDS")
-        left_ids_set = set(left_ids)
-        right_ids_set = set(right_ids)
+        if not self.multi_frames:
+            print('Get list for image IDs')
+            left_ids = os.listdir(self.instance_left_pixel_root)
+            left_ids = [int(id.split('_')[1].split('.')[0]) for id in tqdm(left_ids)]
+            
+            right_ids = os.listdir(self.instance_right_pixel_root)
+            right_ids = [int(id.split('_')[1].split('.')[0]) for id in tqdm(right_ids)]
+            
+            # check if there exists non-existing ids in right_ids
+            print("CHECKING MISSING IDS")
+            left_ids_set = set(left_ids)
+            right_ids_set = set(right_ids)
 
-        # Find ids in left_ids that are not in right_ids
-        no_right_ids = left_ids_set - right_ids_set
-        for id in no_right_ids:
-            print('>> NO RIGHT ID', id)
-            left_ids.remove(id)
+            # Find ids in left_ids that are not in right_ids
+            no_right_ids = left_ids_set - right_ids_set
+            for id in no_right_ids:
+                print('>> NO RIGHT ID', id)
+                left_ids.remove(id)
 
-        # Find ids in right_ids that are not in left_ids
-        no_left_ids = right_ids_set - left_ids_set
-        for id in no_left_ids:
-            print('>> NO LEFT ID', id)
-            right_ids.remove(id)
+            # Find ids in right_ids that are not in left_ids
+            no_left_ids = right_ids_set - left_ids_set
+            for id in no_left_ids:
+                print('>> NO LEFT ID', id)
+                right_ids.remove(id)
+            
+            assert set(left_ids) == set(right_ids) # what about now? -> same ids in both left and right 
+            ids = left_ids
+            # self.ids = ids
+            # randomly select ids
+        else:
+            print('Get list for image IDs')
+            # filter out ids only basd on the latent inside the self.instance_left_multi_latent_root
+            ids_inside_multi_latent_root_left = os.listdir(self.instance_left_multi_latent_root)
+            left_ids = [int(id_.split('.')[0].split('_')[1]) for id_ in ids_inside_multi_latent_root_left]
+            ids_inside_multi_latent_root_right = os.listdir(self.instance_right_multi_latent_root)
+            right_ids = [int(id_.split('.')[0].split('_')[1]) for id_ in ids_inside_multi_latent_root_right]
+            
+            print("CHECKING MISSING IDS")
+            left_ids_set = set(left_ids)
+            right_ids_set = set(right_ids)
+            
+            no_right_ids = left_ids_set - right_ids_set
+            for id in no_right_ids:
+                print('>> NO RIGHT ID', id)
+                left_ids.remove(id)
+            no_left_ids = right_ids_set - left_ids_set
+            for id in no_left_ids:
+                print('>> NO LEFT ID', id)
+                right_ids.remove(id)
+            
+            assert set(left_ids) == set(right_ids) 
+            ids = left_ids
         
-        assert set(left_ids) == set(right_ids) # what about now? -> same ids in both left and right 
-        ids = left_ids
-        # self.ids = ids
-        # randomly select ids
+
         if subset_cnt != -1:
             self.ids = random.sample(ids, subset_cnt)
         else:
@@ -692,11 +725,7 @@ class ImageDataset(Dataset):
             self.instance_left_pixel_root_map_with_id[id] = os.path.join(self.instance_left_pixel_root, f'left_{id}.png')
             self.instance_right_pixel_root_map_with_id[id] = os.path.join(self.instance_right_pixel_root, f'right_{id}.png')
         
-        self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_rgb_full')
-        self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_rgb_full')
-        
-        self.instance_left_multi_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_fixed_updated_rgb_13')
-        self.instance_right_multi_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_fixed_updated_rgb_13')
+
         
         self.instance_left_latent_root_map_with_id = {}
         self.instance_right_latent_root_map_with_id = {}
@@ -704,12 +733,13 @@ class ImageDataset(Dataset):
         for id in tqdm(self.ids):
             self.instance_left_latent_root_map_with_id[id] = os.path.join(self.instance_left_latent_root, f'left_{id}_vae_latents.npy')
             self.instance_right_latent_root_map_with_id[id] = os.path.join(self.instance_right_latent_root, f'right_{id}_vae_latents.npy')
-        if self.multiple_frames is True:
+        if self.multi_frames is True:
             self.instance_left_multi_latent_root_map_with_id = {}
             self.instance_right_multi_latent_root_map_with_id = {}
             for id in tqdm(self.ids):
                 self.instance_left_multi_latent_root_map_with_id[id] = os.path.join(self.instance_left_multi_latent_root, f'left_{id}_vae_latents.npy')
                 self.instance_right_multi_latent_root_map_with_id[id] = os.path.join(self.instance_right_multi_latent_root, f'right_{id}_vae_latents.npy')
+
         
         # self.anno_path = os.path.join(str(self.instance_data_root), 'metadata')
         self.anno_path = anno_path
@@ -1035,7 +1065,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 1, #args.max_num_frames,
+                'num_frames': 13, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
