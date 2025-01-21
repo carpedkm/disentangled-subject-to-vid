@@ -1910,6 +1910,7 @@ def main(args):
         # wo_bg=args.wo_bg,
         use_latent=args.use_latent,
         vae_add=args.vae_add,
+        load_to_ram=args.load_to_ram,
         seen_validation=args.seen_validation,
         multi_frames=True if args.max_num_frames > 1 else False,
         # latent_data_root=args.latent_data_root,
