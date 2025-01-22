@@ -27,6 +27,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         clip_text_encoder=None,
         customization=False,
         vae_add=False,
+        cross_attend=False,
         pos_embed=False,
     ):
         # Call the base class __init__ without the 'customization' argument
@@ -277,6 +278,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         zero_conv_add: bool = False,
         vae_add: bool = False,
         pos_embed: bool = False,
+        cross_attend: bool = False,
     ) -> Union[CogVideoXPipelineOutput, Tuple]:
         if num_frames > 49:
             raise ValueError(
@@ -401,6 +403,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     zero_conv_add=zero_conv_add,
                     vae_add=vae_add,
                     pos_embed=pos_embed,
+                    cross_attend=cross_attend,
                 )[0]
                 noise_pred = noise_pred.float()
 
