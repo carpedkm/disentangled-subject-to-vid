@@ -2259,7 +2259,7 @@ def main(args):
                         "add_token": args.add_token,
                         'zero_conv_add': args.zero_conv_add,
                         'vae_add' : args.vae_add,
-                        'pos_embed' : args.pos_embed
+                        'pos_embed' : args.pos_embed,
                     }
 
                     validation_outputs = log_validation(
