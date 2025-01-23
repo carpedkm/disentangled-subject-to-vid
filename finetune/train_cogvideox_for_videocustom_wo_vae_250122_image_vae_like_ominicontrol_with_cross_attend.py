@@ -1399,6 +1399,7 @@ def main(args):
     #FIXME -> wandb name setup
     project_name = "video_customization_consis_id_style"
     experiment_name = os.path.splitext(os.path.basename(args.output_dir))[0]
+    os.environ["WANDB_NAME"] = experiment_name
     accelerator_project_config = ProjectConfiguration(project_dir=args.output_dir, logging_dir=logging_dir,
                                                       config={"wandb": {"name": experiment_name}})
                                                     #   name=experiment_name)
