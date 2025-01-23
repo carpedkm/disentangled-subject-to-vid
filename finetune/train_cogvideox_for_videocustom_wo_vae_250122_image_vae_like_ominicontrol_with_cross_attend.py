@@ -1399,7 +1399,8 @@ def main(args):
     #FIXME -> wandb name setup
     project_name = "video_customization_consis_id_style"
     experiment_name = os.path.splitext(os.path.basename(args.output_dir))[0]
-    accelerator_project_config = ProjectConfiguration(project_dir=args.output_dir, logging_dir=logging_dir,)
+    accelerator_project_config = ProjectConfiguration(project_dir=args.output_dir, logging_dir=logging_dir,
+                                                      config={"wandb": {"name": experiment_name}})
                                                     #   name=experiment_name)
     # DistributedDataParallelKwargs setup for gradient checkpointing and unused parameters and mixed precision
     # what is distributed dataparallel kwargs here? 
@@ -1413,7 +1414,6 @@ def main(args):
         log_with=args.report_to, # logging to wandb
         project_config=accelerator_project_config, # project configuration
         kwargs_handlers=[kwargs], # DistributedDataParallelKwargs setup
-        project_name=experiment_name
     )
     print('Accelerator setup done')
 
