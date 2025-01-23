@@ -1396,8 +1396,11 @@ def main(args):
     logging_dir = Path(args.output_dir, args.logging_dir)
     print('Acceleration config set')
     # Accelerator setup
-    accelerator_project_config = ProjectConfiguration(project_dir=args.output_dir, logging_dir=logging_dir,)
-                                                    #   project_name=args.project_name, experiment_name=args.experiment_name)
+    #FIXME -> wandb name setup
+    project_name = "video_customization_consis_id_style"
+    experiment_name = os.path.splitext(os.path.basename(args.output_dir))[0]
+    accelerator_project_config = ProjectConfiguration(project_dir=args.output_dir, logging_dir=logging_dir,
+                                                      project_name=project_name, experiment_name=experiment_name)
     # DistributedDataParallelKwargs setup for gradient checkpointing and unused parameters and mixed precision
     # what is distributed dataparallel kwargs here? 
     # find_unused_parameters: If True, find_unused_parameters will be passed to DistributedDataParallel.
@@ -1511,7 +1514,7 @@ def main(args):
     if (not args.vae_add) and (not args.cross_attend):
         transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
     
-    if args.vae_add:
+    if args.vae_add and (not args.cross_attend):
         # transformer.CLIPTextProjectionLayer = None
         # transformer.CLIPVisionProjectionLayer = None
         # transformer.CLIPTextProjectionLayer2 = None

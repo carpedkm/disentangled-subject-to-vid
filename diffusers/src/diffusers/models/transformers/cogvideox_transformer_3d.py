@@ -552,10 +552,16 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 else:
                     enc_hidden_states0 = encoder_hidden_states
                     enc_hidden_states1 = ref_img_states
-            else:
+            elif vae_add is False and cross_attend is True:
                 enc_hidden_states0 = encoder_hidden_states
                 ref_img_emb = ref_img_states
                 # print('>>>> REF IMG STATES SHAPE : ', ref_img_states.shape)
+            elif vae_add is True and cross_attend is True:
+                enc_hidden_states0 = encoder_hidden_states
+                enc_hidden_states1 = ref_img_states
+                ref_img_emb = ref_img_states
+            else:
+                print('Something is Wrong >>>>>>>> RE CHECK')
                 
         else:
             # encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
@@ -592,7 +598,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         
         # 2. Patch embedding
         # if not cross_attend: # ADDME
-        if vae_add and (not cross_attend):
+        if vae_add :
             enc_hidden_states0 = self.patch_embed.text_proj(enc_hidden_states0)
             # text_seq_length = enc_hidden_states0.shape[1]
             b_1, nf_1, c_1, h_1, w_1 = enc_hidden_states1.shape
@@ -631,7 +637,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             position_delta = 0
 
         
-        if (not vae_add) or cross_attend:
+        # if (not vae_add) or cross_attend:
+        if vae_add is False:
             text_seq_length = encoder_hidden_states.shape[1]
             encoder_hidden_states = hidden_states[:, :text_seq_length]
         else:
