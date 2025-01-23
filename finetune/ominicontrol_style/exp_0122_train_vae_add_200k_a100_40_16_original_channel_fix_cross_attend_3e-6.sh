@@ -57,7 +57,6 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
-  --resume_from_checkpoint /mnt/carpedkm_data/result250122/720x480embedding_refined_oministyle_vaeadd_original_channel_fix_200k_cross_attend/checkpoint-100
   # --subset_cnt 20000
   # --inference \
   # --resume_from_checkpoint /mnt/carpedkm_data/result25012/512x512embedding_refined_oministyle_vaeadd/checkpoint-6000
