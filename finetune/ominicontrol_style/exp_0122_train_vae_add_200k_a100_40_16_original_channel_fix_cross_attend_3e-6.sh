@@ -35,7 +35,7 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --max_num_frames 1 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 8 \
+  --train_batch_size 16 \
   --num_train_epochs 30 \
   --checkpointing_steps 2000 \
   --gradient_accumulation_steps 1 \
