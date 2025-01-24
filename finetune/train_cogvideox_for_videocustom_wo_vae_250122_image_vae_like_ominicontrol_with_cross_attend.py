@@ -1002,7 +1002,7 @@ def log_validation(
                     # Load and preprocess the reference image
 
                     # Process image using CLIP processor
-                    if (not args.vae_add) and (not args.cross_attend):
+                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
                         # ref_image = Image.open(pipeline_args['validation_reference_image']).convert('RGB')
                         processed_image = clip_processor.image_processor(
                             images=ref_image,
@@ -1762,7 +1762,7 @@ def main(args):
                             projection_layers_state_dict["CLIPVisionProjectionLayer2"] = unwrapped_model.CLIPVisionProjectionLayer2.state_dict()
                         # Save CLIPVisionModel state_dict
                         vision_model_state_dict = unwrapped_model.reference_vision_encoder.state_dict()
-                    if args.cross_attend:
+                    if args.cross_attend or args.cross_attend_text:
                         cross_attention_layer_state_dict = unwrapped_model.perceiver_cross_attention.state_dict()
                         
                 
