@@ -269,6 +269,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         zero_conv_add : bool = False,
         vae_add: bool = False,
         cross_attend : bool = False,
+        cross_attend_text: bool = False,
         cross_attn_interval: int = 1,
         local_reference_scale: float = 1.,
         cross_attn_dim_head: int = 128,
@@ -368,6 +369,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
 
         self.gradient_checkpointing = False
         self.cross_attend = cross_attend
+        self.cross_attend_text = cross_attend_text
         # self.num_cross_att
         if self.cross_attend:
             self.perceiver_cross_attention = None
@@ -502,9 +504,10 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         vae_add: bool = False,
         pos_embed: bool = False,
         cross_attend: bool = False,
+        cross_attend_text: bool = False,
     ):
         if customization:
-            if not cross_attend:
+            if (not cross_attend) and (not cross_attend_text):
                 if not vae_add:
                     if add_token:
                         ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
@@ -552,11 +555,11 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 else:
                     enc_hidden_states0 = encoder_hidden_states
                     enc_hidden_states1 = ref_img_states
-            elif vae_add is False and cross_attend is True:
+            elif vae_add is False and (cross_attend is True or cross_attend_text is True):
                 enc_hidden_states0 = encoder_hidden_states
                 ref_img_emb = ref_img_states
                 # print('>>>> REF IMG STATES SHAPE : ', ref_img_states.shape)
-            elif vae_add is True and cross_attend is True:
+            elif vae_add is True and (cross_attend is True or cross_attend_text is True):
                 enc_hidden_states0 = encoder_hidden_states
                 enc_hidden_states1 = ref_img_states
                 ref_img_emb = ref_img_states
@@ -610,7 +613,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             if eval:
                 enc_hidden_states1 = torch.cat([enc_hidden_states1, enc_hidden_states1], dim=0)
             encoder_hidden_states_temp = torch.cat([enc_hidden_states1, enc_hidden_states0], dim=1)
-        if cross_attend:
+        if cross_attend or cross_attend_text:
             b_1, nf_1, c_1, h_1, w_1 = ref_img_emb.shape
             ref_img_emb = ref_img_emb.reshape(-1, c_1, h_1, w_1)
             ref_img_emb = self.patch_embed.proj(ref_img_emb)
@@ -685,11 +688,16 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                     ref_img_seq_end=ref_img_seq_end,
                     position_delta=position_delta,
                 )
-            if self.cross_attend:
+            if self.cross_attend or self.cross_attend_text:
                 if ca_idx % self.cross_attn_interval == 0 and ca_idx <= self.num_layers:
-                    hidden_states = hidden_states + self.local_reference_scale * self.perceiver_cross_attention[ca_idx](
-                        ref_img_emb, hidden_states
-                    )
+                    if self.cross_attend_text:
+                        encoder_hidden_states = encoder_hidden_states + self.local_reference_scale * self.perceiver_cross_attention[ca_idx](
+                            ref_img_emb, encoder_hidden_states
+                        )
+                    if self.cross_attend:
+                        hidden_states = hidden_states + self.local_reference_scale * self.perceiver_cross_attention[ca_idx](
+                            ref_img_emb, hidden_states
+                        )
                     ca_idx += 1
 
         if not self.config.use_rotary_positional_embeddings:

@@ -541,6 +541,11 @@ def get_args():
         help='Whether to use cross attention or not'
     )
     parser.add_argument(
+        '--cross_attend_text',
+        action='store_true',
+        help='Whether to use cross attention on text or not'
+    )
+    parser.add_argument(
         '--cross_attn_interval',
         type=int,
         default=2,
@@ -679,6 +684,7 @@ class ImageDataset(Dataset):
         wo_bg : bool = False,
         vae_add : bool = False,
         cross_attend : bool = False,
+        cross_attend_text: bool = False,
         load_to_ram : bool = False,
         seen_validation : bool = False, 
     ) -> None:
@@ -686,6 +692,7 @@ class ImageDataset(Dataset):
         print('Data loader init')
         self.vae_add = vae_add
         self.cross_attend = cross_attend
+        self.cross_attend_text = cross_attend_text
         self.use_latent = use_latent
         self.instance_data_root = Path(instance_data_root) if instance_data_root is not None else None
         self.seen_validation = seen_validation
@@ -812,7 +819,7 @@ class ImageDataset(Dataset):
                 if not self.load_to_ram:
                     if target == 0: # left : condition / right : target
                         prompt = self.id_token + self.instance_prompts_1[index]
-                        if self.vae_add or self.cross_attend:
+                        if self.vae_add or self.cross_attend or self.cross_attend_text:
                             if not self.load_to_ram:
                                 image = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
                             else:
@@ -827,7 +834,7 @@ class ImageDataset(Dataset):
                         # latent = latent.unsqueeze(0)
                     else: # left : target / right : condition
                         prompt = self.id_token + self.instance_prompts_0[index]
-                        if self.vae_add or self.cross_attend:
+                        if self.vae_add or self.cross_attend or self.cross_attend_text:
                             if not self.load_to_ram:
                                 image = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index]))
                             else:
@@ -1503,6 +1510,7 @@ def main(args):
         zero_conv_add=args.zero_conv_add,
         vae_add=args.vae_add,
         cross_attend=args.cross_attend,
+        cross_attend_text=args.cross_attend_text,
         cross_attn_interval=args.cross_attn_interval,
         local_reference_scale=args.local_reference_scale,
         # cross_inner_dim=args.cross_inner_dim,
@@ -1512,17 +1520,17 @@ def main(args):
     )
     print("Done - CogVideoX Transformer model loaded")
     # Initialize submodules
-    if (not args.vae_add) and (not args.cross_attend):
+    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
         transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
     
-    if args.vae_add and (not args.cross_attend):
+    if args.vae_add and (not args.cross_attend) and ( not args.cross_attend):
         # transformer.CLIPTextProjectionLayer = None
         # transformer.CLIPVisionProjectionLayer = None
         # transformer.CLIPTextProjectionLayer2 = None
         # transformer.CLIPVisionProjectionLayer2 = None
         # transformer.T5ProjectionLayer = None
         pass
-    elif (not args.vae_add) and (not args.cross_attend):
+    elif (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
         if args.zero_conv_add:
             transformer.text_sequence_aligner = SequenceAligner(77, 226)
             transformer.vision_sequence_aligner = SequenceAligner(197, 226)
@@ -1609,7 +1617,7 @@ def main(args):
                     # Requires grad true
                     transformer.reference_vision_encoder.requires_grad_(True)
                     transformer.T5ProjectionLayer.requires_grad_(True)
-    elif args.cross_attend:
+    elif args.cross_attend or args.cross_attend_text:
             print('Loading PERCEIVER CROSS ATTENTION')
             perceiver_cross_attention = None
             local_reference_scale = args.local_reference_scale
@@ -1742,7 +1750,7 @@ def main(args):
                 if isinstance(unwrapped_model, type(unwrap_model(transformer))):
                     transformer_lora_layers_to_save = get_peft_model_state_dict(model)
                     
-                    if (not args.vae_add) and (not args.cross_attend):
+                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
                         # Save ProjectionLayer state_dicts
                         projection_layers_state_dict = {
                             "T5ProjectionLayer": unwrapped_model.T5ProjectionLayer.state_dict(),
@@ -1772,7 +1780,7 @@ def main(args):
                     weight_name="pytorch_lora_weights_transformer.safetensors",
                     transformer_lora_layers=transformer_lora_layers_to_save,
                 )
-            if (not args.vae_add) and (not args.cross_attend):
+            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
                 # Save Projection Layer weights
                 for name, state_dict in projection_layers_state_dict.items():
                     save_path = os.path.join(output_dir, f"{name}.pth")
@@ -1782,7 +1790,7 @@ def main(args):
                 if vision_model_state_dict is not None:
                     save_path = os.path.join(output_dir, "pytorch_clip_vision_model.bin")
                     torch.save(vision_model_state_dict, save_path)
-            if args.cross_attend:
+            if args.cross_attend or args.cross_attend_text:
                 save_path = os.path.join(output_dir, "perceiver_cross_attention.pth")
                 torch.save(cross_attention_layer_state_dict, save_path)
 
@@ -1817,7 +1825,7 @@ def main(args):
                 transformer_state_dict, 
                 adapter_name="default"
             )
-            if (not args.vae_add) and (not args.cross_attend):
+            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
                 # Load ProjectionLayer weights
                 transformer_.T5ProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "T5ProjectionLayer.pth")))
                 transformer_.CLIPTextProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPTextProjectionLayer.pth")))
@@ -1826,7 +1834,7 @@ def main(args):
                 # Load CLIPVisionModel weights
                 vision_model_state_dict = torch.load(os.path.join(input_dir, "pytorch_clip_vision_model.bin"))
                 transformer_.reference_vision_encoder.load_state_dict(vision_model_state_dict)
-            if args.cross_attend:
+            if args.cross_attend or args.cross_attend_text:
                 cross_attention_layer_state_dict = torch.load(os.path.join(input_dir, "perceiver_cross_attention.pth"))
                 transformer_.perceiver_cross_attention.load_state_dict(cross_attention_layer_state_dict)
 
@@ -1884,7 +1892,7 @@ def main(args):
     transformer_parameters_with_lr = {"params": transformer_lora_parameters, "lr": args.learning_rate}
 
     # Add the parameters of the projection layers with their learning rates
-    if (not args.vae_add) and (not args.cross_attend):
+    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
         if concatenated_all is True:
             projection_parameters = [
                 {"params": transformer.T5ProjectionLayer.parameters(), "lr": args.learning_rate},
@@ -1913,7 +1921,7 @@ def main(args):
         if args.zero_conv_add:
             # params_to_optimize.append({"params": learnable_weights, "lr": args.learning_rate})
             params_to_optimize = params_to_optimize + learnable_weights
-    elif args.cross_attend:
+    elif args.cross_attend or args.cross_attend_text:
         cross_attention_parameters = [
             {"params": transformer.perceiver_cross_attention.parameters(), "lr": args.learning_rate},
         ]
@@ -1961,6 +1969,7 @@ def main(args):
         use_latent=args.use_latent,
         vae_add=args.vae_add,
         cross_attend=args.cross_attend,
+        cross_attend_text=args.cross_attend_text,
         seen_validation=args.seen_validation,
         # latent_data_root=args.latent_data_root,
         # quick_poc_subset=args.quick_poc_subset,
@@ -2020,7 +2029,7 @@ def main(args):
             "prompts": prompts,
         }
         if ref_images is not None:
-            if (not args.vae_add) and (not args.cross_attend):
+            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
                 batch["ref_images"] = ref_images
             else:
                 batch["ref_images"] = torch.cat(ref_images, dim=0).to(memory_format=torch.contiguous_format).float()
@@ -2180,7 +2189,7 @@ def main(args):
                 
                 prompts = batch["prompts"]
                 if train_dataset.dataset_name == 'customization':
-                    if (not args.vae_add) and (not args.cross_attend):
+                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
                         image_processor = clip_processor.image_processor
                         images = image_processor(batch["ref_images"], return_tensors="pt").to(accelerator.device)
                     else:
@@ -2201,7 +2210,7 @@ def main(args):
                     requires_grad=False,
                 )
                 # Process images
-                if (not args.vae_add) and (not args.cross_attend):
+                if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
                     if images is not None and 'pixel_values' in images:
                         image_input = images['pixel_values'].to(device=accelerator.device, dtype=weight_dtype)
                 else:
@@ -2256,6 +2265,7 @@ def main(args):
                     vae_add=args.vae_add,
                     pos_embed=args.pos_embed,
                     cross_attend=args.cross_attend,
+                    cross_attend_text=args.cross_attend_text,
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
@@ -2349,6 +2359,7 @@ def main(args):
                     zero_conv_add=args.zero_conv_add,
                     vae_add=args.vae_add,
                     cross_attend=args.cross_attend,
+                    cross_attend_text=args.cross_attend_text,
                 )
 
                 # validation_prompts = args.validation_prompt.split(args.validation_prompt_separator)
@@ -2375,6 +2386,7 @@ def main(args):
                         'vae_add' : args.vae_add,
                         'pos_embed' : args.pos_embed,
                         'cross_attend' : args.cross_attend,
+                        'cross_attend_text' : args.cross_attend_text,
                     }
 
                     validation_outputs = log_validation(
