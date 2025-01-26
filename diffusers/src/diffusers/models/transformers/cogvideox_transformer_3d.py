@@ -373,6 +373,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         # self.num_cross_att
         if self.cross_attend:
             self.perceiver_cross_attention = None
+        if self.cross_attend_text:
+            self.perceiver_cross_attention_text = None
         self.num_layers = num_layers
         # Define modality embeddings
         # num_modalities = 3  # T5, CLIP text, CLIP vision
@@ -691,7 +693,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             if self.cross_attend or self.cross_attend_text:
                 if ca_idx % self.cross_attn_interval == 0 and ca_idx <= self.num_layers:
                     if self.cross_attend_text:
-                        encoder_hidden_states = encoder_hidden_states + self.local_reference_scale * self.perceiver_cross_attention[ca_idx](
+                        encoder_hidden_states = encoder_hidden_states + self.local_reference_scale * self.perceiver_cross_attention_text[ca_idx](
                             ref_img_emb, encoder_hidden_states
                         )
                     if self.cross_attend:
