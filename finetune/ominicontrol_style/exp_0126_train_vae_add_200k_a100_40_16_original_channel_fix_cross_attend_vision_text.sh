@@ -5,14 +5,14 @@ export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
 # export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241223/compare_controlnet_5b_w_latent_4000_xpairs_wobg_single_frame"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250125/720x480embedding_refined_oministyle_vaeadd_original_channel_fix_200k_cross_attend_text"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250126/720x480embedding_refined_oministyle_vaeadd_original_channel_fix_200k_cross_attend_vision_and_text"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 # if you are not using wth 8 gus, change `accelerate_config_machine_single.yaml` num_processes as your gpu number
-accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_gpu --machine_rank $1 \
+accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_gpu --machine_rank ${NODE_RANK} \
   ../train_cogvideox_for_videocustom_wo_vae_250122_image_vae_like_ominicontrol_with_cross_attend.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
