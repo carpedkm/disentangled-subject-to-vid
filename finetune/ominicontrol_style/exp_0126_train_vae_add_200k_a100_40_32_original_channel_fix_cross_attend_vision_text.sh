@@ -22,7 +22,7 @@ export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
 RANDOM_PORT=$((49152 + RANDOM % 16384))
 # export RANDOM_PORT=$((49152 + RANDOM % 16384))
 # if you are not using wth 8 gus, change `accelerate_config_machine_single.yaml` num_processes as your gpu number
-accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_gpu --machine_rank ${NODE_RANK} \
+accelerate launch --config_file ../accelerate_config_machine_multi_4nodes.yaml --multi_gpu --machine_rank ${NODE_RANK} \
   --main_process_port ${MASTER_PORT} \
   ../train_cogvideox_for_videocustom_wo_vae_250122_image_vae_like_ominicontrol_with_cross_attend.py \
   --gradient_checkpointing \
@@ -32,7 +32,7 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --enable_slicing \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
-  --validation_epochs 1 \
+  --validation_epochs 100 \
   --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
