@@ -39,7 +39,7 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
-  --learning_rate 3e-6 \
+  --learning_rate 5e-5 \
   --lr_scheduler cosine_with_restarts \
   --lr_warmup_steps 200 \
   --lr_num_cycles 1 \
