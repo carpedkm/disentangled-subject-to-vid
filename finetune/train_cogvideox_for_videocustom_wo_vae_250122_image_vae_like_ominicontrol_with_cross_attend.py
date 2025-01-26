@@ -566,6 +566,11 @@ def get_args():
         type=int,
         default=16,
     )
+    parser.add_argument(
+        '--add_special',
+        action='store_true',
+        help='Whether to add special token or not'
+    )
     return parser.parse_args()
 
 
@@ -687,6 +692,7 @@ class ImageDataset(Dataset):
         cross_attend_text: bool = False,
         load_to_ram : bool = False,
         seen_validation : bool = False, 
+        add_special: bool = False,
     ) -> None:
         super().__init__()
         print('Data loader init')
@@ -698,6 +704,7 @@ class ImageDataset(Dataset):
         self.seen_validation = seen_validation
         self.height = height
         self.width = width
+        self.prefix = "<cls> "
         # self.val_instance_prompt_dict = {'oranges_omini':"A close up view of the item. It is placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
         #                                  'clock_omini':"In a Bauhaus style room, the item is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
         #                                  'rc_car_omini': "A film style shot. On the moon, this item goes across the moon surface. The background is that Earth looms large in the foreground.",
@@ -710,9 +717,8 @@ class ImageDataset(Dataset):
                                          'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing this shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
                                         #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
                                         }
-        # self.seen_samples = {
-
-        # }
+        if add_special:
+            self.val_instance_prompt_dict = {k: self.prefix + v for k, v in self.val_instance_prompt_dict.items()}
         if self.seen_validation is True:
             self.val_instance_prompt_dict = {}
             path_for_seen_meta = '../seen_samples/omini_meta/'
@@ -726,7 +732,7 @@ class ImageDataset(Dataset):
         self.instance_prompts = []
         self.id_token = id_token or ""
         
-        self.prefix = "Static Video, Non-dynamic, Non-moving, Stopped video."
+        
         
         self.instance_left_pixel_root = os.path.join(str(self.instance_data_root), 'left_images_updated')
         self.instance_right_pixel_root = os.path.join(str(self.instance_data_root), 'right_images_updated')
@@ -803,8 +809,12 @@ class ImageDataset(Dataset):
             metadata = json.load(f)
         for id in tqdm(self.ids):
             meta = metadata[str(id)]
-            self.instance_prompts_0[id] = meta['description_0']
-            self.instance_prompts_1[id] = meta['description_1']
+            if add_special:
+                self.instance_prompts_0[id] = self.prefix + meta['description_0']
+                self.instance_prompts_1[id] = self.prefix + meta['description_1']
+            else:
+                self.instance_prompts_0[id] = meta['description_0']
+                self.instance_prompts_1[id] = meta['description_1']
         
         if self.load_to_ram is True:
                 self.instance_left_latent_root_map_with_id = {}
@@ -1472,10 +1482,15 @@ def main(args):
     tokenizer = AutoTokenizer.from_pretrained(
         args.pretrained_model_name_or_path, subfolder="tokenizer", revision=args.revision
     )
+    if args.add_special:
+        special_token = {"additional_special_tokens": ["<cls>"]}
+        tokenizer.add_special_tokens(special_token)
 
     text_encoder = T5EncoderModel.from_pretrained(
         args.pretrained_model_name_or_path, subfolder="text_encoder", revision=args.revision
     )
+    if args.add_special:
+        text_encoder.resize_token_embeddings(len(tokenizer))
     
     # Prepare additional model and scheduler (CLIP) for prompt encoding in customization
     clip_tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch16")  # You can change to another version if needed
@@ -2013,6 +2028,7 @@ def main(args):
         cross_attend=args.cross_attend,
         cross_attend_text=args.cross_attend_text,
         seen_validation=args.seen_validation,
+        add_special=args.add_special,
         # latent_data_root=args.latent_data_root,
         # quick_poc_subset=args.quick_poc_subset,
     )
