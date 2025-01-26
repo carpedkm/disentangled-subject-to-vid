@@ -698,10 +698,16 @@ class ImageDataset(Dataset):
         self.seen_validation = seen_validation
         self.height = height
         self.width = width
-        self.val_instance_prompt_dict = {'oranges_omini':"A close up view of the item. It is placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
-                                         'clock_omini':"In a Bauhaus style room, the item is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
-                                         'rc_car_omini': "A film style shot. On the moon, this item goes across the moon surface. The background is that Earth looms large in the foreground.",
-                                         'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing this item and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+        # self.val_instance_prompt_dict = {'oranges_omini':"A close up view of the item. It is placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+        #                                  'clock_omini':"In a Bauhaus style room, the item is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+        #                                  'rc_car_omini': "A film style shot. On the moon, this item goes across the moon surface. The background is that Earth looms large in the foreground.",
+        #                                  'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing this item and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+        #                                 #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
+        #                                 }
+        self.val_instance_prompt_dict = {'oranges_omini':"A close up view of the dish of oranges. It is placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+                                         'clock_omini':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+                                         'rc_car_omini': "A film style shot. On the moon, this toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+                                         'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing this shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
                                         #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
                                         }
         # self.seen_samples = {
@@ -1618,27 +1624,48 @@ def main(args):
                     transformer.reference_vision_encoder.requires_grad_(True)
                     transformer.T5ProjectionLayer.requires_grad_(True)
     elif args.cross_attend or args.cross_attend_text:
-            print('Loading PERCEIVER CROSS ATTENTION')
-            perceiver_cross_attention = None
-            local_reference_scale = args.local_reference_scale
-            num_cross_attn = 42 // args.cross_attn_interval
-            cross_inner_dim = 3072
-            cross_attn_dim_head = args.cross_attn_dim_head
-            cross_attn_num_head = args.cross_attn_num_head
-            # cross_attn_kv_dim =  int(cross_inner_dim / 3 * 2)
-            cross_attn_kv_dim = 3072
-            transformer.perceiver_cross_attention = nn.ModuleList(
-                [
-                    PerceiverCrossAttention(
-                        dim=cross_inner_dim,
-                        dim_head=cross_attn_dim_head,
-                        heads=cross_attn_num_head,
-                        kv_dim=cross_attn_kv_dim,
-                    ).to(dtype=torch.bfloat16)
-                    for _ in range(num_cross_attn)
-                ]
-            )
-            transformer.perceiver_cross_attention.requires_grad_(True)
+            if args.cross_attend:
+                print('Loading PERCEIVER CROSS ATTENTION')
+                perceiver_cross_attention = None
+                local_reference_scale = args.local_reference_scale
+                num_cross_attn = 42 // args.cross_attn_interval
+                cross_inner_dim = 3072
+                cross_attn_dim_head = args.cross_attn_dim_head
+                cross_attn_num_head = args.cross_attn_num_head
+                # cross_attn_kv_dim =  int(cross_inner_dim / 3 * 2)
+                cross_attn_kv_dim = 3072
+                transformer.perceiver_cross_attention = nn.ModuleList(
+                    [
+                        PerceiverCrossAttention(
+                            dim=cross_inner_dim,
+                            dim_head=cross_attn_dim_head,
+                            heads=cross_attn_num_head,
+                            kv_dim=cross_attn_kv_dim,
+                        ).to(dtype=torch.bfloat16)
+                        for _ in range(num_cross_attn)
+                    ]
+                )
+                transformer.perceiver_cross_attention.requires_grad_(True)
+            if args.cross_attend_text:
+                print('Loading PERCEIVER CROSS ATTENTION FOR TEXT')
+                perceiver_cross_attention_text = None
+                local_reference_scale = args.local_reference_scale
+                num_cross_attn = 42 // args.cross_attn_interval
+                cross_inner_dim = 3072
+                cross_attn_dim_head = args.cross_attn_dim_head
+                cross_attn_num_head = args.cross_attn_num_head
+                cross_attn_kv_dim = 3072
+                transformer.perceiver_cross_attention_text = nn.ModuleList(
+                    [
+                        PerceiverCrossAttention(
+                            dim=cross_inner_dim,
+                            im_head=cross_attn_dim_head,
+                            heads=cross_attn_num_head,
+                            kv_dim=cross_attn_kv_dim,
+                        ).to(dtype=torch.bfloat16)
+                        for _ in range(num_cross_attn)
+                    ]
+                )
     # Print out parameter names to verify # FOR DEBUGGING
     # for name, param in transformer.named_parameters():
     #     if param.requires_grad:
@@ -1717,7 +1744,7 @@ def main(args):
     #     init_lora_weights=True,
     #     target_modules=["to_k", "to_q", "to_v", "to_out.0"],
     # )
-    unfreeze_modules = ["perceiver_cross_attention"]
+    unfreeze_modules = ["perceiver_cross_attention", "perceiver_cross_attention_text"]
     transformer_lora_config = LoraConfig(
         r=args.rank,
         lora_alpha=args.lora_alpha,
@@ -1763,8 +1790,10 @@ def main(args):
                         # Save CLIPVisionModel state_dict
                         vision_model_state_dict = unwrapped_model.reference_vision_encoder.state_dict()
                     if args.cross_attend or args.cross_attend_text:
-                        cross_attention_layer_state_dict = unwrapped_model.perceiver_cross_attention.state_dict()
-                        
+                        if args.cross_attend:
+                            cross_attention_layer_state_dict = unwrapped_model.perceiver_cross_attention.state_dict()
+                        if args.cross_attend_text:
+                            cross_attention_layer_state_dict_text = unwrapped_model.perceiver_cross_attention_text.state_dict()
                 
                 # Raise an error for unexpected models
                 else:
@@ -1791,8 +1820,12 @@ def main(args):
                     save_path = os.path.join(output_dir, "pytorch_clip_vision_model.bin")
                     torch.save(vision_model_state_dict, save_path)
             if args.cross_attend or args.cross_attend_text:
-                save_path = os.path.join(output_dir, "perceiver_cross_attention.pth")
-                torch.save(cross_attention_layer_state_dict, save_path)
+                if args.cross_attend:
+                    save_path = os.path.join(output_dir, "perceiver_cross_attention.pth")
+                    torch.save(cross_attention_layer_state_dict, save_path)
+                if args.cross_attend_text:
+                    save_path = os.path.join(output_dir, "perceiver_cross_attention_text.pth")
+                    torch.save(cross_attention_layer_state_dict_text, save_path)
 
 
     def load_model_hook(models, input_dir):
@@ -1835,9 +1868,12 @@ def main(args):
                 vision_model_state_dict = torch.load(os.path.join(input_dir, "pytorch_clip_vision_model.bin"))
                 transformer_.reference_vision_encoder.load_state_dict(vision_model_state_dict)
             if args.cross_attend or args.cross_attend_text:
-                cross_attention_layer_state_dict = torch.load(os.path.join(input_dir, "perceiver_cross_attention.pth"))
-                transformer_.perceiver_cross_attention.load_state_dict(cross_attention_layer_state_dict)
-
+                if args.cross_attend:
+                    cross_attention_layer_state_dict = torch.load(os.path.join(input_dir, "perceiver_cross_attention.pth"))
+                    transformer_.perceiver_cross_attention.load_state_dict(cross_attention_layer_state_dict)
+                if args.cross_attend_text:
+                    cross_attention_layer_state_dict_text = torch.load(os.path.join(input_dir, "perceiver_cross_attention_text.pth"))
+                    transformer_.perceiver_cross_attention_text.load_state_dict(cross_attention_layer_state_dict_text)
             if incompatible_keys is not None:
                 # check only for unexpected keys
                 unexpected_keys = getattr(incompatible_keys, "unexpected_keys", None)
@@ -1922,9 +1958,15 @@ def main(args):
             # params_to_optimize.append({"params": learnable_weights, "lr": args.learning_rate})
             params_to_optimize = params_to_optimize + learnable_weights
     elif args.cross_attend or args.cross_attend_text:
-        cross_attention_parameters = [
-            {"params": transformer.perceiver_cross_attention.parameters(), "lr": args.learning_rate},
-        ]
+        cross_attention_parameters = []
+        if args.cross_attend:
+            cross_attention_parameters += [
+                {"params": transformer.perceiver_cross_attention.parameters(), "lr": args.learning_rate},
+            ]
+        if args.cross_attend_text:
+            cross_attention_parameters += [
+                {"params": transformer.perceiver_cross_attention_text.parameters(), "lr": args.learning_rate},
+            ]
         params_to_optimize = [transformer_parameters_with_lr] + cross_attention_parameters
     else:
         params_to_optimize = [transformer_parameters_with_lr]
