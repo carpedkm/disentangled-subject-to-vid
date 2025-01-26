@@ -1659,7 +1659,7 @@ def main(args):
                     [
                         PerceiverCrossAttention(
                             dim=cross_inner_dim,
-                            im_head=cross_attn_dim_head,
+                            dim_head=cross_attn_dim_head,
                             heads=cross_attn_num_head,
                             kv_dim=cross_attn_kv_dim,
                         ).to(dtype=torch.bfloat16)
