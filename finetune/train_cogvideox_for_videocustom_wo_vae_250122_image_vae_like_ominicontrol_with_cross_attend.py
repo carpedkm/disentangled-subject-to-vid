@@ -717,8 +717,7 @@ class ImageDataset(Dataset):
                                          'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing this shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
                                         #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
                                         }
-        if add_special:
-            self.val_instance_prompt_dict = {k: self.prefix + v for k, v in self.val_instance_prompt_dict.items()}
+        
         if self.seen_validation is True:
             self.val_instance_prompt_dict = {}
             path_for_seen_meta = '../seen_samples/omini_meta/'
@@ -729,11 +728,12 @@ class ImageDataset(Dataset):
                 # id_  = file.split('.')[0]
                 tmp_desc = meta_seen['description_0']
                 self.val_instance_prompt_dict[id_] = tmp_desc
+        if add_special:
+            self.val_instance_prompt_dict = {k: self.prefix + v for k, v in self.val_instance_prompt_dict.items()}
+        
         self.instance_prompts = []
         self.id_token = id_token or ""
-        
-        
-        
+
         self.instance_left_pixel_root = os.path.join(str(self.instance_data_root), 'left_images_updated')
         self.instance_right_pixel_root = os.path.join(str(self.instance_data_root), 'right_images_updated')
         self.dataset_name = dataset_name
