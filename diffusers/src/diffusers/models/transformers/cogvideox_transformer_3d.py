@@ -126,6 +126,8 @@ class CogVideoXBlock(nn.Module):
         ref_img_seq_start: Optional[int] = None,
         ref_img_seq_end: Optional[int] = None,
         position_delta: Optional[torch.Tensor] = None,
+        timestep: Optional[int] = None,
+        layer : Optional[int] = None,
     ) -> torch.Tensor:
         text_seq_length = encoder_hidden_states.size(1)
 
@@ -143,6 +145,8 @@ class CogVideoXBlock(nn.Module):
             ref_img_seq_start=ref_img_seq_start,
             ref_img_seq_end=ref_img_seq_end,
             position_delta=position_delta,
+            timestep=timestep,
+            layer=layer,
         )
 
         hidden_states = hidden_states + gate_msa * attn_hidden_states
@@ -689,6 +693,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                     ref_img_seq_start=ref_img_seq_start,
                     ref_img_seq_end=ref_img_seq_end,
                     position_delta=position_delta,
+                    timestep=timestep,
+                    layer=i,
                 )
             if self.cross_attend or self.cross_attend_text:
                 if ca_idx % self.cross_attn_interval == 0 and ca_idx <= self.num_layers:

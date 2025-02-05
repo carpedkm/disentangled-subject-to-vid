@@ -14,16 +14,20 @@
 import inspect
 import math
 from typing import Callable, List, Optional, Tuple, Union
-
+import os
 import torch
 import torch.nn.functional as F
 from torch import nn
+import numpy as np
+from PIL import Image
+import matplotlib.pyplot as plt
 
 from ..image_processor import IPAdapterMaskProcessor
 from ..utils import deprecate, logging
 from ..utils.import_utils import is_torch_npu_available, is_xformers_available
 from ..utils.torch_utils import is_torch_version, maybe_allow_in_graph
-
+# import copy function to copy torch tensors
+import copy
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
@@ -463,6 +467,8 @@ class Attention(nn.Module):
         ref_img_seq_start: Optional[int] = 0,
         ref_img_seq_end: Optional[int] = 0,
         position_delta: Optional[torch.Tensor] = None,
+        timestep: Optional[int] = None,
+        layer: Optional[int] = None,
         **cross_attention_kwargs,
     ) -> torch.Tensor:
         r"""
@@ -505,6 +511,8 @@ class Attention(nn.Module):
             ref_img_seq_start=ref_img_seq_start,
             ref_img_seq_end=ref_img_seq_end,
             position_delta=position_delta,
+            timestep=timestep,
+            layer=layer,
             **cross_attention_kwargs,
         )
 
@@ -1994,7 +2002,15 @@ class FusedFluxAttnProcessor2_0:
         else:
             return hidden_states
 
-
+def save_attention_map_colored(attn_weights, filename="attention_map_colored.png"):
+    plt.figure(figsize=(8, 8))
+    plt.imshow(attn_weights[0, 0], cmap="hot", interpolation="nearest")  # Use "hot" colormap
+    plt.colorbar()
+    plt.axis("off")  # Remove axis labels
+    plt.savefig(filename, bbox_inches="tight", pad_inches=0, dpi=300)
+    plt.close()
+    print(f"Saved colored attention map to {filename}")
+    
 class CogVideoXAttnProcessor2_0:
     r"""
     Processor for implementing scaled dot-product attention for the CogVideoX model. It applies a rotary embedding on
@@ -2016,6 +2032,8 @@ class CogVideoXAttnProcessor2_0:
         ref_img_seq_end: Optional[int] = 0,
         position_delta: Optional[torch.Tensor] = None,
         embed_ref_img: Optional[bool] = False,
+        timestep: Optional[int] = 0,
+        layer: Optional[int] = 0,
     ) -> torch.Tensor:
         text_seq_length = encoder_hidden_states.size(1)
 
@@ -2061,8 +2079,30 @@ class CogVideoXAttnProcessor2_0:
                     key[:, :, ref_img_seq_start:ref_img_seq_end] = apply_rotary_emb(
                         key[:, :, ref_img_seq_start:ref_img_seq_end], image_rotary_emb
                     ) + position_delta
-                    
-                
+        # ----- extract attention map -----
+        scale_factor = key.shape[-1] ** -0.5
+        # attention_scores = torch.matmul(query, key.transpose(-2, -1)) / scale_factor        
+        # if attention_mask is not None:
+        #     attention_scores = attention_scores + attention_mask
+        # attention_weights = F.softmax(attention_scores, dim=-1)    
+        # attention_weights = attention_weights.detach().cpu().numpy()
+        # if os.path.exists("attention_maps") is False:
+        #     os.makedirs("attention_maps")
+        # save_attention_map_colored(attention_weights, f"attention_maps/attention_map_layer{layer}_timestep{timestep}.png")
+        # ---- save query, key, value for visualization ----
+        # first copy the tensor
+        query_to_save = copy.deepcopy(query).detach().cpu().numpy()
+        key_to_save = copy.deepcopy(key).detach().cpu().numpy()
+        # key_to_save = key.detach().cpu().numpy()
+        # value_to_save = value.detach().cpu().numpy()
+        # numpy save
+        if os.path.exists("attention_maps") is False:
+            os.makedirs("attention_maps")
+        np.save(f"attention_maps/query_layer{layer}_timestep{int(timestep.detach().cpu().numpy()[0])}.npy", query_to_save)
+        np.save(f"attention_maps/key_layer{layer}_timestep{int(timestep.detach().cpu().numpy()[0])}.npy", key_to_save)
+        # np.save(f"attention_maps/value_layer{layer}_timestep{timestep}.npy", value_to_save)
+        # ----------------------------------------------
+        
 
         hidden_states = F.scaled_dot_product_attention(
             query, key, value, attn_mask=attention_mask, dropout_p=0.0, is_causal=False

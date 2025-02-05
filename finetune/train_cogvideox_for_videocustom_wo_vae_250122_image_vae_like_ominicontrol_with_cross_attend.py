@@ -1489,7 +1489,7 @@ def main(args):
         args.pretrained_model_name_or_path, subfolder="tokenizer", revision=args.revision
     )
     if args.add_special:
-        special_token = {"additional_special_tokens": ["<cls>", "<a>", "<b>", "<c>"]}
+        special_token = {"additional_special_tokens": ["<cls>"]}
         tokenizer.add_special_tokens(special_token)
 
     text_encoder = T5EncoderModel.from_pretrained(
