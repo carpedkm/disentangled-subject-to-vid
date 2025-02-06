@@ -51,3 +51,6 @@ right_latents_fixed_updated_rgb/
 left_latents_fixed_updated_rgb/
 vae_latents_sub200k_rgb_p1/
 vae_latents_sub200k_rgb_p2/
+
+output_720_1024/
+Subjects200K_collection3/

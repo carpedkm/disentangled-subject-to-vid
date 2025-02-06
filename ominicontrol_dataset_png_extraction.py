@@ -10,7 +10,7 @@ from torch.utils.data import Dataset
 
 # ✅ Load and filter the dataset
 print("Loading and filtering the dataset...")
-dataset = load_dataset("Yuanshi/Subjects200K")
+dataset = load_dataset("/root/daneul/projects/refactored/CogVideo/Subjects200K_collection3")
 
 def filter_func(item):
     if not item.get("quality_assessment"):
@@ -21,7 +21,7 @@ def filter_func(item):
     )
 
 data_valid = dataset["train"].filter(
-    filter_func, num_proc=16, cache_file_name="./cache/dataset/data_valid.arrow"
+    filter_func, num_proc=16, cache_file_name="./cache/dataset/data_valid_1024.arrow"
 )
 
 # ✅ Initialize the dataset class
@@ -38,9 +38,10 @@ class Subject200KDataset(Dataset):
         image = item["image"]
 
         # Crop and resize images
-        padding = 8
-        left_img = image.crop((padding, padding, 512 + padding, 512 + padding)).resize((720, 720)).convert("RGB")
-        right_img = image.crop((512 + 2 * padding, padding, 1024 + 2 * padding, 512 + padding)).resize((720, 720)).convert("RGB")
+        padding = 0
+        left_img = image.crop((padding, padding, 1024 + padding, 1024 + padding)).resize((720, 720)).convert("RGB")
+        # right_img = image.crop((1024 + 2 * padding, padding, 1024 + 2 * padding, 1024 + padding)).resize((720, 720)).convert("RGB")
+        right_img = image.crop((1024 + padding, padding, 2048 + padding, 1024 + padding)).resize((720, 720)).convert("RGB")
         width, height = 720, 720
         target_width, target_height = 720, 480
 
@@ -103,19 +104,19 @@ def collate_fn(batch):
 dataloader = DataLoader(subject_dataset, batch_size=480, num_workers=64, collate_fn=collate_fn)
 
 # ✅ Create output directories
-os.makedirs("output_720/left_images_updated", exist_ok=True)
-os.makedirs("output_720/right_images_updated", exist_ok=True)
-os.makedirs("output_720/metadata_updated", exist_ok=True)
+os.makedirs("output_720_1024/left_images_updated", exist_ok=True)
+os.makedirs("output_720_1024/right_images_updated", exist_ok=True)
+os.makedirs("output_720_1024/metadata_updated", exist_ok=True)
 
 # ✅ Define function to save images and metadata
 def save_image_and_metadata(idx, left_image, right_image, metadata):
     left_image = left_image.convert("RGB")
     right_image = right_image.convert("RGB")
     
-    left_image.save(f"output_720/left_images_updated/left_{idx}.png")
-    right_image.save(f"output_720/right_images_updated/right_{idx}.png")
+    left_image.save(f"output_720_1024/left_images_updated/left_{idx}.png")
+    right_image.save(f"output_720_1024/right_images_updated/right_{idx}.png")
 
-    metadata_path = f"output_720/metadata_updated/meta_{idx}.json"
+    metadata_path = f"output_720_1024/metadata_updated/meta_{idx}.json"
     with open(metadata_path, "w") as f:
         json.dump(metadata, f, indent=4)
 
@@ -140,8 +141,8 @@ with ThreadPoolExecutor(max_workers=64) as executor:
                 "description_1": batch["description_1"][i],
                 "collection": batch["collection"][i],
                 "quality_assessment": {key: batch["quality_assessment"][key][i].item() for key in batch["quality_assessment"]},
-                "target_image_path": f"output_720/left_images_updated/left_{idx}.png",
-                "condition_image_path": f"output_720/right_images_updated/right_{idx}.png",
+                "target_image_path": f"output_720_1024/left_images_updated/left_{idx}.png",
+                "condition_image_path": f"output_720_1024/right_images_updated/right_{idx}.png",
             }
 
             # Submit the image and metadata saving task to the executor
