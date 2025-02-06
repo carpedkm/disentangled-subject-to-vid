@@ -5,7 +5,7 @@ export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
 # export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241223/compare_controlnet_5b_w_latent_4000_xpairs_wobg_single_frame"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250206/720x480embedding_refined_oministyle_vaeadd_original_channel_fix_pos_embed_add_special_tk_mod"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250206/720x480embedding_refined_oministyle_vaeadd_original_channel_fix_pos_embed_add_special_tk_mod_lora_32"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3
@@ -25,7 +25,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
-  --rank 128 \
+  --rank 32 \
   --lora_alpha 64 \
   --mixed_precision bf16 \
   --output_dir $OUTPUT_PATH \
