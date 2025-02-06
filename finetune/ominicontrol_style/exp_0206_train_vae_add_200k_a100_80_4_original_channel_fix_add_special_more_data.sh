@@ -3,26 +3,16 @@
 export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
-export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
+export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/metadata_omini200k_update_refined_add_split.json"
 # export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241223/compare_controlnet_5b_w_latent_4000_xpairs_wobg_single_frame"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250206/720x480embedding_refined_oministyle_vaeadd_original_channel_fix_pos_embed_add_special_tk_modified_special_loc"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250206/720x480embedding_refined_oministyle_vaeadd_original_channel_fix_pos_embed_add_special_tk_more_data"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+export CUDA_VISIBLE_DEVICES=0,1,2,3
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
-
-export NCCL_IB_DISABLE=0
-export NCCL_IB_PCI_RELAXED_ORDERING=1
-export NCCL_SOCKET_IFNAME=eth0
-export NCCL_NET_GDR_LEVEL=5
-export NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml
-export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
-
-RANDOM_PORT=$((49152 + RANDOM % 16384))
 # if you are not using wth 8 gus, change `accelerate_config_machine_single.yaml` num_processes as your gpu number
-accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_gpu --machine_rank ${NODE_RANK} \
-  --main_process_port ${MASTER_PORT} \
+accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --multi_gpu  \
   ../train_cogvideox_for_videocustom_wo_vae_250206_image_vae_like_ominicontrol_with_cross_attend_token_mod.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
@@ -66,7 +56,6 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --vae_add \
   --pos_embed \
   --add_special \
-  --add_specific_loc \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
