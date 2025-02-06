@@ -18,6 +18,7 @@ export NCCL_SOCKET_IFNAME=eth0
 export NCCL_NET_GDR_LEVEL=5
 export NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml
 export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
+RANDOM_PORT=$((49152 + RANDOM % 16384))
 # if you are not using wth 8 gus, change `accelerate_config_machine_single.yaml` num_processes as your gpu number
 accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_gpu --machine_rank $1 \
   --main_process_port ${MASTER_PORT} \
