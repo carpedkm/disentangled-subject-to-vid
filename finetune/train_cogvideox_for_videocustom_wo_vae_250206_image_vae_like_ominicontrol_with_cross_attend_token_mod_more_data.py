@@ -749,6 +749,7 @@ class ImageDataset(Dataset):
         self.instance_left_pixel_root = os.path.join(str(self.instance_data_root), 'left_images_updated')
         self.instance_right_pixel_root = os.path.join(str(self.instance_data_root), 'right_images_updated')
         
+        print('>> Accessing additional data')
         self.additional_instance_root = os.path.join(str(self.instance_data_root), 'omini200k_720p_new_1024_renamed')
         self.instance_left_pixel_root_additional = os.path.join(self.additional_instance_root, 'left_images')
         self.instance_right_pixel_root_additional = os.path.join(self.additional_instance_root, 'right_images')
@@ -756,7 +757,7 @@ class ImageDataset(Dataset):
         self.dataset_name = dataset_name
         
         self.load_to_ram = load_to_ram
-        
+        print('>> Accessing additional data Done')
         print('Get list for image IDs')
         left_ids = os.listdir(self.instance_left_pixel_root)
         left_ids = [int(id.split('_')[1].split('.')[0]) for id in tqdm(left_ids)]
@@ -805,6 +806,7 @@ class ImageDataset(Dataset):
         
         assert set(left_ids) == set(right_ids) # what about now? -> same ids in both left and right 
         assert set(additional_left_ids) == set(additional_right_ids) # check for additional_ids
+        add_ids = additional_left_ids
         ids = left_ids + add_ids
         # add_ids = additional_left_ids
         # self.ids = ids
