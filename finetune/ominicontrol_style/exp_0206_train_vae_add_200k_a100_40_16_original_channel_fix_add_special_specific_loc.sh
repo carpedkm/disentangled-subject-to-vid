@@ -64,6 +64,7 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --vae_add \
   --pos_embed \
   --add_special \
+  --add_specific_loc \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
