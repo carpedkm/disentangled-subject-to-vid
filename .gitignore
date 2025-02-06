@@ -54,3 +54,9 @@ vae_latents_sub200k_rgb_p2/
 
 output_720_1024/
 Subjects200K_collection3/
+
+result_check_200k_with_prefix_static_video_512x512_embedding/
+right_latents_fixed_updated_rgb_13/
+omini200k/
+
+
