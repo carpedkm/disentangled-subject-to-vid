@@ -751,8 +751,8 @@ class ImageDataset(Dataset):
         
         print('>> Accessing additional data')
         self.additional_instance_root = os.path.join(str(self.instance_data_root), 'omini200k_720p_new_1024_renamed')
-        self.instance_left_pixel_root_additional = os.path.join(self.additional_instance_root, 'left_images')
-        self.instance_right_pixel_root_additional = os.path.join(self.additional_instance_root, 'right_images')
+        self.instance_left_pixel_root_additional = os.path.join(self.additional_instance_root, 'left_images_updated')
+        self.instance_right_pixel_root_additional = os.path.join(self.additional_instance_root, 'right_images_updated')
         
         self.dataset_name = dataset_name
         
