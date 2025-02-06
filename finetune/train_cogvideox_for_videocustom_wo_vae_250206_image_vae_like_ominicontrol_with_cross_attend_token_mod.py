@@ -834,6 +834,7 @@ class ImageDataset(Dataset):
                         self.instance_prompts_0[id] = (
                             meta['description_0'][:item_loc] + ' ' + self.prefix + meta['description_0'][item_loc:]
                         )
+                        print(f">>>>>> Item name: {item_name}, Item location: {item_loc}, Description: {self.instance_prompts_0[id]}")
                     else:
                         self.instance_prompts_0[id] = self.prefix + meta['description_0']
                     desc_lower = meta['description_1'].lower()
@@ -843,6 +844,7 @@ class ImageDataset(Dataset):
                         self.instance_prompts_1[id] = (
                             meta['description_1'][:item_loc] + ' ' + self.prefix + meta['description_1'][item_loc:]
                         )
+                        print(f">>>>>> Item name: {item_name}, Item location: {item_loc}, Description: {self.instance_prompts_1[id]}")
                     else:
                         self.instance_prompts_1[id] = self.prefix + meta['description_1']
                     
