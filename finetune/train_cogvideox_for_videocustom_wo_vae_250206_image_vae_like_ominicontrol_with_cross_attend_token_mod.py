@@ -576,6 +576,11 @@ def get_args():
         action='store_true',
         help='Whether to add special token to speicifc location or not'
     )
+    parser.add_argument(
+        '--wo_shuffle',
+        action='store_true',
+        help='Whether to use without shuffle or not'
+    )
     return parser.parse_args()
 
 
@@ -699,6 +704,7 @@ class ImageDataset(Dataset):
         seen_validation : bool = False, 
         add_special: bool = False,
         add_specific_loc: bool = False,
+        wo_shuffle: bool = False,
     ) -> None:
         super().__init__()
         print('Data loader init')
@@ -710,7 +716,10 @@ class ImageDataset(Dataset):
         self.seen_validation = seen_validation
         self.height = height
         self.width = width
+        
+        self.wo_shuffle = wo_shuffle
         self.prefix = "<cls> " 
+        # self.prefix = ""
         # self.val_instance_prompt_dict = {'oranges_omini':"A close up view of the item. It is placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
         #                                  'clock_omini':"In a Bauhaus style room, the item is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
         #                                  'rc_car_omini': "A film style shot. On the moon, this item goes across the moon surface. The background is that Earth looms large in the foreground.",
@@ -718,15 +727,14 @@ class ImageDataset(Dataset):
         #                                 #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
         #                                 }
         self.val_instance_prompt_dict = {
-                                         'oranges_omini':"A close up view. A dish of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
-                                         'clock_omini':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
-                                         'rc_car_omini': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
-                                         'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
-                                         'cat' : "cat is rollerblading in the park",
-                                         'dog' : 'dog is flying in the sky',
-                                         'red_toy' : 'red toy is dancing in the room',
-                                         'dog_toy' : 'dog toy is walking around the grass',
-                                         
+                                         'oranges_omini':"A close up view. A <cls> dish of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+                                         'clock_omini':"In a Bauhaus style room, the <cls> clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+                                         'rc_car_omini': "A film style shot. On the moon, <cls> toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+                                         'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing <cls> hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                                         'cat' : "<cls> cat is rollerblading in the park",
+                                         'dog' : '<cls> dog is flying in the sky',
+                                         'red_toy' : '<cls> red toy is dancing in the room',
+                                         'dog_toy' : '<cls> dog toy is walking around the grass',
                                         #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
                                         }
         
@@ -740,7 +748,7 @@ class ImageDataset(Dataset):
                 # id_  = file.split('.')[0]
                 tmp_desc = meta_seen['description_0']
                 self.val_instance_prompt_dict[id_] = tmp_desc
-        if add_special:
+        if add_special and self.seen_validation is True:
             self.val_instance_prompt_dict = {k: self.prefix + v for k, v in self.val_instance_prompt_dict.items()}
         
         self.instance_prompts = []
@@ -868,7 +876,10 @@ class ImageDataset(Dataset):
         
     def __getitem__(self, index):
         while True:
-            target = index % 2
+            if self.wo_shuffle:
+                target = 1 # index % 2
+            else:
+                target = index % 2
             index = self.ids[index % self.len_dataset]
             # print(index)
             try:
@@ -2070,6 +2081,7 @@ def main(args):
         seen_validation=args.seen_validation,
         add_special=args.add_special,
         add_specific_loc=args.add_specific_loc,
+        wo_shuffle=args.wo_shuffle
         # latent_data_root=args.latent_data_root,
         # quick_poc_subset=args.quick_poc_subset,
     )
