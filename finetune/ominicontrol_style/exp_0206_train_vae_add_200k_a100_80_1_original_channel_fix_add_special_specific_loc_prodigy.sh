@@ -5,10 +5,10 @@ export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
 # export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241223/compare_controlnet_5b_w_latent_4000_xpairs_wobg_single_frame"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250206/720x480embedding_refined_oministyle_vaeadd_original_channel_fix_pos_embed_add_special_tk_modified_special_loc_prodigy"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250206/720x480embedding_refined_oministyle_vaeadd_original_channel_fix_pos_embed_add_special_tk_modified_special_loc_prodigy_lora32"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=0,1,2,3
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
@@ -21,7 +21,7 @@ export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
 # RANDOM_PORT=$((49152 + RANDOM % 16384))
 # if you are not using wth 8 gus, change `accelerate_config_machine_single.yaml` num_processes as your gpu number
-accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi_gpu  \
+accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --multi_gpu  \
   ../train_cogvideox_for_videocustom_wo_vae_250206_image_vae_like_ominicontrol_with_cross_attend_token_mod.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
@@ -34,7 +34,7 @@ accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi
   --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
-  --rank 4 \
+  --rank 32 \
   --lora_alpha 64 \
   --mixed_precision bf16 \
   --output_dir $OUTPUT_PATH \
@@ -56,6 +56,9 @@ accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi
   --enable_tiling \
   --gradient_checkpointing \
   --optimizer prodigy \
+  --prodigy_safeguard_warmup \
+  --prodigy_use_bias_correction \
+  --prodigy_beta3 0.999 \
   --adam_beta1 0.9 \
   --adam_beta2 0.95 \
   --max_grad_norm 1.0 \
