@@ -278,8 +278,11 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         local_reference_scale: float = 1.,
         cross_attn_dim_head: int = 128,
         cross_attn_num_heads: int = 16,
+        qk_replace: bool = False,
         # cross_attn_kv_dim: int = 2048,
     ):
+        
+        self.qk_replace = qk_replace
         super().__init__()
         inner_dim = num_attention_heads * attention_head_dim
 

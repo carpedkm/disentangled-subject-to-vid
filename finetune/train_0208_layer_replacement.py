@@ -581,6 +581,21 @@ def get_args():
         action='store_true',
         help='Whether to shuffle the dataset or not'
     )
+    parser.add_argument(
+        '--add_new_split',
+        action='store_true',
+        help='Whether to add new split or not'
+    )
+    parser.add_argument(
+        '--qk_replace',
+        action='store_true',
+        help='Whether to replace qk or not'
+    )
+    parser.add_argument(
+        '--input_noise_fix',
+        action='store_true',
+        help='Whether to use input noise fix or not'
+    )
     return parser.parse_args()
 
 
@@ -705,6 +720,7 @@ class ImageDataset(Dataset):
         add_special: bool = False,
         add_specific_loc: bool = False,
         wo_shuffle: bool = False,
+        add_new_split: bool = False,
     ) -> None:
         super().__init__()
         print('Data loader init')
@@ -726,14 +742,14 @@ class ImageDataset(Dataset):
         #                                 #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
         #                                 }
         self.val_instance_prompt_dict = {
-                                         'oranges_omini':"A close up view. A dish of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
-                                         'clock_omini':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
-                                         'rc_car_omini': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
-                                         'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
-                                         'cat' : "cat is rollerblading in the park",
-                                         'dog' : 'dog is flying in the sky',
-                                         'red_toy' : 'red toy is dancing in the room',
-                                         'dog_toy' : 'dog toy is walking around the grass',
+                                         'oranges_omini':"A close up view. A <cls> of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+                                         'clock_omini':"In a Bauhaus style room, the <cls> clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+                                         'rc_car_omini': "A film style shot. On the moon, <cls> toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+                                         'shirt_omini': "On the beach, a lady sits under a beach umbrella. She's wearing <cls> hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                                         'cat' : "<cls> cat is rollerblading in the park",
+                                         'dog' : '<cls> dog is flying in the sky',
+                                         'red_toy' : '<cls> red toy is dancing in the room',
+                                         'dog_toy' : '<cls> dog toy is walking around the grass',
                                          
                                         #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
                                         }
@@ -748,7 +764,7 @@ class ImageDataset(Dataset):
                 # id_  = file.split('.')[0]
                 tmp_desc = meta_seen['description_0']
                 self.val_instance_prompt_dict[id_] = tmp_desc
-        if add_special:
+        if add_special and seen_validation:
             self.val_instance_prompt_dict = {k: self.prefix + v for k, v in self.val_instance_prompt_dict.items()}
         
         self.instance_prompts = []
@@ -898,7 +914,7 @@ class ImageDataset(Dataset):
                         self.instance_prompts_0[id] = (
                             meta['description_0'][:item_loc] + ' ' + self.prefix + meta['description_0'][item_loc:]
                         )
-                        print(f">>>>>> Item name: {item_name}, Item location: {item_loc}, Description: {self.instance_prompts_0[id]}")
+                        # print(f">>>>>> Item name: {item_name}, Item location: {item_loc}, Description: {self.instance_prompts_0[id]}")
                     else:
                         self.instance_prompts_0[id] = self.prefix + meta['description_0']
                     desc_lower = meta['description_1'].lower()
@@ -908,7 +924,7 @@ class ImageDataset(Dataset):
                         self.instance_prompts_1[id] = (
                             meta['description_1'][:item_loc] + ' ' + self.prefix + meta['description_1'][item_loc:]
                         )
-                        print(f">>>>>> Item name: {item_name}, Item location: {item_loc}, Description: {self.instance_prompts_1[id]}")
+                        # print(f">>>>>> Item name: {item_name}, Item location: {item_loc}, Description: {self.instance_prompts_1[id]}")
                     else:
                         self.instance_prompts_1[id] = self.prefix + meta['description_1']
                     
@@ -932,8 +948,10 @@ class ImageDataset(Dataset):
         
     def __getitem__(self, index):
         while True:
-            
-            target = index % 2
+            if self.wo_shuffle:
+                target = 1
+            else:
+                target = index % 2
             index = self.ids[index % self.len_dataset]
             # print(index)
             try:
@@ -1588,7 +1606,7 @@ def main(args):
         args.pretrained_model_name_or_path, subfolder="tokenizer", revision=args.revision
     )
     if args.add_special:
-        special_token = {"additional_special_tokens": ["<cls>", "<a>", "<b>", "<c>"]}
+        special_token = {"additional_special_tokens": ["<cls>"]}
         tokenizer.add_special_tokens(special_token)
 
     text_encoder = T5EncoderModel.from_pretrained(
@@ -1641,7 +1659,8 @@ def main(args):
         local_reference_scale=args.local_reference_scale,
         # cross_inner_dim=args.cross_inner_dim,
         cross_attn_dim_head=args.cross_attn_dim_head,
-        cross_attn_num_heads=args.cross_attn_num_head
+        cross_attn_num_heads=args.cross_attn_num_head,
+        qk_replace=args.qk_replace,
         # cross_attn_kv_dim=args.cross_attn_kv_dim,
     )
     print("Done - CogVideoX Transformer model loaded")
@@ -2136,6 +2155,7 @@ def main(args):
         add_special=args.add_special,
         add_specific_loc=args.add_specific_loc,
         wo_shuffle=args.wo_shuffle,
+        add_new_split=args.add_new_split,
         # latent_data_root=args.latent_data_root,
         # quick_poc_subset=args.quick_poc_subset,
     )
@@ -2411,11 +2431,12 @@ def main(args):
                 # Add noise to the model input according to the noise magnitude at each timestep
                 # (this is the forward diffusion process)
                 noisy_model_input = scheduler.add_noise(model_input, noise, timesteps)
-
+                if args.input_noise_fix:
+                    noisy_image_input = scheduler.add_noise(image_input, noise, timesteps)
                 # Predict the noise residual
                 model_output = transformer(
                     hidden_states=noisy_model_input,
-                    ref_img_states=image_input,
+                    ref_img_states=noisy_image_input,
                     encoder_hidden_states=prompt_embeds,
                     clip_prompt_embeds=clip_prompt_embeds,
                     timestep=timesteps,
