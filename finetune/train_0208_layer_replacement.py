@@ -572,6 +572,11 @@ def get_args():
         help='Whether to add special token or not'
     )
     parser.add_argument(
+        "--add_multiple_special",
+        action="store_true",
+        help="Whether to add multiple special tokens or not"
+    )
+    parser.add_argument(
         '--add_specific_loc',
         action='store_true',
         help='Whether to add special token to speicifc location or not'
@@ -718,6 +723,7 @@ class ImageDataset(Dataset):
         load_to_ram : bool = False,
         seen_validation : bool = False, 
         add_special: bool = False,
+        add_multiple_special: bool = False,
         add_specific_loc: bool = False,
         wo_shuffle: bool = False,
         add_new_split: bool = False,
@@ -734,25 +740,39 @@ class ImageDataset(Dataset):
         self.width = width
         self.add_new_split=add_new_split
         self.wo_shuffle=wo_shuffle
-        self.prefix = "<cls> " 
+        if add_multiple_special:
+            self.prefix = "<cls> <a> <b> <c> "
+        else:
+            self.prefix = "<cls> " 
         # self.val_instance_prompt_dict = {'oranges_omini':"A close up view of the item. It is placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
         #                                  'clock_omini':"In a Bauhaus style room, the item is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
         #                                  'rc_car_omini': "A film style shot. On the moon, this item goes across the moon surface. The background is that Earth looms large in the foreground.",
         #                                  'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing this item and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
         #                                 #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
         #                                 }
+        if add_special and not add_multiple_special:
+            self.val_instance_prompt_dict = {
+                                            'oranges_omini':"A close up view. A <cls> of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+                                            'clock_omini':"In a Bauhaus style room, the <cls> clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+                                            'rc_car_omini': "A film style shot. On the moon, <cls> toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+                                            'shirt_omini': "On the beach, a lady sits under a beach umbrella. She's wearing <cls> hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                                            'cat' : "<cls> cat is rollerblading in the park",
+                                            'dog' : '<cls> dog is flying in the sky',
+                                            'red_toy' : '<cls> red toy is dancing in the room',
+                                            'dog_toy' : '<cls> dog toy is walking around the grass',
+                                            
+                                            #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
+                                            }
         self.val_instance_prompt_dict = {
-                                         'oranges_omini':"A close up view. A <cls> of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
-                                         'clock_omini':"In a Bauhaus style room, the <cls> clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
-                                         'rc_car_omini': "A film style shot. On the moon, <cls> toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
-                                         'shirt_omini': "On the beach, a lady sits under a beach umbrella. She's wearing <cls> hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
-                                         'cat' : "<cls> cat is rollerblading in the park",
-                                         'dog' : '<cls> dog is flying in the sky',
-                                         'red_toy' : '<cls> red toy is dancing in the room',
-                                         'dog_toy' : '<cls> dog toy is walking around the grass',
-                                         
-                                        #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
-                                        }
+                                    'oranges_omini':"A close up view. A bowl of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+                                    'clock_omini':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+                                    'rc_car_omini': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+                                    'shirt_omini': "On the beach, a lady sits under a beach umbrella. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                                    'cat' : "cat is rollerblading in the park",
+                                    'dog' : 'dog is flying in the sky',
+                                    'red_toy' : 'red toy is dancing in the room',
+                                    'dog_toy' : 'dog toy is walking around the grass',
+                                }
         
         if self.seen_validation is True:
             self.val_instance_prompt_dict = {}
@@ -1606,7 +1626,10 @@ def main(args):
         args.pretrained_model_name_or_path, subfolder="tokenizer", revision=args.revision
     )
     if args.add_special:
-        special_token = {"additional_special_tokens": ["<cls>"]}
+        if args.add_multiple_special:
+            special_token = {"additional_special_tokens": ["<cls>", "<a>", "<b>", "<c>"]}
+        else:
+            special_token = {"additional_special_tokens": ["<cls>"]}
         tokenizer.add_special_tokens(special_token)
 
     text_encoder = T5EncoderModel.from_pretrained(
@@ -2153,6 +2176,7 @@ def main(args):
         cross_attend_text=args.cross_attend_text,
         seen_validation=args.seen_validation,
         add_special=args.add_special,
+        add_multiple_special=args.add_multiple_special,
         add_specific_loc=args.add_specific_loc,
         wo_shuffle=args.wo_shuffle,
         add_new_split=args.add_new_split,
