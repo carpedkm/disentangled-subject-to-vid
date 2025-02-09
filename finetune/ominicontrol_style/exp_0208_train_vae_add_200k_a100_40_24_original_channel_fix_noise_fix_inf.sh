@@ -8,22 +8,13 @@ export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_u
 export OUTPUT_PATH="/mnt/carpedkm_data/result250208/720x480embedding_refined_oministyle_vaeadd_original_channel_fix_pos_embed_with_input_noise_fix"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+export CUDA_VISIBLE_DEVICES=0
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
-export NCCL_IB_DISABLE=0
-export NCCL_IB_PCI_RELAXED_ORDERING=1
-export NCCL_SOCKET_IFNAME=eth0
-export NCCL_NET_GDR_LEVEL=5
-export NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml
-export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
-
-RANDOM_PORT=$((49152 + RANDOM % 16384))
 # if you are not using wth 8 gus, change `accelerate_config_machine_single.yaml` num_processes as your gpu number
-accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_gpu --machine_rank ${NODE_RANK}  \
-  --main_process_port ${MASTER_PORT} \
-  ../train_0208_layer_replacement.py \
+accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi_gpu  \
+  ../train_0209_edit.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
   --cache_dir $CACHE_PATH \
