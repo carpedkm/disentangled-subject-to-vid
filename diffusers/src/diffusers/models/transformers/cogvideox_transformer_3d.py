@@ -581,7 +581,6 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                     print('Something is Wrong >>>>>>>> RE CHECK')
             else:
                 enc_hidden_states0 = encoder_hidden_states
-                enc_hidden_states0 = F.pad(enc_hidden_states0, (0, 0, 0, 1350 - enc_hidden_states0.shape[1]))
                 enc_hidden_states1 = ref_img_states
         else:
             # encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
@@ -642,6 +641,11 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                     ref_img_emb = torch.cat([ref_img_emb, ref_img_emb], dim=0)
         else:
             enc_hidden_states0 = self.patch_embed.text_proj(enc_hidden_states0)
+            # enc_hidden_states0 = F.pad(enc_hidden_states0, (0, 1350 - enc_hidden_states0.shape[1]))
+            # print('ENC_HIDDEN_STATES0.shape before padded', enc_hidden_states0.shape) 
+            
+
+            # print('ENC_HIDDEN_STATES0.shape padded', enc_hidden_states0.shape) 
             b_1, nf_1, c_1, h_1, w_1 = enc_hidden_states1.shape
             enc_hidden_states1 = enc_hidden_states1.reshape(-1, c_1, h_1, w_1)
             enc_hidden_states1 = self.patch_embed.proj(enc_hidden_states1)
@@ -650,7 +654,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             enc_hidden_states1 = enc_hidden_states1.flatten(1, 2)  # [batch, num_frames x height x width, channels]
             if eval:
                 enc_hidden_states1 = torch.cat([enc_hidden_states1, enc_hidden_states1], dim=0)
-            encoder_hidden_states = enc_hidden_states0
+            # encoder_hidden_states = enc_hidden_states0
             
         
         hidden_states = self.patch_embed(encoder_hidden_states, hidden_states)
@@ -685,10 +689,14 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 text_seq_length_temp = encoder_hidden_states_temp.shape[1]
                 encoder_hidden_states = encoder_hidden_states_temp # replace the encoder_hidden_states with the concatenated tensor
         else:
-            text_seq_length = enc_hidden_states1.shape[1]
+            # enc_hidden_states0 = F.pad(enc_hidden_states0, (0, 0, 0, 1350 - 226))
+            text_seq_length = enc_hidden_states0.shape[1]
             # encoder_hidden_states = enc_hidden_states0
             # encoder_hidden_states = encoder_hidden_states0
-        hidden_states = hidden_states[:, text_seq_length:]
+            hidden_states = hidden_states[:, text_seq_length:]
+            enc_hidden_states0 = F.pad(enc_hidden_states0, (0, 0, 0, 1350 - 226))
+            text_seq_length = enc_hidden_states0.shape[1]
+            
         if vae_add:
             text_seq_length = text_seq_length_temp
 
@@ -698,7 +706,13 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             if qk_replace is True and i >= 21:
                 encoder_hidden_states = enc_hidden_states1
                 embed_ref_img = True
-                print('QK CHECK')
+                # print('QK CHECK 1')
+            elif qk_replace is True and i < 21:
+                encoder_hidden_states = enc_hidden_states0
+                embed_ref_img = False
+            #     print('QK CHECK 0')
+            # print('ENCODER HIDDEN_STATES shape', encoder_hidden_states.shape)
+            
             if self.training and self.gradient_checkpointing:
 
                 def create_custom_forward(module):
