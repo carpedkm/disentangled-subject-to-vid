@@ -281,6 +281,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         pos_embed: bool = False,
         cross_attend: bool = False,
         cross_attend_text: bool = False,
+        input_noise_fix: bool = False,
     ) -> Union[CogVideoXPipelineOutput, Tuple]:
         if num_frames > 49:
             raise ValueError(
@@ -382,7 +383,8 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     torch.cat([latents] * 2) if do_classifier_free_guidance else latents
                 )
                 latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
-
+                if input_noise_fix:
+                    ref_img_states = self.scheduler.scale_model_input(ref_img_states, t) #FIXME (CFG part)
                 # Broadcast timestep
                 timestep = t.expand(latent_model_input.shape[0])
 
@@ -399,9 +401,9 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     return_dict=False,
                     eval=True,
                     t5_first=t5_first,
-                    concatenated_all=concatenated_all,
-                    reduce_token=reduce_token,
-                    add_token=add_token,
+                    concatenated_all=cotoken,
+                    add_token=add_token,ncatenated_all,
+                    reduce_token=reduce_
                     zero_conv_add=zero_conv_add,
                     vae_add=vae_add,
                     pos_embed=pos_embed,
