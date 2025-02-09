@@ -401,9 +401,9 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     return_dict=False,
                     eval=True,
                     t5_first=t5_first,
-                    concatenated_all=cotoken,
-                    add_token=add_token,ncatenated_all,
-                    reduce_token=reduce_
+                    concatenated_all=concatenated_all,
+                    reduce_token=reduce_token,
+                    add_token=add_token,
                     zero_conv_add=zero_conv_add,
                     vae_add=vae_add,
                     pos_embed=pos_embed,
