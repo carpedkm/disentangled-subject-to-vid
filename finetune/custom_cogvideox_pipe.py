@@ -384,7 +384,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                 )
                 latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
                 if input_noise_fix:
-                    ref_img_states = self.scheduler.scale_model_input(ref_img_states, t) #FIXME (CFG part)
+                    noisy_ref_img_states = self.scheduler.scale_model_input(ref_img_states, t) #FIXME (CFG part)
                 # Broadcast timestep
                 timestep = t.expand(latent_model_input.shape[0])
 
@@ -393,7 +393,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     hidden_states=latent_model_input,
                     encoder_hidden_states=prompt_embeds.to(latent_model_input.dtype),
                     clip_prompt_embeds=clip_prompt_embeds.to(latent_model_input.dtype) if clip_prompt_embeds is not None else None,
-                    ref_img_states=ref_img_states,
+                    ref_img_states=noisy_ref_img_states if input_noise_fix else ref_img_states,
                     timestep=timestep,
                     image_rotary_emb=image_rotary_emb,
                     attention_kwargs=attention_kwargs,

@@ -2456,11 +2456,12 @@ def main(args):
                 # (this is the forward diffusion process)
                 noisy_model_input = scheduler.add_noise(model_input, noise, timesteps)
                 if args.input_noise_fix:
-                    noisy_image_input = scheduler.add_noise(image_input, noise, timesteps)
+                    ref_noise = torch.randn_like(image_input)
+                    noisy_image_input = scheduler.add_noise(image_input, ref_noise, timesteps)
                 # Predict the noise residual
                 model_output = transformer(
                     hidden_states=noisy_model_input,
-                    ref_img_states=noisy_image_input,
+                    ref_img_states=noisy_image_input if args.input_noise_fix else image_input,
                     encoder_hidden_states=prompt_embeds,
                     clip_prompt_embeds=clip_prompt_embeds,
                     timestep=timesteps,
