@@ -30,11 +30,13 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         cross_attend=False,
         cross_attend_text=False,
         pos_embed=False,
+        qk_replace=False,
     ):
         # Call the base class __init__ without the 'customization' argument
         super().__init__(tokenizer, text_encoder, vae, transformer, scheduler)
         # Initialize additional attributes
         self.customization = customization
+        transformer.qk_replace = qk_replace
         if customization is True:
             # Initialize CLIP tokenizer and CLIP text encoder
             if clip_tokenizer is None:

@@ -727,10 +727,12 @@ class ImageDataset(Dataset):
         add_specific_loc: bool = False,
         wo_shuffle: bool = False,
         add_new_split: bool = False,
+        qk_replace: bool = False,
     ) -> None:
         super().__init__()
         print('Data loader init')
         self.vae_add = vae_add
+        self.qk_replace = qk_replace
         self.cross_attend = cross_attend
         self.cross_attend_text = cross_attend_text
         self.use_latent = use_latent
@@ -978,7 +980,7 @@ class ImageDataset(Dataset):
                 if not self.load_to_ram:
                     if target == 0: # left : condition / right : target
                         prompt = self.id_token + self.instance_prompts_1[index]
-                        if self.vae_add or self.cross_attend or self.cross_attend_text:
+                        if self.vae_add or self.cross_attend or self.cross_attend_text or self.qk_replace:
                             if not self.load_to_ram:
                                 image = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
                             else:
@@ -993,7 +995,7 @@ class ImageDataset(Dataset):
                         # latent = latent.unsqueeze(0)
                     else: # left : target / right : condition
                         prompt = self.id_token + self.instance_prompts_0[index]
-                        if self.vae_add or self.cross_attend or self.cross_attend_text:
+                        if self.vae_add or self.cross_attend or self.cross_attend_text or self.qk_replace:
                             if not self.load_to_ram:
                                 image = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index]))
                             else:
@@ -1161,7 +1163,7 @@ def log_validation(
                     # Load and preprocess the reference image
 
                     # Process image using CLIP processor
-                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
+                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (args.qk_replace):
                         # ref_image = Image.open(pipeline_args['validation_reference_image']).convert('RGB')
                         processed_image = clip_processor.image_processor(
                             images=ref_image,
@@ -1688,17 +1690,17 @@ def main(args):
     )
     print("Done - CogVideoX Transformer model loaded")
     # Initialize submodules
-    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
+    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
         transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
     
-    if args.vae_add and (not args.cross_attend) and ( not args.cross_attend):
+    if (args.vae_add or args.qk_replace) and (not args.cross_attend) and ( not args.cross_attend):
         # transformer.CLIPTextProjectionLayer = None
         # transformer.CLIPVisionProjectionLayer = None
         # transformer.CLIPTextProjectionLayer2 = None
         # transformer.CLIPVisionProjectionLayer2 = None
         # transformer.T5ProjectionLayer = None
         pass
-    elif (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
+    elif (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
         if args.zero_conv_add:
             transformer.text_sequence_aligner = SequenceAligner(77, 226)
             transformer.vision_sequence_aligner = SequenceAligner(197, 226)
@@ -1939,7 +1941,7 @@ def main(args):
                 if isinstance(unwrapped_model, type(unwrap_model(transformer))):
                     transformer_lora_layers_to_save = get_peft_model_state_dict(model)
                     
-                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
+                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
                         # Save ProjectionLayer state_dicts
                         projection_layers_state_dict = {
                             "T5ProjectionLayer": unwrapped_model.T5ProjectionLayer.state_dict(),
@@ -1971,7 +1973,7 @@ def main(args):
                     weight_name="pytorch_lora_weights_transformer.safetensors",
                     transformer_lora_layers=transformer_lora_layers_to_save,
                 )
-            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
+            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
                 # Save Projection Layer weights
                 for name, state_dict in projection_layers_state_dict.items():
                     save_path = os.path.join(output_dir, f"{name}.pth")
@@ -2020,7 +2022,7 @@ def main(args):
                 transformer_state_dict, 
                 adapter_name="default"
             )
-            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
+            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
                 # Load ProjectionLayer weights
                 transformer_.T5ProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "T5ProjectionLayer.pth")))
                 transformer_.CLIPTextProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPTextProjectionLayer.pth")))
@@ -2090,7 +2092,7 @@ def main(args):
     transformer_parameters_with_lr = {"params": transformer_lora_parameters, "lr": args.learning_rate}
 
     # Add the parameters of the projection layers with their learning rates
-    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
+    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
         if concatenated_all is True:
             projection_parameters = [
                 {"params": transformer.T5ProjectionLayer.parameters(), "lr": args.learning_rate},
@@ -2180,6 +2182,7 @@ def main(args):
         add_specific_loc=args.add_specific_loc,
         wo_shuffle=args.wo_shuffle,
         add_new_split=args.add_new_split,
+        qk_replace=args.qk_replace,
         # latent_data_root=args.latent_data_root,
         # quick_poc_subset=args.quick_poc_subset,
     )
@@ -2238,7 +2241,7 @@ def main(args):
             "prompts": prompts,
         }
         if ref_images is not None:
-            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
+            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
                 batch["ref_images"] = ref_images
             else:
                 batch["ref_images"] = torch.cat(ref_images, dim=0).to(memory_format=torch.contiguous_format).float()
@@ -2398,7 +2401,7 @@ def main(args):
                 
                 prompts = batch["prompts"]
                 if train_dataset.dataset_name == 'customization':
-                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
+                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
                         image_processor = clip_processor.image_processor
                         images = image_processor(batch["ref_images"], return_tensors="pt").to(accelerator.device)
                     else:
@@ -2419,7 +2422,7 @@ def main(args):
                     requires_grad=False,
                 )
                 # Process images
-                if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text):
+                if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
                     if images is not None and 'pixel_values' in images:
                         image_input = images['pixel_values'].to(device=accelerator.device, dtype=weight_dtype)
                 else:
@@ -2571,6 +2574,7 @@ def main(args):
                     vae_add=args.vae_add,
                     cross_attend=args.cross_attend,
                     cross_attend_text=args.cross_attend_text,
+                    qk_replace=args.qk_replace
                 )
 
                 # validation_prompts = args.validation_prompt.split(args.validation_prompt_separator)
