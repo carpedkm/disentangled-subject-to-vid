@@ -601,6 +601,11 @@ def get_args():
         action='store_true',
         help='Whether to use input noise fix or not'
     )
+    parser.add_argument(
+        '--as_editing',
+        action='store_true',
+        help='Whether to use as editing or not'
+    )
     return parser.parse_args()
 
 
@@ -2597,7 +2602,6 @@ def main(args):
                         'pos_embed' : args.pos_embed,
                         'cross_attend' : args.cross_attend,
                         'cross_attend_text' : args.cross_attend_text,
-                        'input_noise_fix' : args.input_noise_fix,
                     }
 
                     validation_outputs = log_validation(
