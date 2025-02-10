@@ -35,7 +35,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --max_num_frames 1 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 8 \
+  --train_batch_size 36 \
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
@@ -58,3 +58,5 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
+  --subset_cnt 20000 \
+  --inference
