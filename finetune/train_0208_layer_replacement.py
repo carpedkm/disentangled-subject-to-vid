@@ -1163,7 +1163,7 @@ def log_validation(
                     # Load and preprocess the reference image
 
                     # Process image using CLIP processor
-                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (args.qk_replace):
+                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
                         # ref_image = Image.open(pipeline_args['validation_reference_image']).convert('RGB')
                         processed_image = clip_processor.image_processor(
                             images=ref_image,
@@ -2379,7 +2379,7 @@ def main(args):
         # update random seed
         # set_seed(args.seed + epoch)
         for step, batch in enumerate(train_dataloader):
-            if (epoch == first_epoch and step == 0) and args.inference:
+            if (epoch == first_epoch and step == 0)and args.inference:
                 break
             # set_seed(args.seed + epoch)
             models_to_accumulate = [transformer]

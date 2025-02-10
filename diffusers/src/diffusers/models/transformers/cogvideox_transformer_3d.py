@@ -703,11 +703,11 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         # 3. Transformer blocks
         ca_idx = 0
         for i, block in enumerate(self.transformer_blocks):
-            if qk_replace is True and i >= 21:
+            if qk_replace is True and i >= 31:
                 encoder_hidden_states = enc_hidden_states1
                 embed_ref_img = True
                 # print('QK CHECK 1')
-            elif qk_replace is True and i < 21:
+            elif qk_replace is True and i < 31:
                 encoder_hidden_states = enc_hidden_states0
                 embed_ref_img = False
             #     print('QK CHECK 0')
