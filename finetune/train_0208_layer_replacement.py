@@ -601,6 +601,11 @@ def get_args():
         action='store_true',
         help='Whether to use input noise fix or not'
     )
+    parser.add_argument(
+        '--save_every_timestep',
+        action='store_true',
+        help='Whether to save every timestep or not'
+    )
     return parser.parse_args()
 
 
@@ -2603,6 +2608,8 @@ def main(args):
                         'cross_attend' : args.cross_attend,
                         'cross_attend_text' : args.cross_attend_text,
                         'input_noise_fix' : args.input_noise_fix,
+                        'output_dir' : args.output_dir,
+                        'save_every_timestep' : args.save_every_timestep,
                     }
 
                     validation_outputs = log_validation(
