@@ -14,6 +14,7 @@ from diffusers import (
 )
 
 from transformers import AutoTokenizer, CLIPTextModel
+from diffusers.utils import check_min_version, convert_unet_state_dict_to_peft, export_to_video, is_wandb_available
 
 class CustomCogVideoXPipeline(CogVideoXPipeline):
     def __init__(
@@ -284,6 +285,8 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         cross_attend: bool = False,
         cross_attend_text: bool = False,
         input_noise_fix: bool = False,
+        output_dir : str = None,
+        save_every_timestep : bool = False, 
     ) -> Union[CogVideoXPipelineOutput, Tuple]:
         if num_frames > 49:
             raise ValueError(
@@ -453,7 +456,22 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     prompt_embeds = callback_outputs.get("prompt_embeds", prompt_embeds)
                     negative_prompt_embeds = callback_outputs.get("negative_prompt_embeds", negative_prompt_embeds)
                     clip_prompt_embeds = callback_outputs.get("clip_prompt_embeds", clip_prompt_embeds)
-
+                if save_every_timestep:
+                    # 8.1 Decode latents
+                    import os
+                    video = self.decode_latents(latents)
+                    video = self.video_processor.postprocess_video(video=video, output_type=output_type)
+                    tmp_prompt_str_with__ = prompt[:20].replace(" ", "_")
+                    os.makedirs(f'{output_dir}/timesteps/video_{tmp_prompt_str_with__}', exist_ok=True)
+                    timestep_output_video_path = f"{output_dir}/timesteps/video_{tmp_prompt_str_with__}/video_{i:05d}.mp4"
+                    # 8.2 Save video
+                    if output_type == "latent":
+                        video = latents
+                    video_output = CogVideoXPipelineOutput(video).frames[0]
+                    export_to_video(video_output, timestep_output_video_path)
+                    # export_to_gif(video, output_gif_path)
+                    print(f"Video saved to {timestep_output_video_path}")
+                    
                 # Update progress bar
                 if i == len(timesteps) - 1 or (
                     (i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0

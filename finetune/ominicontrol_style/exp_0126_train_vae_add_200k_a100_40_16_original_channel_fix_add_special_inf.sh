@@ -61,6 +61,7 @@ accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi
   --report_to wandb \
   --inference \
   --resume_from_checkpoint checkpoint-30000 \
+  --save_every_timestep
   # --seen_validation
   # --resume_from_checkpoint /mnt/carpedkm_data/result250120/720x480embedding_refined_oministyle_vaeadd_original_channel_fix/checkpoint-500
   # --subset_cnt 200000 \

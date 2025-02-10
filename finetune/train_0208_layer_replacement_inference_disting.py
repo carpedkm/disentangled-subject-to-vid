@@ -702,6 +702,73 @@ class PerceiverCrossAttention(nn.Module):
         out = out.permute(0, 2, 1, 3).reshape(batch_size, seq_len, -1)
 
         return self.to_out_(out)    
+    
+class ImageDatasetVal(Dataset):
+    def __init__(
+        self,
+        instance_data_root: Optional[str] = None,
+        anno_path: Optional[str] = None,
+        dataset_name: Optional[str] = None,
+        height: int = 512,
+        width: int = 512,
+        cache_dir: Optional[str] = None,
+        id_token: Optional[str] = None,
+        subset_cnt: int = -1,
+        cross_pairs: bool = False,
+        latent_data_root: str = None,
+        use_latent: bool = False,
+        wo_bg : bool = False,
+        vae_add : bool = False,
+        cross_attend : bool = False,
+        cross_attend_text: bool = False,
+        load_to_ram : bool = False,
+        seen_validation : bool = False, 
+        add_special: bool = False,
+        add_multiple_special: bool = False,
+        add_specific_loc: bool = False,
+        wo_shuffle: bool = False,
+        add_new_split: bool = False,
+        qk_replace: bool = False,
+    ) -> None:
+        super().__init__()
+        print('VAL Data loader init')
+        if add_special and not add_multiple_special:
+            self.val_instance_prompt_dict = {
+                                            'oranges_omini':"A close up view. A <cls> of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+                                            'clock_omini':"In a Bauhaus style room, the <cls> clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+                                            'rc_car_omini': "A film style shot. On the moon, <cls> toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+                                            'shirt_omini': "On the beach, a lady sits under a beach umbrella. She's wearing <cls> hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                                            'cat' : "<cls> cat is rollerblading in the park",
+                                            'dog' : '<cls> dog is flying in the sky',
+                                            'red_toy' : '<cls> red toy is dancing in the room',
+                                            'dog_toy' : '<cls> dog toy is walking around the grass',
+                                            
+                                            #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
+                                            }
+        self.val_instance_prompt_dict = {
+                                    'oranges_omini':"A close up view. A bowl of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+                                    'clock_omini':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+                                    'rc_car_omini': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+                                    'shirt_omini': "On the beach, a lady sits under a beach umbrella. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                                    'cat' : "cat is rollerblading in the park",
+                                    'dog' : 'dog is flying in the sky',
+                                    'red_toy' : 'red toy is dancing in the room',
+                                    'dog_toy' : 'dog toy is walking around the grass',
+                                }
+        
+        if self.seen_validation is True:
+            self.val_instance_prompt_dict = {}
+            path_for_seen_meta = '../seen_samples/omini_meta/'
+            for file in os.listdir(path_for_seen_meta):
+                with open(os.path.join(path_for_seen_meta, file), 'r') as f:
+                    meta_seen = json.load(f)
+                id_ = 'right_' + file.split('_')[1].split('.')[0]
+                # id_  = file.split('.')[0]
+                tmp_desc = meta_seen['description_0']
+                self.val_instance_prompt_dict[id_] = tmp_desc
+        if add_special and seen_validation:
+            self.val_instance_prompt_dict = {k: self.prefix + v for k, v in self.val_instance_prompt_dict.items()}
+            
 class ImageDataset(Dataset):
     def __init__(
         self,
@@ -2152,40 +2219,53 @@ def main(args):
 
     print("Dataset and DataLoader")
     # Dataset and DataLoader
-    train_dataset = ImageDataset(
-        instance_data_root=args.instance_data_root,
-        dataset_name=args.dataset_name,
-        anno_path=args.anno_root,
-        # dataset_name=args.dataset_name,
-        # dataset_config_name=args.dataset_config_name,
-        # caption_column=args.caption_column,
-        # video_column=args.video_column,
-        # height=args.height,
-        # width=args.width,
-        # fps=args.fps,
-        # max_num_frames=args.max_num_frames,
-        # skip_frames_start=args.skip_frames_start,
-        # skip_frames_end=args.skip_frames_end,
-        cache_dir=args.cache_dir,
-        id_token=args.id_token,
-        subset_cnt=args.subset_cnt,
-        # cross_pairs=args.cross_pairs,
-        # sub_driven=args.sub_driven,
-        # wo_bg=args.wo_bg,
-        use_latent=args.use_latent,
-        vae_add=args.vae_add,
-        cross_attend=args.cross_attend,
-        cross_attend_text=args.cross_attend_text,
-        seen_validation=args.seen_validation,
-        add_special=args.add_special,
-        add_multiple_special=args.add_multiple_special,
-        add_specific_loc=args.add_specific_loc,
-        wo_shuffle=args.wo_shuffle,
-        add_new_split=args.add_new_split,
-        qk_replace=args.qk_replace,
-        # latent_data_root=args.latent_data_root,
-        # quick_poc_subset=args.quick_poc_subset,
-    )
+    if args.inference:
+        test_dataset = ImageDatasetVal(
+            instance_data_root=args.instance_data_root,
+            dataset_name=args.dataset_name,
+            anno_path=args.anno_root,
+            cache_dir=args.cache_dir,
+            id_token=args.id_token,
+            subset_cnt=args.subset_cnt,
+            add_special=args.add_special,
+            add_multiple_special=args.add_multiple_special,
+            add_specific_loc=args.add_specific_loc,
+        )
+    else:
+        train_dataset = ImageDataset(
+            instance_data_root=args.instance_data_root,
+            dataset_name=args.dataset_name,
+            anno_path=args.anno_root,
+            # dataset_name=args.dataset_name,
+            # dataset_config_name=args.dataset_config_name,
+            # caption_column=args.caption_column,
+            # video_column=args.video_column,
+            # height=args.height,
+            # width=args.width,
+            # fps=args.fps,
+            # max_num_frames=args.max_num_frames,
+            # skip_frames_start=args.skip_frames_start,
+            # skip_frames_end=args.skip_frames_end,
+            cache_dir=args.cache_dir,
+            id_token=args.id_token,
+            subset_cnt=args.subset_cnt,
+            # cross_pairs=args.cross_pairs,
+            # sub_driven=args.sub_driven,
+            # wo_bg=args.wo_bg,
+            use_latent=args.use_latent,
+            vae_add=args.vae_add,
+            cross_attend=args.cross_attend,
+            cross_attend_text=args.cross_attend_text,
+            seen_validation=args.seen_validation,
+            add_special=args.add_special,
+            add_multiple_special=args.add_multiple_special,
+            add_specific_loc=args.add_specific_loc,
+            wo_shuffle=args.wo_shuffle,
+            add_new_split=args.add_new_split,
+            qk_replace=args.qk_replace,
+            # latent_data_root=args.latent_data_root,
+            # quick_poc_subset=args.quick_poc_subset,
+        )
 
     # def encode_video(video):
     #     video = video.to(accelerator.device, dtype=vae.dtype).unsqueeze(0)
@@ -2253,23 +2333,31 @@ def main(args):
     
     # collate_fn_with_args = partial(collate_fn, vae=vae, accelerator=accelerator)
     
-    train_dataloader = DataLoader(
-        train_dataset,
-        batch_size=args.train_batch_size,
-        shuffle=True,
-        # collate_fn=collate_fn_with_args,
-        collate_fn=collate_fn,
-        num_workers=args.dataloader_num_workers,
-        prefetch_factor=4,
-        worker_init_fn=worker_init_fn,
-    )
+    if args.inference:
+        test_dataloader = DataLoader(
+            test_dataset,
+            batch_size=args.train_batch_size,
+            shuffle=False,
+        )
+    else:
+        train_dataloader = DataLoader(
+            train_dataset,
+            batch_size=args.train_batch_size,
+            shuffle=True,
+            # collate_fn=collate_fn_with_args,
+            collate_fn=collate_fn,
+            num_workers=args.dataloader_num_workers,
+            prefetch_factor=4,
+            worker_init_fn=worker_init_fn,
+        )
+    
 
-    # Scheduler and math around the number of training steps.
-    overrode_max_train_steps = False
-    num_update_steps_per_epoch = math.ceil(len(train_dataloader) / args.gradient_accumulation_steps)
-    if args.max_train_steps is None:
-        args.max_train_steps = args.num_train_epochs * num_update_steps_per_epoch
-        overrode_max_train_steps = True
+        # Scheduler and math around the number of training steps.
+        overrode_max_train_steps = False
+        num_update_steps_per_epoch = math.ceil(len(train_dataloader) / args.gradient_accumulation_steps)
+        if args.max_train_steps is None:
+            args.max_train_steps = args.num_train_epochs * num_update_steps_per_epoch
+            overrode_max_train_steps = True
 
     if use_deepspeed_scheduler:
         from accelerate.utils import DummyScheduler
@@ -2291,16 +2379,21 @@ def main(args):
         )
 
     # Prepare everything with our `accelerator`.
-    transformer, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-        transformer, optimizer, train_dataloader, lr_scheduler
-    )
+    if args.inference:
+        transformer, optimizer, test_dataloader, lr_scheduler = accelerator.prepare(
+            transformer, optimizer, test_dataloader, lr_scheduler
+        )
+    else:
+        transformer, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+            transformer, optimizer, train_dataloader, lr_scheduler
+        )
 
-    # We need to recalculate our total training steps as the size of the training dataloader may have changed.
-    num_update_steps_per_epoch = math.ceil(len(train_dataloader) / args.gradient_accumulation_steps)
-    if overrode_max_train_steps:
-        args.max_train_steps = args.num_train_epochs * num_update_steps_per_epoch
-    # Afterwards we recalculate our number of training epochs
-    args.num_train_epochs = math.ceil(args.max_train_steps / num_update_steps_per_epoch)
+        # We need to recalculate our total training steps as the size of the training dataloader may have changed.
+        num_update_steps_per_epoch = math.ceil(len(train_dataloader) / args.gradient_accumulation_steps)
+        if overrode_max_train_steps:
+            args.max_train_steps = args.num_train_epochs * num_update_steps_per_epoch
+        # Afterwards we recalculate our number of training epochs
+        args.num_train_epochs = math.ceil(args.max_train_steps / num_update_steps_per_epoch)
 
     # We need to initialize the trackers we use, and also store our configuration.
     # The trackers initializes automatically on the main process.
@@ -2309,6 +2402,7 @@ def main(args):
         accelerator.init_trackers(tracker_name, config=vars(args))
 
     # Train!
+    
     total_batch_size = args.train_batch_size * accelerator.num_processes * args.gradient_accumulation_steps
     num_trainable_parameters = sum(param.numel() for model in params_to_optimize for param in model["params"])
 
