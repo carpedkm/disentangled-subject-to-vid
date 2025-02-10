@@ -698,6 +698,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             text_seq_length = enc_hidden_states0.shape[1]
             
         if vae_add:
+            hidden_states = hidden_states[:, text_seq_length:]
             text_seq_length = text_seq_length_temp
 
         # 3. Transformer blocks
