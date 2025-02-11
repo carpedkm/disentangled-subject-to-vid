@@ -4,7 +4,7 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250208/720x480embedding_refined_oministyle_vaeadd_original_channel_fix_pos_embed_add_special_tk_single_with_input_noise_fix"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250211/blip_qformer_720x480embedding_refined_oministyle_vaeadd_original_channel_fix_pos_embed_add_special_tk_single_with_input_noise_fix"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3
@@ -22,7 +22,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --enable_slicing \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
-  --validation_epochs 1 \
+  --validation_epochs 100 \
   --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
@@ -36,7 +36,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --max_num_frames 1 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 8 \
+  --train_batch_size 48 \
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
