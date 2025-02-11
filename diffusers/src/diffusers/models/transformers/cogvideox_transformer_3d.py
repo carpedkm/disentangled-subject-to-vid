@@ -281,10 +281,12 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         cross_attn_dim_head: int = 128,
         cross_attn_num_heads: int = 16,
         qk_replace: bool = False,
+        qformer: bool = False,
         # cross_attn_kv_dim: int = 2048,
     ):
         
         self.qk_replace = qk_replace
+        self.qformer = qformer
         super().__init__()
         inner_dim = num_attention_heads * attention_head_dim
 
@@ -296,7 +298,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             )
         # if customization:
         clip_vision_config = None # CLIPVisionConfig.from_pretrained("openai/clip-vit-base-patch16")
-        if not vae_add and not cross_attend:
+        if not vae_add and not cross_attend and not qformer:
             if zero_conv_add:
                 self.text_sequence_aligner = None
                 self.vision_sequence_aligner = None
@@ -312,6 +314,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             else:
                 self.reference_vision_encoder = None
                 self.T5ProjectionLayer = None
+        elif qformer:
+            self.QformerAligner = None
         else:
             pass
 
@@ -519,69 +523,75 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         # qk_replace: bool = False,
     ):
         qk_replace = self.qk_replace
+        qformer = self.qformer
         if customization:
-            if not qk_replace:
-                if (not cross_attend) and (not cross_attend_text):
-                    if not vae_add:
-                        if add_token:
-                            ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
-                            ref_img_states = torch.cat([ref_img_states, torch.zeros((ref_img_states.shape[0], ref_img_states.shape[1], 4096 - ref_img_states.shape[2])).to(ref_img_states.device)], dim=2)
-                            clip_text_states = torch.cat([clip_prompt_embeds, torch.zeros((clip_prompt_embeds.shape[0], clip_prompt_embeds.shape[1], 4096 - clip_prompt_embeds.shape[2])).to(clip_prompt_embeds.device)], dim=2)
-                            ref_img_states = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16).transpose(1,2)).transpose(1,2)
-                            clip_text_states = self.CLIPTextProjectionLayer(clip_text_states.to(dtype=torch.bfloat16).transpose(1,2)).transpose(1,2)
-                            # encoder_hidden_states = (encoder_hidden_states + ref_img_states + clip_text_states) / 3
-                            encoder_hidden_states = (encoder_hidden_states + ref_img_states + clip_text_states) / (1 + torch.mean(torch.abs(ref_img_states), dim=(0,1,2)) + torch.mean(torch.abs(clip_text_states), dim=(0,1,2)))
-                            encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
-                        elif zero_conv_add:
-                            ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
-                            ref_img_states = self.vision_sequence_aligner(ref_img_states)
-                            clip_text_states = self.text_sequence_aligner(clip_prompt_embeds)
-                            ref_img_states = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16).transpose(1, 2)).transpose(1, 2)     
-                            clip_text_states = self.CLIPTextProjectionLayer(clip_text_states.to(dtype=torch.bfloat16).transpose(1, 2)).transpose(1, 2)
-                            ref_img_states = self.CLIPVisionProjectionLayer2(ref_img_states.transpose(1, 2)).transpose(1, 2)
-                            clip_text_states = self.CLIPTextProjectionLayer2(clip_text_states.transpose(1, 2)).transpose(1, 2)
-                            encoder_hidden_states = encoder_hidden_states + ref_img_states + clip_text_states
-                            # encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
-                        else:
-                            if concatenated_all:
+            if not qformer:
+                if not qk_replace:
+                    if (not cross_attend) and (not cross_attend_text):
+                        if not vae_add:
+                            if add_token:
                                 ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
-                                #  match the feature dimension 4096 by padding zeros
                                 ref_img_states = torch.cat([ref_img_states, torch.zeros((ref_img_states.shape[0], ref_img_states.shape[1], 4096 - ref_img_states.shape[2])).to(ref_img_states.device)], dim=2)
                                 clip_text_states = torch.cat([clip_prompt_embeds, torch.zeros((clip_prompt_embeds.shape[0], clip_prompt_embeds.shape[1], 4096 - clip_prompt_embeds.shape[2])).to(clip_prompt_embeds.device)], dim=2)
-                                if eval:
-                                    ref_img_states = torch.cat([ref_img_states, ref_img_states], dim=0)
-                                encoder_hidden_states = torch.cat([encoder_hidden_states, clip_text_states, ref_img_states], dim=1)
-                                if reduce_token is True: # reduce 500 -> 226
-                                    encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states.transpose(1,2)).transpose(1,2)
-                                else: # mix 4096 -> 4096
-                                    encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
-                            else:
+                                ref_img_states = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16).transpose(1,2)).transpose(1,2)
+                                clip_text_states = self.CLIPTextProjectionLayer(clip_text_states.to(dtype=torch.bfloat16).transpose(1,2)).transpose(1,2)
+                                # encoder_hidden_states = (encoder_hidden_states + ref_img_states + clip_text_states) / 3
+                                encoder_hidden_states = (encoder_hidden_states + ref_img_states + clip_text_states) / (1 + torch.mean(torch.abs(ref_img_states), dim=(0,1,2)) + torch.mean(torch.abs(clip_text_states), dim=(0,1,2)))
+                                encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
+                            elif zero_conv_add:
                                 ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
-                                enc_hidden_states0 = self.T5ProjectionLayer(encoder_hidden_states.to(dtype=torch.bfloat16))
-                                enc_hidden_states1 = self.CLIPTextProjectionLayer(clip_prompt_embeds.to(dtype=torch.bfloat16))
-                                enc_hidden_states2 = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16))
-                                if eval:
-                                    enc_hidden_states2 = torch.cat([enc_hidden_states2, enc_hidden_states2], dim=0)
-                                if t5_first is True:
-                                    encoder_hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, enc_hidden_states2], dim=1)
+                                ref_img_states = self.vision_sequence_aligner(ref_img_states)
+                                clip_text_states = self.text_sequence_aligner(clip_prompt_embeds)
+                                ref_img_states = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16).transpose(1, 2)).transpose(1, 2)     
+                                clip_text_states = self.CLIPTextProjectionLayer(clip_text_states.to(dtype=torch.bfloat16).transpose(1, 2)).transpose(1, 2)
+                                ref_img_states = self.CLIPVisionProjectionLayer2(ref_img_states.transpose(1, 2)).transpose(1, 2)
+                                clip_text_states = self.CLIPTextProjectionLayer2(clip_text_states.transpose(1, 2)).transpose(1, 2)
+                                encoder_hidden_states = encoder_hidden_states + ref_img_states + clip_text_states
+                                # encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
+                            else:
+                                if concatenated_all:
+                                    ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
+                                    #  match the feature dimension 4096 by padding zeros
+                                    ref_img_states = torch.cat([ref_img_states, torch.zeros((ref_img_states.shape[0], ref_img_states.shape[1], 4096 - ref_img_states.shape[2])).to(ref_img_states.device)], dim=2)
+                                    clip_text_states = torch.cat([clip_prompt_embeds, torch.zeros((clip_prompt_embeds.shape[0], clip_prompt_embeds.shape[1], 4096 - clip_prompt_embeds.shape[2])).to(clip_prompt_embeds.device)], dim=2)
+                                    if eval:
+                                        ref_img_states = torch.cat([ref_img_states, ref_img_states], dim=0)
+                                    encoder_hidden_states = torch.cat([encoder_hidden_states, clip_text_states, ref_img_states], dim=1)
+                                    if reduce_token is True: # reduce 500 -> 226
+                                        encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states.transpose(1,2)).transpose(1,2)
+                                    else: # mix 4096 -> 4096
+                                        encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
                                 else:
-                                    encoder_hidden_states = torch.cat([enc_hidden_states2, enc_hidden_states1, enc_hidden_states0], dim=1)
-                    else:
+                                    ref_img_states = self.reference_vision_encoder(ref_img_states).last_hidden_state
+                                    enc_hidden_states0 = self.T5ProjectionLayer(encoder_hidden_states.to(dtype=torch.bfloat16))
+                                    enc_hidden_states1 = self.CLIPTextProjectionLayer(clip_prompt_embeds.to(dtype=torch.bfloat16))
+                                    enc_hidden_states2 = self.CLIPVisionProjectionLayer(ref_img_states.to(dtype=torch.bfloat16))
+                                    if eval:
+                                        enc_hidden_states2 = torch.cat([enc_hidden_states2, enc_hidden_states2], dim=0)
+                                    if t5_first is True:
+                                        encoder_hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, enc_hidden_states2], dim=1)
+                                    else:
+                                        encoder_hidden_states = torch.cat([enc_hidden_states2, enc_hidden_states1, enc_hidden_states0], dim=1)
+                        else:
+                            enc_hidden_states0 = encoder_hidden_states
+                            enc_hidden_states1 = ref_img_states
+                    elif vae_add is False and (cross_attend is True or cross_attend_text is True):
+                        enc_hidden_states0 = encoder_hidden_states
+                        ref_img_emb = ref_img_states
+                        # print('>>>> REF IMG STATES SHAPE : ', ref_img_states.shape)
+                    elif vae_add is True and (cross_attend is True or cross_attend_text is True):
                         enc_hidden_states0 = encoder_hidden_states
                         enc_hidden_states1 = ref_img_states
-                elif vae_add is False and (cross_attend is True or cross_attend_text is True):
-                    enc_hidden_states0 = encoder_hidden_states
-                    ref_img_emb = ref_img_states
-                    # print('>>>> REF IMG STATES SHAPE : ', ref_img_states.shape)
-                elif vae_add is True and (cross_attend is True or cross_attend_text is True):
-                    enc_hidden_states0 = encoder_hidden_states
-                    enc_hidden_states1 = ref_img_states
-                    ref_img_emb = ref_img_states
+                        ref_img_emb = ref_img_states
+                    else:
+                        print('Something is Wrong >>>>>>>> RE CHECK')
                 else:
-                    print('Something is Wrong >>>>>>>> RE CHECK')
+                    encoder_hidden_states = encoder_hidden_states
+                    enc_hidden_states1 = ref_img_states
             else:
-                enc_hidden_states0 = encoder_hidden_states
+                # enc_hidden_states0 = encoder_hidden_states
                 enc_hidden_states1 = ref_img_states
+                enc_hidden_states1 = self.QformerAligner(ref_img_states)
         else:
             # encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
             pass
@@ -630,6 +640,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 if eval:
                     enc_hidden_states1 = torch.cat([enc_hidden_states1, enc_hidden_states1], dim=0)
                 encoder_hidden_states_temp = torch.cat([enc_hidden_states1, enc_hidden_states0], dim=1)
+            else:
+                pass
             if cross_attend or cross_attend_text:
                 b_1, nf_1, c_1, h_1, w_1 = ref_img_emb.shape
                 ref_img_emb = ref_img_emb.reshape(-1, c_1, h_1, w_1)
@@ -639,6 +651,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 ref_img_emb = ref_img_emb.flatten(1, 2)  # [batch, num_frames x height x width, channels]
                 if eval:
                     ref_img_emb = torch.cat([ref_img_emb, ref_img_emb], dim=0)
+            else:
+                pass
         else:
             enc_hidden_states0 = self.patch_embed.text_proj(enc_hidden_states0)
             # enc_hidden_states0 = F.pad(enc_hidden_states0, (0, 1350 - enc_hidden_states0.shape[1]))
@@ -681,9 +695,17 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         
         # if (not vae_add) or cross_attend:
         if not qk_replace:
-            if vae_add is False:
+            if vae_add is False and not qformer:
                 text_seq_length = encoder_hidden_states.shape[1]
                 encoder_hidden_states = hidden_states[:, :text_seq_length]
+            elif qformer:
+                text_seq_length = encoder_hidden_states.shape[1]
+                encoder_hidden_states = hidden_states[:, :text_seq_length]
+                hidden_states = hidden_states[:, text_seq_length:]
+                if eval:
+                    enc_hidden_states1 = torch.cat([enc_hidden_states1, enc_hidden_states1], dim=0)
+                encoder_hidden_states = torch.cat([enc_hidden_states1, encoder_hidden_states], dim=1)
+                text_seq_length = encoder_hidden_states.shape[1]
             else:
                 text_seq_length = encoder_hidden_states.shape[1] # to handle the hidden_states after
                 text_seq_length_temp = encoder_hidden_states_temp.shape[1]
@@ -700,7 +722,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         if vae_add:
             hidden_states = hidden_states[:, text_seq_length:]
             text_seq_length = text_seq_length_temp
-
+        
         # 3. Transformer blocks
         ca_idx = 0
         for i, block in enumerate(self.transformer_blocks):

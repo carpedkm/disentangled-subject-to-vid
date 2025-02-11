@@ -2,6 +2,72 @@
     "version": "0.2.0",
     "configurations": [
             {
+                "name": "inf_check_0211",
+                "type": "python",
+                "request": "launch",
+                "module": "accelerate.commands.launch",
+                "cwd": "/root/daneul/projects/refactored/CogVideo/finetune/ominicontrol_style",
+                "args": [
+                    "--config_file", "/root/daneul/projects/refactored/CogVideo/finetune/accelerate_config_machine_single_4gpu.yaml",
+                    "--multi_gpu",
+                    "/root/daneul/projects/refactored/CogVideo/finetune/train_0210_layer_replacement_with_edit.py",
+                    "--gradient_checkpointing",
+                    "--pretrained_model_name_or_path", "THUDM/CogVideoX-5b",
+                    "--cache_dir", "/root/.cache",
+                    "--enable_tiling",
+                    "--enable_slicing",
+                    "--instance_data_root", "/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full",
+                    "--anno_root", "/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json",
+                    "--validation_epochs", "1",
+                    "--num_validation_videos", "1",
+                    "--validation_reference_image", "/root/daneul/projects/refactored/CogVideo/finetune/val_samples_im/",
+                    "--seed", "42",
+                    "--rank", "128",
+                    "--lora_alpha", "64",
+                    "--mixed_precision", "bf16",
+                    "--output_dir", "/mnt/carpedkm_data/result250208/720x480embedding_refined_oministyle_vaeadd_original_channel_fix_pos_embed_add_special_tk_single_with_input_noise_fix",
+                    "--height", "480",
+                    "--width", "720",
+                    "--fps", "8",
+                    "--max_num_frames", "1",
+                    "--skip_frames_start", "0",
+                    "--skip_frames_end", "0",
+                    "--train_batch_size", "8",
+                    "--num_train_epochs", "30",
+                    "--checkpointing_steps", "50",
+                    "--gradient_accumulation_steps", "1",
+                    "--learning_rate", "5e-5",
+                    "--lr_scheduler", "cosine_with_restarts",
+                    "--lr_warmup_steps", "200",
+                    "--lr_num_cycles", "1",
+                    "--optimizer", "AdamW",
+                    "--adam_beta1", "0.9",
+                    "--adam_beta2", "0.95",
+                    "--max_grad_norm", "1.0",
+                    "--allow_tf32",
+                    "--use_latent",
+                    "--qformer",
+                    "--seen_validation",
+                    "--load_to_ram",
+                    "--latent_data_root", "/mnt/carpedkm_data/pexels_4k_updatd_vae_latents",
+                    "--report_to", "wandb"
+                ],
+                "console": "integratedTerminal",
+                "env": {
+                    "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
+                    "CUDA_VISIBLE_DEVICES": "0,1,2,3",
+                    "TORCH_NCCL_ASYNC_ERROR_HANDLING": "1",
+                    "WANDB_API_KEY": "b524799f98b5a09033fe24848862dcb2a68af571"
+                },
+                "console": "integratedTerminal",
+                "env": {
+                    "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
+                    "CUDA_VISIBLE_DEVICES": "0,1,2,3",
+                    "TORCH_NCCL_ASYNC_ERROR_HANDLING": "1",
+                    "WANDB_API_KEY": "b524799f98b5a09033fe24848862dcb2a68af571"
+                }
+            },
+            {
                 "name": "inf_check",
                 "type": "python",
                 "request": "launch",
@@ -61,7 +127,7 @@
                     "TORCH_NCCL_ASYNC_ERROR_HANDLING": "1",
                     "WANDB_API_KEY": "b524799f98b5a09033fe24848862dcb2a68af571"
                 }
-            }
+            },
 
         {
             "name": "result_check_50k_512x512_embedding_refined_prompt_vaeadd",

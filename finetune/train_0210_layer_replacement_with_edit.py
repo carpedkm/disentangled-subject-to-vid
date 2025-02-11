@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple, Union, Dict, Optional, Any
 # from typing import List, Dict, Any, Optional
 
+from PIL import Image
 import numpy as np
 import torch
 from torch.nn import init
@@ -37,6 +38,8 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from tqdm.auto import tqdm
 
+
+from transformers import Blip2Processor, Blip2Model
 from transformers import AutoTokenizer, T5EncoderModel, T5Tokenizer
 # ADDED
 import json
@@ -714,17 +717,32 @@ class PerceiverCrossAttention(nn.Module):
         return self.to_out_(out)   
 
 class QFormerAligner(nn.Module):
-    def __init__(self):
+    def __init__(self, model_name):
+        super().__init__()
         model_name = "Salesforce/blip2-opt-2.7b"
-        self.processor = BLIP2Processor.from_pretrained(model_name)
-        self.model = BLIP2Model.from_pretrained(model_name)
-        self.qformer = model.qformer
+        self.processor = Blip2Processor.from_pretrained(model_name)
+        self.model = Blip2Model.from_pretrained(model_name)
+        self.qformer = self.model.qformer
+        self.fc = nn.Linear(768, 3072)
         
     def forward(self, image_feature):
-        # image feature : (1, 3, 224, 224)
-        inputs = self.processor(image_feature, return_tensors="pt")
-        vision_outputs = model.vision_model(**inputs)
-        image_embeds = vision_outputs.last_hidden_state 
+        pixel_values = self.processor.image_processor(image_feature.float(), return_tensors='pt')["pixel_values"]
+        device = next(self.model.parameters()).device
+        pixel_values = pixel_values.to(device)
+        with torch.no_grad():
+            vision_outputs = self.model.vision_model(pixel_values)
+            image_embeds = vision_outputs.last_hidden_state
+        
+        batch_size = image_embeds.shape[0]
+        query_tokens = self.model.query_tokens.expand(batch_size, -1, -1)
+        
+        qformer_outputs = self.qformer(query_embeds=query_tokens,
+                                       encoder_hidden_states=image_embeds,
+                                       )
+        qformer_features = qformer_outputs.last_hidden_state
+        qformer_features = self.fc(qformer_features)
+        # get it back to bfloat16
+        return qformer_features.bfloat16()
         
 class ImageDataset(Dataset):
     def __init__(
@@ -752,6 +770,7 @@ class ImageDataset(Dataset):
         wo_shuffle: bool = False,
         add_new_split: bool = False,
         qk_replace: bool = False,
+        qformer: bool = False,
     ) -> None:
         super().__init__()
         print('Data loader init')
@@ -759,6 +778,7 @@ class ImageDataset(Dataset):
         self.qk_replace = qk_replace
         self.cross_attend = cross_attend
         self.cross_attend_text = cross_attend_text
+        self.qformer = qformer
         self.use_latent = use_latent
         self.instance_data_root = Path(instance_data_root) if instance_data_root is not None else None
         self.seen_validation = seen_validation
@@ -1710,150 +1730,155 @@ def main(args):
         cross_attn_dim_head=args.cross_attn_dim_head,
         cross_attn_num_heads=args.cross_attn_num_head,
         qk_replace=args.qk_replace,
+        qformer=args.qformer,
         # cross_attn_kv_dim=args.cross_attn_kv_dim,
     )
     print("Done - CogVideoX Transformer model loaded")
     # Initialize submodules
-    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
+    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
         transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
-    
-    if (args.vae_add or args.qk_replace) and (not args.cross_attend) and ( not args.cross_attend):
-        # transformer.CLIPTextProjectionLayer = None
-        # transformer.CLIPVisionProjectionLayer = None
-        # transformer.CLIPTextProjectionLayer2 = None
-        # transformer.CLIPVisionProjectionLayer2 = None
-        # transformer.T5ProjectionLayer = None
-        pass
-    elif (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
-        if args.zero_conv_add:
-            transformer.text_sequence_aligner = SequenceAligner(77, 226)
-            transformer.vision_sequence_aligner = SequenceAligner(197, 226)
-            
-            transformer.CLIPTextProjectionLayer = ZeroConv1D(in_dim=512, out_dim=4096)
-            transformer.CLIPVisionProjectionLayer = ZeroConv1D(in_dim=768, out_dim=4096)
-            transformer.CLIPTextProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
-            transformer.CLIPVisionProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
-            transformer.T5ProjectionLayer = SkipProjectionLayer(4096, 4096)
-            with torch.no_grad():
-                transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
-                if transformer.T5ProjectionLayer.projection.bias is not None:
-                    transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
-            
-            # Learnable single parameter
-            # transformer.alpha = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
-            # transformer.beta = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
-            
-            # requries grad True
-            transformer.CLIPTextProjectionLayer.requires_grad_(True)
-            transformer.CLIPVisionProjectionLayer.requires_grad_(True)
-            transformer.CLIPTextProjectionLayer2.requires_grad_(True)
-            transformer.CLIPVisionProjectionLayer2.requires_grad_(True)
-            transformer.reference_vision_encoder.requires_grad_(True)
-            transformer.T5ProjectionLayer.requires_grad_(True)
-            
-            # transformer.alpha.requires_grad_(True)
-            # transformer.beta.requires_grad_(True)
-            
-        else:
-            if args.add_token is True:
-                transformer.T5ProjectionLayer = ProjectionLayer(in_features=4096, out_features=4096)
+    if args.qformer is True:
+        transformer.QformerAligner = QFormerAligner(model_name="Salesforce/blip2-opt-2.7b")
+        transformer.QformerAligner.qformer.requires_grad_(True)
+        transformer.QformerAligner.fc.requires_grad_(True)
+    else:
+        if (args.vae_add or args.qk_replace) and (not args.cross_attend) and ( not args.cross_attend):
+            # transformer.CLIPTextProjectionLayer = None
+            # transformer.CLIPVisionProjectionLayer = None
+            # transformer.CLIPTextProjectionLayer2 = None
+            # transformer.CLIPVisionProjectionLayer2 = None
+            # transformer.T5ProjectionLayer = None
+            pass
+        elif (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
+            if args.zero_conv_add:
+                transformer.text_sequence_aligner = SequenceAligner(77, 226)
+                transformer.vision_sequence_aligner = SequenceAligner(197, 226)
+                
+                transformer.CLIPTextProjectionLayer = ZeroConv1D(in_dim=512, out_dim=4096)
+                transformer.CLIPVisionProjectionLayer = ZeroConv1D(in_dim=768, out_dim=4096)
+                transformer.CLIPTextProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
+                transformer.CLIPVisionProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
+                transformer.T5ProjectionLayer = SkipProjectionLayer(4096, 4096)
                 with torch.no_grad():
-                    transformer.T5ProjectionLayer.projection.weight.fill_(1.0)
+                    transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
                     if transformer.T5ProjectionLayer.projection.bias is not None:
-                        transformer.T5ProjectionLayer.projection.bias.fill_(1.0)
-                transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=77, out_features=226)
-                with torch.no_grad():
-                    transformer.CLIPTextProjectionLayer.projection.weight.fill_(0.0)
-                    if transformer.CLIPTextProjectionLayer.projection.bias is not None:
-                        transformer.CLIPTextProjectionLayer.projection.bias.fill_(0.0)
-                transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=197, out_features=226)
-                with torch.no_grad():
-                    transformer.CLIPVisionProjectionLayer.projection.weight.fill_(0.0)
-                    if transformer.CLIPVisionProjectionLayer.projection.bias is not None:
-                        transformer.CLIPVisionProjectionLayer.projection.bias.fill_(0.0)
-                # Requires grad true
-                transformer.reference_vision_encoder.requires_grad_(True)
-                transformer.T5ProjectionLayer.requires_grad_(True)
+                        transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
+                
+                # Learnable single parameter
+                # transformer.alpha = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
+                # transformer.beta = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
+                
+                # requries grad True
                 transformer.CLIPTextProjectionLayer.requires_grad_(True)
                 transformer.CLIPVisionProjectionLayer.requires_grad_(True)
-            else:    
-                if reduce_token is not True:
-                    transformer.T5ProjectionLayer = SkipProjectionLayer(in_features=4096, out_features=4096)
+                transformer.CLIPTextProjectionLayer2.requires_grad_(True)
+                transformer.CLIPVisionProjectionLayer2.requires_grad_(True)
+                transformer.reference_vision_encoder.requires_grad_(True)
+                transformer.T5ProjectionLayer.requires_grad_(True)
+                
+                # transformer.alpha.requires_grad_(True)
+                # transformer.beta.requires_grad_(True)
+                
+            else:
+                if args.add_token is True:
+                    transformer.T5ProjectionLayer = ProjectionLayer(in_features=4096, out_features=4096)
                     with torch.no_grad():
-                        transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
+                        transformer.T5ProjectionLayer.projection.weight.fill_(1.0)
                         if transformer.T5ProjectionLayer.projection.bias is not None:
-                            transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
-                    # Requires grad true
-                    transformer.reference_vision_encoder.requires_grad_(True)
-                    transformer.T5ProjectionLayer.requires_grad_(True)
-                    
-                    # if concatenated_all:
-                    transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=512, out_features=4096)
+                            transformer.T5ProjectionLayer.projection.bias.fill_(1.0)
+                    transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=77, out_features=226)
                     with torch.no_grad():
                         transformer.CLIPTextProjectionLayer.projection.weight.fill_(0.0)
                         if transformer.CLIPTextProjectionLayer.projection.bias is not None:
                             transformer.CLIPTextProjectionLayer.projection.bias.fill_(0.0)
-                    transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=768, out_features=4096)
+                    transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=197, out_features=226)
                     with torch.no_grad():
                         transformer.CLIPVisionProjectionLayer.projection.weight.fill_(0.0)
                         if transformer.CLIPVisionProjectionLayer.projection.bias is not None:
                             transformer.CLIPVisionProjectionLayer.projection.bias.fill_(0.0)
                     # Requires grad true
-                    transformer.CLIPTextProjectionLayer.requires_grad_(True)
-                    transformer.CLIPVisionProjectionLayer.requires_grad_(True)
-                else:
-                    transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
-                    transformer.T5ProjectionLayer = ReduceProjectionLayer(in_features=500, out_features=226)
-                    with torch.no_grad():
-                        transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
-                        if transformer.T5ProjectionLayer.projection.bias is not None:
-                            transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
-                    # Requires grad true
                     transformer.reference_vision_encoder.requires_grad_(True)
                     transformer.T5ProjectionLayer.requires_grad_(True)
-    elif args.cross_attend or args.cross_attend_text:
-            if args.cross_attend:
-                print('Loading PERCEIVER CROSS ATTENTION')
-                perceiver_cross_attention = None
-                local_reference_scale = args.local_reference_scale
-                num_cross_attn = 42 // args.cross_attn_interval
-                cross_inner_dim = 3072
-                cross_attn_dim_head = args.cross_attn_dim_head
-                cross_attn_num_head = args.cross_attn_num_head
-                # cross_attn_kv_dim =  int(cross_inner_dim / 3 * 2)
-                cross_attn_kv_dim = 3072
-                transformer.perceiver_cross_attention = nn.ModuleList(
-                    [
-                        PerceiverCrossAttention(
-                            dim=cross_inner_dim,
-                            dim_head=cross_attn_dim_head,
-                            heads=cross_attn_num_head,
-                            kv_dim=cross_attn_kv_dim,
-                        ).to(dtype=torch.bfloat16)
-                        for _ in range(num_cross_attn)
-                    ]
-                )
-                transformer.perceiver_cross_attention.requires_grad_(True)
-            if args.cross_attend_text:
-                print('Loading PERCEIVER CROSS ATTENTION FOR TEXT')
-                perceiver_cross_attention_text = None
-                local_reference_scale = args.local_reference_scale
-                num_cross_attn = 42 // args.cross_attn_interval
-                cross_inner_dim = 3072
-                cross_attn_dim_head = args.cross_attn_dim_head
-                cross_attn_num_head = args.cross_attn_num_head
-                cross_attn_kv_dim = 3072
-                transformer.perceiver_cross_attention_text = nn.ModuleList(
-                    [
-                        PerceiverCrossAttention(
-                            dim=cross_inner_dim,
-                            dim_head=cross_attn_dim_head,
-                            heads=cross_attn_num_head,
-                            kv_dim=cross_attn_kv_dim,
-                        ).to(dtype=torch.bfloat16)
-                        for _ in range(num_cross_attn)
-                    ]
-                )
+                    transformer.CLIPTextProjectionLayer.requires_grad_(True)
+                    transformer.CLIPVisionProjectionLayer.requires_grad_(True)
+                else:    
+                    if reduce_token is not True:
+                        transformer.T5ProjectionLayer = SkipProjectionLayer(in_features=4096, out_features=4096)
+                        with torch.no_grad():
+                            transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
+                            if transformer.T5ProjectionLayer.projection.bias is not None:
+                                transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
+                        # Requires grad true
+                        transformer.reference_vision_encoder.requires_grad_(True)
+                        transformer.T5ProjectionLayer.requires_grad_(True)
+                        
+                        # if concatenated_all:
+                        transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=512, out_features=4096)
+                        with torch.no_grad():
+                            transformer.CLIPTextProjectionLayer.projection.weight.fill_(0.0)
+                            if transformer.CLIPTextProjectionLayer.projection.bias is not None:
+                                transformer.CLIPTextProjectionLayer.projection.bias.fill_(0.0)
+                        transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=768, out_features=4096)
+                        with torch.no_grad():
+                            transformer.CLIPVisionProjectionLayer.projection.weight.fill_(0.0)
+                            if transformer.CLIPVisionProjectionLayer.projection.bias is not None:
+                                transformer.CLIPVisionProjectionLayer.projection.bias.fill_(0.0)
+                        # Requires grad true
+                        transformer.CLIPTextProjectionLayer.requires_grad_(True)
+                        transformer.CLIPVisionProjectionLayer.requires_grad_(True)
+                    else:
+                        transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
+                        transformer.T5ProjectionLayer = ReduceProjectionLayer(in_features=500, out_features=226)
+                        with torch.no_grad():
+                            transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
+                            if transformer.T5ProjectionLayer.projection.bias is not None:
+                                transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
+                        # Requires grad true
+                        transformer.reference_vision_encoder.requires_grad_(True)
+                        transformer.T5ProjectionLayer.requires_grad_(True)
+        elif args.cross_attend or args.cross_attend_text:
+                if args.cross_attend:
+                    print('Loading PERCEIVER CROSS ATTENTION')
+                    perceiver_cross_attention = None
+                    local_reference_scale = args.local_reference_scale
+                    num_cross_attn = 42 // args.cross_attn_interval
+                    cross_inner_dim = 3072
+                    cross_attn_dim_head = args.cross_attn_dim_head
+                    cross_attn_num_head = args.cross_attn_num_head
+                    # cross_attn_kv_dim =  int(cross_inner_dim / 3 * 2)
+                    cross_attn_kv_dim = 3072
+                    transformer.perceiver_cross_attention = nn.ModuleList(
+                        [
+                            PerceiverCrossAttention(
+                                dim=cross_inner_dim,
+                                dim_head=cross_attn_dim_head,
+                                heads=cross_attn_num_head,
+                                kv_dim=cross_attn_kv_dim,
+                            ).to(dtype=torch.bfloat16)
+                            for _ in range(num_cross_attn)
+                        ]
+                    )
+                    transformer.perceiver_cross_attention.requires_grad_(True)
+                if args.cross_attend_text:
+                    print('Loading PERCEIVER CROSS ATTENTION FOR TEXT')
+                    perceiver_cross_attention_text = None
+                    local_reference_scale = args.local_reference_scale
+                    num_cross_attn = 42 // args.cross_attn_interval
+                    cross_inner_dim = 3072
+                    cross_attn_dim_head = args.cross_attn_dim_head
+                    cross_attn_num_head = args.cross_attn_num_head
+                    cross_attn_kv_dim = 3072
+                    transformer.perceiver_cross_attention_text = nn.ModuleList(
+                        [
+                            PerceiverCrossAttention(
+                                dim=cross_inner_dim,
+                                dim_head=cross_attn_dim_head,
+                                heads=cross_attn_num_head,
+                                kv_dim=cross_attn_kv_dim,
+                            ).to(dtype=torch.bfloat16)
+                            for _ in range(num_cross_attn)
+                        ]
+                    )
     # Print out parameter names to verify # FOR DEBUGGING
     # for name, param in transformer.named_parameters():
     #     if param.requires_grad:
@@ -1932,7 +1957,7 @@ def main(args):
     #     init_lora_weights=True,
     #     target_modules=["to_k", "to_q", "to_v", "to_out.0"],
     # )
-    unfreeze_modules = ["perceiver_cross_attention", "perceiver_cross_attention_text"]
+    unfreeze_modules = ["perceiver_cross_attention", "perceiver_cross_attention_text", "QformerAligner.qformer", "QformerAligner.fc"]
     transformer_lora_config = LoraConfig(
         r=args.rank,
         lora_alpha=args.lora_alpha,
@@ -1965,7 +1990,7 @@ def main(args):
                 if isinstance(unwrapped_model, type(unwrap_model(transformer))):
                     transformer_lora_layers_to_save = get_peft_model_state_dict(model)
                     
-                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
+                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
                         # Save ProjectionLayer state_dicts
                         projection_layers_state_dict = {
                             "T5ProjectionLayer": unwrapped_model.T5ProjectionLayer.state_dict(),
@@ -1977,6 +2002,8 @@ def main(args):
                             projection_layers_state_dict["CLIPVisionProjectionLayer2"] = unwrapped_model.CLIPVisionProjectionLayer2.state_dict()
                         # Save CLIPVisionModel state_dict
                         vision_model_state_dict = unwrapped_model.reference_vision_encoder.state_dict()
+                    elif args.qformer is True:
+                        qformer_state = unwrapped_model.QformerAligner.state_dict()
                     if args.cross_attend or args.cross_attend_text:
                         if args.cross_attend:
                             cross_attention_layer_state_dict = unwrapped_model.perceiver_cross_attention.state_dict()
@@ -1997,7 +2024,7 @@ def main(args):
                     weight_name="pytorch_lora_weights_transformer.safetensors",
                     transformer_lora_layers=transformer_lora_layers_to_save,
                 )
-            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
+            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
                 # Save Projection Layer weights
                 for name, state_dict in projection_layers_state_dict.items():
                     save_path = os.path.join(output_dir, f"{name}.pth")
@@ -2007,6 +2034,10 @@ def main(args):
                 if vision_model_state_dict is not None:
                     save_path = os.path.join(output_dir, "pytorch_clip_vision_model.bin")
                     torch.save(vision_model_state_dict, save_path)
+            elif args.qformer is True:
+                # Save QFormer weights
+                save_path = os.path.join(output_dir, "QformerAligner.pth")
+                torch.save(qformer_state, save_path)
             if args.cross_attend or args.cross_attend_text:
                 if args.cross_attend:
                     save_path = os.path.join(output_dir, "perceiver_cross_attention.pth")
@@ -2046,7 +2077,7 @@ def main(args):
                 transformer_state_dict, 
                 adapter_name="default"
             )
-            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
+            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
                 # Load ProjectionLayer weights
                 transformer_.T5ProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "T5ProjectionLayer.pth")))
                 transformer_.CLIPTextProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPTextProjectionLayer.pth")))
@@ -2055,6 +2086,10 @@ def main(args):
                 # Load CLIPVisionModel weights
                 vision_model_state_dict = torch.load(os.path.join(input_dir, "pytorch_clip_vision_model.bin"))
                 transformer_.reference_vision_encoder.load_state_dict(vision_model_state_dict)
+            elif args.qformer:
+                # Load QFormer weights
+                qformer_state = torch.load(os.path.join(input_dir, "QformerAligner.pth"))
+                transformer.QformerAligner.load_state_dict(qformer_state)
             if args.cross_attend or args.cross_attend_text:
                 if args.cross_attend:
                     cross_attention_layer_state_dict = torch.load(os.path.join(input_dir, "perceiver_cross_attention.pth"))
@@ -2116,7 +2151,7 @@ def main(args):
     transformer_parameters_with_lr = {"params": transformer_lora_parameters, "lr": args.learning_rate}
 
     # Add the parameters of the projection layers with their learning rates
-    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
+    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
         if concatenated_all is True:
             projection_parameters = [
                 {"params": transformer.T5ProjectionLayer.parameters(), "lr": args.learning_rate},
@@ -2156,6 +2191,11 @@ def main(args):
                 {"params": transformer.perceiver_cross_attention_text.parameters(), "lr": args.learning_rate},
             ]
         params_to_optimize = [transformer_parameters_with_lr] + cross_attention_parameters
+    elif args.qformer :
+        qformer_parameters = [
+            {"params": transformer.QformerAligner.parameters(), "lr": args.learning_rate},
+        ]
+        params_to_optimize = [transformer_parameters_with_lr] + qformer_parameters
     else:
         params_to_optimize = [transformer_parameters_with_lr]
 
@@ -2207,6 +2247,7 @@ def main(args):
         wo_shuffle=args.wo_shuffle,
         add_new_split=args.add_new_split,
         qk_replace=args.qk_replace,
+        qformer=args.qformer,
         # latent_data_root=args.latent_data_root,
         # quick_poc_subset=args.quick_poc_subset,
     )
@@ -2425,9 +2466,11 @@ def main(args):
                 
                 prompts = batch["prompts"]
                 if train_dataset.dataset_name == 'customization':
-                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
+                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
                         image_processor = clip_processor.image_processor
                         images = image_processor(batch["ref_images"], return_tensors="pt").to(accelerator.device)
+                    elif args.qformer:
+                        images = torch.stack(batch['ref_images'], dim=0).to(accelerator.device, dtype=weight_dtype)
                     else:
                         images = batch["ref_images"].permute(0, 2, 1, 3, 4).to(dtype=weight_dtype)  # [B, F, C, H, W]
                         images = images * 0.7
@@ -2446,7 +2489,7 @@ def main(args):
                     requires_grad=False,
                 )
                 # Process images
-                if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
+                if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
                     if images is not None and 'pixel_values' in images:
                         image_input = images['pixel_values'].to(device=accelerator.device, dtype=weight_dtype)
                 else:
