@@ -387,9 +387,20 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                 latent_model_input = (
                     torch.cat([latents] * 2) if do_classifier_free_guidance else latents
                 )
-                latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
+                
                 if input_noise_fix:
-                    noisy_ref_img_states = self.scheduler.scale_model_input(ref_img_states, t) #FIXME (CFG part)
+                    print('latent_model_input: ', latent_model_input.shape)
+                    print('ref_img_states: ', ref_img_states.shape)
+                    # Concatenate latent_model_input and ref_img_states along the batch dimension
+                    concat_input = torch.cat([latent_model_input, ref_img_states], dim=0)
+
+                    # Apply scale_model_input to the concatenated input
+                    scaled_concat_input = self.scheduler.scale_model_input(concat_input, t)
+
+                    # Split back into latent_model_input and noisy_ref_img_states
+                    latent_model_input, noisy_ref_img_states = torch.chunk(scaled_concat_input, chunks=2, dim=0)
+                else:
+                    latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
                 # Broadcast timestep
                 timestep = t.expand(latent_model_input.shape[0])
 
