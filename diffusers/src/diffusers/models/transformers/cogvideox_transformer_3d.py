@@ -158,16 +158,13 @@ class CogVideoXBlock(nn.Module):
             layer=layer,
         )
         if enc_hidden_states1 is not None:
-            attn_encoder_hidden_states = attn_encoder_hidden_states[:,text_seq_length:]
-            attn_cond_hidden_states = attn_encoder_hidden_states[:,:text_seq_length]
+            attn_cond_hidden_states = attn_encoder_hidden_states[:,text_seq_length:]
+            attn_encoder_hidden_states = attn_encoder_hidden_states[:,:text_seq_length]
             
-        
         hidden_states = hidden_states + gate_msa * attn_hidden_states
         encoder_hidden_states = encoder_hidden_states + enc_gate_msa * attn_encoder_hidden_states
         if enc_hidden_states1 is not None:
             enc_hidden_states1 = enc_hidden_states1 + cond_gate_msa * attn_cond_hidden_states
-            
-
 
         # norm & modulate
         norm_hidden_states, norm_encoder_hidden_states, norm_cond_hidden_states, gate_ff, enc_gate_ff, cond_gate_ff = self.norm2(
@@ -189,7 +186,7 @@ class CogVideoXBlock(nn.Module):
             hidden_states = hidden_states + gate_ff * ff_output[:, seq_len_temp:]
             encoder_hidden_states = encoder_hidden_states + enc_gate_ff * ff_output[:, :text_seq_length]
             enc_hidden_states1 = enc_hidden_states1 + cond_gate_ff * ff_output[:, text_seq_length:seq_len_temp]
-            
+            # print(hidden_states.shape, encoder_hidden_states.shape, enc_hidden_states1.shape)
             return hidden_states, encoder_hidden_states, enc_hidden_states1
         else:
             hidden_states = hidden_states + gate_ff * ff_output[:, text_seq_length:]
@@ -711,8 +708,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         if not qk_replace:
             if vae_add is True and pos_embed is True:
                 embed_ref_img = True
-                ref_img_seq_start = 0
-                ref_img_seq_end = enc_hidden_states1.shape[1]
+                ref_img_seq_start = enc_hidden_states0.shape[1]
+                ref_img_seq_end = enc_hidden_states0.shape[1] + enc_hidden_states1.shape[1]
                 position_delta = 0
             else:
                 embed_ref_img = False
@@ -758,7 +755,10 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             
         if vae_add:
             hidden_states = hidden_states[:, text_seq_length:]
-            text_seq_length = text_seq_length_temp
+            if layernorm_fix:
+                pass
+            else:
+                text_seq_length = text_seq_length_temp
         
         # 3. Transformer blocks
         ca_idx = 0

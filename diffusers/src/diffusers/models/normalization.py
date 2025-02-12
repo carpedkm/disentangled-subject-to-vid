@@ -469,8 +469,10 @@ class CogVideoXLayerNormZero(nn.Module):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         # shift, scale, gate, enc_shift, enc_scale, enc_gate = self.linear(self.silu(temb)).chunk(6, dim=1)
         with enable_lora([self.linear], False):
+            # print('************ LORA DISABLED ************')
             shift, scale, gate, enc_shift, enc_scale, enc_gate = self.linear(self.silu(temb)).chunk(6, dim=1)
         if cond_hidden_states is not None:
+            # print('************ LORA ENABLED ************')
             cond_shift, cond_scale, cond_gate, _, _, _ = self.linear(self.silu(temb)).chunk(6, dim=1)
         hidden_states = self.norm(hidden_states) * (1 + scale)[:, None, :] + shift[:, None, :]
         encoder_hidden_states = self.norm(encoder_hidden_states) * (1 + enc_scale)[:, None, :] + enc_shift[:, None, :]
