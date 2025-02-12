@@ -590,7 +590,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                     enc_hidden_states0 = encoder_hidden_states
                     enc_hidden_states1 = ref_img_states
             else:
-                # enc_hidden_states0 = encoder_hidden_states
+                enc_hidden_states0 = encoder_hidden_states
                 enc_hidden_states1 = ref_img_states
                 enc_hidden_states1 = self.QformerAligner(ref_img_states)
         else:
