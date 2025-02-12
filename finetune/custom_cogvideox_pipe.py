@@ -287,6 +287,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         input_noise_fix: bool = False,
         output_dir : str = None,
         save_every_timestep : bool = False, 
+        layernorm_fix: bool = False,
     ) -> Union[CogVideoXPipelineOutput, Tuple]:
         if num_frames > 49:
             raise ValueError(
@@ -425,6 +426,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     pos_embed=pos_embed,
                     cross_attend=cross_attend,
                     cross_attend_text=cross_attend_text,
+                    layernorm_fix=layernorm_fix,
                 )[0]
                 noise_pred = noise_pred.float()
 

@@ -431,7 +431,24 @@ class CogView3PlusAdaLayerNormZeroTextImage(nn.Module):
         context = normed_context * (1 + c_scale_msa[:, None]) + c_shift_msa[:, None]
         return x, gate_msa, shift_mlp, scale_mlp, gate_mlp, context, c_gate_msa, c_shift_mlp, c_scale_mlp, c_gate_mlp
 
+class enable_lora:
+    """Context manager to enable/disable LoRA for specified modules."""
+    def __init__(self, modules, enable=True):
+        self.modules = modules
+        self.enable = enable
+        self.prev_states = {}
 
+    def __enter__(self):
+        for module in self.modules:
+            self.prev_states[module] = getattr(module, "lora_enabled", True)
+            setattr(module, "lora_enabled", self.enable)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for module in self.modules:
+            setattr(module, "lora_enabled", self.prev_states[module])
+        return False
+    
 class CogVideoXLayerNormZero(nn.Module):
     def __init__(
         self,
@@ -448,12 +465,19 @@ class CogVideoXLayerNormZero(nn.Module):
         self.norm = nn.LayerNorm(embedding_dim, eps=eps, elementwise_affine=elementwise_affine)
 
     def forward(
-        self, hidden_states: torch.Tensor, encoder_hidden_states: torch.Tensor, temb: torch.Tensor
+        self, hidden_states: torch.Tensor, encoder_hidden_states: torch.Tensor, cond_hidden_states: torch.Tensor, temb: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        shift, scale, gate, enc_shift, enc_scale, enc_gate = self.linear(self.silu(temb)).chunk(6, dim=1)
+        # shift, scale, gate, enc_shift, enc_scale, enc_gate = self.linear(self.silu(temb)).chunk(6, dim=1)
+        with enable_lora([self.linear], False):
+            shift, scale, gate, enc_shift, enc_scale, enc_gate = self.linear(self.silu(temb)).chunk(6, dim=1)
+        if cond_hidden_states is not None:
+            cond_shift, cond_scale, cond_gate, _, _, _ = self.linear(self.silu(temb)).chunk(6, dim=1)
         hidden_states = self.norm(hidden_states) * (1 + scale)[:, None, :] + shift[:, None, :]
         encoder_hidden_states = self.norm(encoder_hidden_states) * (1 + enc_scale)[:, None, :] + enc_shift[:, None, :]
-        return hidden_states, encoder_hidden_states, gate[:, None, :], enc_gate[:, None, :]
+        if cond_hidden_states is not None:
+            cond_hidden_states = self.norm(cond_hidden_states) * (1 + cond_scale)[:, None, :] + cond_shift[:, None, :]
+        
+        return hidden_states, encoder_hidden_states, cond_hidden_states, gate[:, None, :], enc_gate[:, None, :], cond_gate[:, None, :]
 
 
 if is_torch_version(">=", "2.1.0"):

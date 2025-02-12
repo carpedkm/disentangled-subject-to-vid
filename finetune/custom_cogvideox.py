@@ -27,6 +27,7 @@ class CustomCogVideoXTransformer3DModel(CogVideoXTransformer3DModel):
         pos_embed=False,
         cross_attend=False,
         cross_attend_text=False,
+        layernorm_fix=False,
     ):
         # # Use custom components if they are available
         # if hasattr(self, 'T5ProjectionLayer'):
@@ -59,6 +60,7 @@ class CustomCogVideoXTransformer3DModel(CogVideoXTransformer3DModel):
             pos_embed=pos_embed,
             cross_attend=cross_attend,
             cross_attend_text=cross_attend_text,
+            layernorm_fix=layernorm_fix,
             # eval=True,
             **kwargs,
         )
