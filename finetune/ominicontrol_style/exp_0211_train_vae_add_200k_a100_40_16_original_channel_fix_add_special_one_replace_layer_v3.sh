@@ -11,18 +11,8 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
-
-export NCCL_IB_DISABLE=0
-export NCCL_IB_PCI_RELAXED_ORDERING=1
-export NCCL_SOCKET_IFNAME=eth0
-export NCCL_NET_GDR_LEVEL=5
-export NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml
-export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
-
-RANDOM_PORT=$((49152 + RANDOM % 16384))
-
 # if you are not using wth 8 gus, change `accelerate_config_machine_single.yaml` num_processes as your gpu number
-accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi_gpu   \
+accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_gpu  --machine_rank ${NODE_RANK} \
   ../train_0208_layer_replacement.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
@@ -45,7 +35,7 @@ accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi
   --max_num_frames 1 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 8 \
+  --train_batch_size 32 \
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
@@ -67,7 +57,6 @@ accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
-  --resume_from_checkpoint checkpoint-950
   # --subset_cnt 20000 \
   # --inference \
   # --save_every_timestep
