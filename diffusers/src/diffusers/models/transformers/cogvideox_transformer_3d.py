@@ -123,6 +123,7 @@ class CogVideoXBlock(nn.Module):
         hidden_states: torch.Tensor,
         encoder_hidden_states: torch.Tensor,
         temb: torch.Tensor,
+        enc_hidden_states1: Optional[torch.Tensor] = None,
         image_rotary_emb: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
         embed_ref_img: bool = False,
         ref_img_seq_start: Optional[int] = None,
@@ -134,10 +135,16 @@ class CogVideoXBlock(nn.Module):
         text_seq_length = encoder_hidden_states.size(1)
 
         # norm & modulate
-        norm_hidden_states, norm_encoder_hidden_states, gate_msa, enc_gate_msa = self.norm1(
-            hidden_states, encoder_hidden_states, temb
-        )
 
+        norm_hidden_states, norm_encoder_hidden_states, norm_cond_hidden_states, gate_msa, enc_gate_msa, cond_gate_msa = self.norm1(
+            hidden_states=hidden_states, 
+            encoder_hidden_states=encoder_hidden_states, 
+            cond_hidden_states=enc_hidden_states1,
+            temb=temb,
+        )
+        
+        if norm_cond_hidden_states is not None:
+            norm_encoder_hidden_states = torch.cat([norm_encoder_hidden_states, norm_cond_hidden_states], dim=1)
         # attention
         attn_hidden_states, attn_encoder_hidden_states = self.attn1(
             hidden_states=norm_hidden_states,
@@ -150,23 +157,45 @@ class CogVideoXBlock(nn.Module):
             timestep=timestep,
             layer=layer,
         )
-
+        if enc_hidden_states1 is not None:
+            attn_encoder_hidden_states = attn_encoder_hidden_states[:,text_seq_length:]
+            attn_cond_hidden_states = attn_encoder_hidden_states[:,:text_seq_length]
+            
+        
         hidden_states = hidden_states + gate_msa * attn_hidden_states
         encoder_hidden_states = encoder_hidden_states + enc_gate_msa * attn_encoder_hidden_states
+        if enc_hidden_states1 is not None:
+            enc_hidden_states1 = enc_hidden_states1 + cond_gate_msa * attn_cond_hidden_states
+            
+
 
         # norm & modulate
-        norm_hidden_states, norm_encoder_hidden_states, gate_ff, enc_gate_ff = self.norm2(
-            hidden_states, encoder_hidden_states, temb
+        norm_hidden_states, norm_encoder_hidden_states, norm_cond_hidden_states, gate_ff, enc_gate_ff, cond_gate_ff = self.norm2(
+            hidden_states=hidden_states, 
+            encoder_hidden_states=encoder_hidden_states, 
+            cond_hidden_states=enc_hidden_states1,
+            temb=temb,
         )
 
-        # feed-forward
-        norm_hidden_states = torch.cat([norm_encoder_hidden_states, norm_hidden_states], dim=1)
+        if norm_cond_hidden_states is not None:
+            seq_len_temp = torch.cat([norm_encoder_hidden_states, norm_cond_hidden_states], dim=1).shape[1]
+            # feed-forward
+            norm_hidden_states = torch.cat([norm_encoder_hidden_states, norm_cond_hidden_states, norm_hidden_states], dim=1)
+        else:
+            norm_hidden_states = torch.cat([norm_encoder_hidden_states, norm_hidden_states], dim=1)
         ff_output = self.ff(norm_hidden_states)
 
-        hidden_states = hidden_states + gate_ff * ff_output[:, text_seq_length:]
-        encoder_hidden_states = encoder_hidden_states + enc_gate_ff * ff_output[:, :text_seq_length]
+        if norm_cond_hidden_states is not None:
+            hidden_states = hidden_states + gate_ff * ff_output[:, seq_len_temp:]
+            encoder_hidden_states = encoder_hidden_states + enc_gate_ff * ff_output[:, :text_seq_length]
+            enc_hidden_states1 = enc_hidden_states1 + cond_gate_ff * ff_output[:, text_seq_length:seq_len_temp]
+            
+            return hidden_states, encoder_hidden_states, enc_hidden_states1
+        else:
+            hidden_states = hidden_states + gate_ff * ff_output[:, text_seq_length:]
+            encoder_hidden_states = encoder_hidden_states + enc_gate_ff * ff_output[:, :text_seq_length]
 
-        return hidden_states, encoder_hidden_states
+            return hidden_states, encoder_hidden_states
 def get_sinusoidal_positional_embeddings(seq_length, embed_dim, device):
     position = torch.arange(seq_length, dtype=torch.bfloat16, device=device).unsqueeze(1)
     div_term = torch.exp(torch.arange(0, embed_dim, 2, device=device) * -(math.log(10000.0) / embed_dim))
@@ -520,6 +549,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         pos_embed: bool = False,
         cross_attend: bool = False,
         cross_attend_text: bool = False,
+        layernorm_fix: bool = False,
         # qk_replace: bool = False,
     ):
         qk_replace = self.qk_replace
@@ -640,7 +670,10 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 enc_hidden_states1 = enc_hidden_states1.flatten(1, 2)  # [batch, num_frames x height x width, channels]
                 if eval:
                     enc_hidden_states1 = torch.cat([enc_hidden_states1, enc_hidden_states1], dim=0)
-                encoder_hidden_states_temp = torch.cat([enc_hidden_states1, enc_hidden_states0], dim=1)
+                if layernorm_fix:
+                    pass # pass through separate layers
+                else:
+                    encoder_hidden_states_temp = torch.cat([enc_hidden_states1, enc_hidden_states0], dim=1)
             else:
                 pass
             if cross_attend or cross_attend_text:
@@ -709,8 +742,11 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 text_seq_length = encoder_hidden_states.shape[1]
             else:
                 text_seq_length = encoder_hidden_states.shape[1] # to handle the hidden_states after
-                text_seq_length_temp = encoder_hidden_states_temp.shape[1]
-                encoder_hidden_states = encoder_hidden_states_temp # replace the encoder_hidden_states with the concatenated tensor
+                if layernorm_fix:
+                    pass
+                else:
+                    text_seq_length_temp = encoder_hidden_states_temp.shape[1]
+                    encoder_hidden_states = encoder_hidden_states_temp # replace the encoder_hidden_states with the concatenated tensor
         else:
             # enc_hidden_states0 = F.pad(enc_hidden_states0, (0, 0, 0, 1350 - 226))
             text_seq_length = enc_hidden_states0.shape[1]
@@ -742,39 +778,68 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             # print('ENCODER HIDDEN_STATES shape', encoder_hidden_states.shape)
             
             if self.training and self.gradient_checkpointing:
-
                 def create_custom_forward(module):
                     def custom_forward(*inputs):
                         return module(*inputs)
 
                     return custom_forward
-
-                ckpt_kwargs: Dict[str, Any] = {"use_reentrant": False} if is_torch_version(">=", "1.11.0") else {}
-                hidden_states, encoder_hidden_states = torch.utils.checkpoint.checkpoint(
-                    create_custom_forward(block),
-                    hidden_states,
-                    encoder_hidden_states,
-                    emb,
-                    image_rotary_emb,
-                    embed_ref_img,
-                    ref_img_seq_start,
-                    ref_img_seq_end,
-                    position_delta,
-                    **ckpt_kwargs,
-                )
+                if layernorm_fix:
+                    ckpt_kwargs: Dict[str, Any] = {"use_reentrant": False} if is_torch_version(">=", "1.11.0") else {}
+                    hidden_states, enc_hidden_states0, enc_hidden_states1 = torch.utils.checkpoint.checkpoint(
+                        create_custom_forward(block),
+                        hidden_states,
+                        enc_hidden_states0,
+                        emb,
+                        enc_hidden_states1,
+                        image_rotary_emb,
+                        embed_ref_img,
+                        ref_img_seq_start,
+                        ref_img_seq_end,
+                        position_delta,
+                        **ckpt_kwargs,
+                    )
+                else:
+                    ckpt_kwargs: Dict[str, Any] = {"use_reentrant": False} if is_torch_version(">=", "1.11.0") else {}
+                    hidden_states, encoder_hidden_states = torch.utils.checkpoint.checkpoint(
+                        create_custom_forward(block),
+                        hidden_states,
+                        encoder_hidden_states,
+                        emb,
+                        image_rotary_emb,
+                        embed_ref_img,
+                        ref_img_seq_start,
+                        ref_img_seq_end,
+                        position_delta,
+                        **ckpt_kwargs,
+                    )
             else:
-                hidden_states, encoder_hidden_states = block(
-                    hidden_states=hidden_states,
-                    encoder_hidden_states=encoder_hidden_states,
-                    temb=emb,
-                    image_rotary_emb=image_rotary_emb,
-                    embed_ref_img=embed_ref_img,
-                    ref_img_seq_start=ref_img_seq_start,
-                    ref_img_seq_end=ref_img_seq_end,
-                    position_delta=position_delta,
-                    timestep=timestep,
-                    layer=i,
-                )
+                if layernorm_fix:
+                    hidden_states, enc_hidden_states0, enc_hidden_states1 = block(
+                        hidden_states=hidden_states,
+                        encoder_hidden_states=enc_hidden_states0,
+                        temb=emb,
+                        enc_hidden_states1=enc_hidden_states1,
+                        image_rotary_emb=image_rotary_emb,
+                        embed_ref_img=embed_ref_img,
+                        ref_img_seq_start=ref_img_seq_start,
+                        ref_img_seq_end=ref_img_seq_end,
+                        position_delta=position_delta,
+                        timestep=timestep,
+                        layer=i,
+                    )
+                else:
+                    hidden_states, encoder_hidden_states = block(
+                        hidden_states=hidden_states,
+                        encoder_hidden_states=encoder_hidden_states,
+                        temb=emb,
+                        image_rotary_emb=image_rotary_emb,
+                        embed_ref_img=embed_ref_img,
+                        ref_img_seq_start=ref_img_seq_start,
+                        ref_img_seq_end=ref_img_seq_end,
+                        position_delta=position_delta,
+                        timestep=timestep,
+                        layer=i,
+                    )
             if self.cross_attend or self.cross_attend_text:
                 if ca_idx % self.cross_attn_interval == 0 and ca_idx <= self.num_layers:
                     if self.cross_attend_text:
@@ -792,9 +857,16 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             hidden_states = self.norm_final(hidden_states)
         else:
             # CogVideoX-5B
-            hidden_states = torch.cat([encoder_hidden_states, hidden_states], dim=1)
-            hidden_states = self.norm_final(hidden_states)
-            hidden_states = hidden_states[:, text_seq_length:]
+            if layernorm_fix:
+                hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, hidden_states], dim=1)
+                hidden_states = self.norm_final(hidden_states)
+                text_seq_length = enc_hidden_states0.shape[1] + enc_hidden_states1.shape[1]
+                hidden_states = hidden_states[:, text_seq_length:]
+            else:
+                hidden_states = torch.cat([encoder_hidden_states, hidden_states], dim=1)
+                hidden_states = self.norm_final(hidden_states)
+                text_seq_length = encoder_hidden_states.shape[1]
+                hidden_states = hidden_states[:, text_seq_length:]
 
         # 4. Final block
         hidden_states = self.norm_out(hidden_states, temb=emb)
