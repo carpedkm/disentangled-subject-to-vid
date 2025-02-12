@@ -35,7 +35,7 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --max_num_frames 1 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 32 \
+  --train_batch_size 8 \
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
@@ -57,6 +57,7 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
+  --resume_from_checkpoint checkpoint-950
   # --subset_cnt 20000 \
   # --inference \
   # --save_every_timestep
