@@ -547,6 +547,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         cross_attend: bool = False,
         cross_attend_text: bool = False,
         layernorm_fix: bool = False,
+        text_only_norm_final: bool = False, 
         # qk_replace: bool = False,
     ):
         qk_replace = self.qk_replace
@@ -858,10 +859,16 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         else:
             # CogVideoX-5B
             if layernorm_fix:
-                hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, hidden_states], dim=1)
-                hidden_states = self.norm_final(hidden_states)
-                text_seq_length = enc_hidden_states0.shape[1] + enc_hidden_states1.shape[1]
-                hidden_states = hidden_states[:, text_seq_length:]
+                if text_only_norm_final is True:
+                    hidden_states = torch.cat([enc_hidden_states0, hidden_states], dim=1)
+                    hidden_states = self.norm_final(hidden_states)
+                    text_seq_length = enc_hidden_states0.shape[1]
+                    hidden_states = hidden_states[:, text_seq_length:]
+                else:
+                    hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, hidden_states], dim=1)
+                    hidden_states = self.norm_final(hidden_states)
+                    text_seq_length = enc_hidden_states0.shape[1] + enc_hidden_states1.shape[1]
+                    hidden_states = hidden_states[:, text_seq_length:]
             else:
                 hidden_states = torch.cat([encoder_hidden_states, hidden_states], dim=1)
                 hidden_states = self.norm_final(hidden_states)

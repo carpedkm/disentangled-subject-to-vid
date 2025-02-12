@@ -619,6 +619,11 @@ def get_args():
         action='store_true',
         help='Whether to use fixed layernorm or not'
     )
+    parser.add_argument(
+        '--text_only_norm_final',
+        action='store_true',
+        help='Whether to norm final feature or not'
+    )
     return parser.parse_args()
 
 
@@ -2566,6 +2571,7 @@ def main(args):
                     cross_attend=args.cross_attend,
                     cross_attend_text=args.cross_attend_text,
                     layernorm_fix=args.layernorm_fix,
+                    text_only_norm_final=args.text_only_norm_final
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
@@ -2692,6 +2698,7 @@ def main(args):
                         'output_dir' : args.output_dir,
                         'save_every_timestep' : args.save_every_timestep,
                         'layernorm_fix': args.layernorm_fix,
+                        'text_only_norm_final': args.text_only_norm_final
                     }
 
                     validation_outputs = log_validation(
