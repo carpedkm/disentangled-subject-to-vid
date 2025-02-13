@@ -370,6 +370,11 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
 
         # 7. Create rotary embeddings if required
+        ref_image_rotary_emb = (
+            self._prepare_rotary_positional_embeddings(height, width, ref_img_states.size(1), device)
+            if getattr(self.transformer.config, "use_rotary_positional_embeddings", False)
+            else None
+        )
         image_rotary_emb = (
             self._prepare_rotary_positional_embeddings(height, width, latents.size(1), device)
             if getattr(self.transformer.config, "use_rotary_positional_embeddings", False)
@@ -414,6 +419,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     ref_img_states=noisy_ref_img_states if input_noise_fix else ref_img_states,
                     timestep=timestep,
                     image_rotary_emb=image_rotary_emb,
+                    ref_image_rotary_emb=ref_image_rotary_emb,
                     attention_kwargs=attention_kwargs,
                     customization=self.customization,
                     return_dict=False,
