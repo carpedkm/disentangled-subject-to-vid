@@ -136,13 +136,21 @@ class CogVideoXBlock(nn.Module):
         text_seq_length = encoder_hidden_states.size(1)
 
         # norm & modulate
-
-        norm_hidden_states, norm_encoder_hidden_states, norm_cond_hidden_states, gate_msa, enc_gate_msa, cond_gate_msa = self.norm1(
-            hidden_states=hidden_states, 
-            encoder_hidden_states=encoder_hidden_states, 
-            cond_hidden_states=enc_hidden_states1,
-            temb=temb,
-        )
+        if enc_hidden_states1 is not None:
+            norm_hidden_states, norm_encoder_hidden_states, norm_cond_hidden_states, gate_msa, enc_gate_msa, cond_gate_msa = self.norm1(
+                hidden_states=hidden_states, 
+                encoder_hidden_states=encoder_hidden_states, 
+                cond_hidden_states=enc_hidden_states1,
+                temb=temb,
+            )
+        else:
+            norm_cond_hidden_states = None
+            norm_hidden_states, norm_encoder_hidden_states, _, gate_msa, enc_gate_msa, _ = self.norm1(
+                hidden_states=hidden_states, 
+                encoder_hidden_states=encoder_hidden_states, 
+                cond_hidden_states=None,
+                temb=temb,
+            )
         
         if norm_cond_hidden_states is not None:
             norm_encoder_hidden_states = torch.cat([norm_encoder_hidden_states, norm_cond_hidden_states], dim=1)
@@ -169,12 +177,22 @@ class CogVideoXBlock(nn.Module):
             enc_hidden_states1 = enc_hidden_states1 + cond_gate_msa * attn_cond_hidden_states
 
         # norm & modulate
-        norm_hidden_states, norm_encoder_hidden_states, norm_cond_hidden_states, gate_ff, enc_gate_ff, cond_gate_ff = self.norm2(
-            hidden_states=hidden_states, 
-            encoder_hidden_states=encoder_hidden_states, 
-            cond_hidden_states=enc_hidden_states1,
-            temb=temb,
-        )
+        if enc_hidden_states1 is not None:
+            norm_hidden_states, norm_encoder_hidden_states, norm_cond_hidden_states, gate_ff, enc_gate_ff, cond_gate_ff = self.norm2(
+                hidden_states=hidden_states, 
+                encoder_hidden_states=encoder_hidden_states, 
+                cond_hidden_states=enc_hidden_states1,
+                temb=temb,
+            )
+        else:
+            norm_cond_hidden_states = None
+            norm_hidden_states, norm_encoder_hidden_states, _, gate_ff, enc_gate_ff, _ = self.norm2(
+                hidden_states=hidden_states, 
+                encoder_hidden_states=encoder_hidden_states, 
+                cond_hidden_states=None,
+                temb=temb,
+            )
+            
 
         if norm_cond_hidden_states is not None:
             seq_len_temp = torch.cat([norm_encoder_hidden_states, norm_cond_hidden_states], dim=1).shape[1]
