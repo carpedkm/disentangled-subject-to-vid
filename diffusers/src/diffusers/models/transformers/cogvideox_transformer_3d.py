@@ -131,6 +131,7 @@ class CogVideoXBlock(nn.Module):
         position_delta: Optional[torch.Tensor] = None,
         timestep: Optional[int] = None,
         layer : Optional[int] = None,
+        ref_image_rotary_emb : Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
     ) -> torch.Tensor:
         text_seq_length = encoder_hidden_states.size(1)
 
@@ -156,6 +157,7 @@ class CogVideoXBlock(nn.Module):
             position_delta=position_delta,
             timestep=timestep,
             layer=layer,
+            ref_image_rotary_emb=ref_image_rotary_emb,
         )
         if enc_hidden_states1 is not None:
             attn_cond_hidden_states = attn_encoder_hidden_states[:,text_seq_length:]
@@ -193,6 +195,7 @@ class CogVideoXBlock(nn.Module):
             encoder_hidden_states = encoder_hidden_states + enc_gate_ff * ff_output[:, :text_seq_length]
 
             return hidden_states, encoder_hidden_states
+        
 def get_sinusoidal_positional_embeddings(seq_length, embed_dim, device):
     position = torch.arange(seq_length, dtype=torch.bfloat16, device=device).unsqueeze(1)
     div_term = torch.exp(torch.arange(0, embed_dim, 2, device=device) * -(math.log(10000.0) / embed_dim))
@@ -533,6 +536,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         timestep: Union[int, float, torch.LongTensor],
         timestep_cond: Optional[torch.Tensor] = None,
         image_rotary_emb: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
+        ref_image_rotary_emb: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
         attention_kwargs: Optional[Dict[str, Any]] = None,
         return_dict: bool = True,
         customization: bool = False,
@@ -797,6 +801,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                         ref_img_seq_start,
                         ref_img_seq_end,
                         position_delta,
+                        ref_image_rotary_emb,
                         **ckpt_kwargs,
                     )
                 else:
@@ -811,6 +816,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                         ref_img_seq_start,
                         ref_img_seq_end,
                         position_delta,
+                        ref_image_rotary_emb,
                         **ckpt_kwargs,
                     )
             else:
@@ -826,6 +832,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                         ref_img_seq_end=ref_img_seq_end,
                         position_delta=position_delta,
                         timestep=timestep,
+                        ref_image_rotary_emb=ref_image_rotary_emb,
                         layer=i,
                     )
                 else:
@@ -834,6 +841,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                         encoder_hidden_states=encoder_hidden_states,
                         temb=emb,
                         image_rotary_emb=image_rotary_emb,
+                        ref_image_rotary_emb=ref_image_rotary_emb,
                         embed_ref_img=embed_ref_img,
                         ref_img_seq_start=ref_img_seq_start,
                         ref_img_seq_end=ref_img_seq_end,
