@@ -858,7 +858,7 @@ class ImageDataset(Dataset):
         self.dataset_name = dataset_name
         
         self.load_to_ram = load_to_ram
-        print('>> Accessing additional data Done')
+        # print('>> Accessing additional data Done')
         print('Get list for image IDs')
         left_ids = os.listdir(self.instance_left_pixel_root)
         left_ids = [int(id.split('_')[1].split('.')[0]) for id in tqdm(left_ids)]
