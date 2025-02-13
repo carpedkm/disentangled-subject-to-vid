@@ -478,9 +478,9 @@ class CogVideoXLayerNormZero(nn.Module):
         encoder_hidden_states = self.norm(encoder_hidden_states) * (1 + enc_scale)[:, None, :] + enc_shift[:, None, :]
         if cond_hidden_states is not None:
             cond_hidden_states = self.norm(cond_hidden_states) * (1 + cond_scale)[:, None, :] + cond_shift[:, None, :]
-        
-        return hidden_states, encoder_hidden_states, cond_hidden_states, gate[:, None, :], enc_gate[:, None, :], cond_gate[:, None, :]
 
+        return hidden_states, encoder_hidden_states, cond_hidden_states, gate[:, None, :], enc_gate[:, None, :], cond_gate[:, None, :]
+       
 
 if is_torch_version(">=", "2.1.0"):
     LayerNorm = nn.LayerNorm
