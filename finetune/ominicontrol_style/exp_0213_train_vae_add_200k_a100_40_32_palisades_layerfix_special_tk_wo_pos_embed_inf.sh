@@ -5,10 +5,10 @@ export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
 # export OUTPUT_PATH="/mnt/carpedkm_data/finetune_result/241223/compare_controlnet_5b_w_latent_4000_xpairs_wobg_single_frame"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250212/special_tk_layernorm_fix_40_32"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250213/special_tk_layernorm_fix_40_32_wo_pos_embed"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=0
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
@@ -56,13 +56,12 @@ accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi
   --use_latent \
   --vae_add \
   --add_special \
-  --pos_embed \
   --layernorm_fix \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
   --inference \
-  --resume_from_checkpoint checkpoint-14700
+  --resume_from_checkpoint checkpoint-2800
   # --resume_from_checkpoint /mnt/carpedkm_data/result250120/720x480embedding_refined_oministyle_vaeadd_original_channel_fix/checkpoint-500
   # --subset_cnt 200000 \
   # --inference \

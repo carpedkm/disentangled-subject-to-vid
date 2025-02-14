@@ -801,40 +801,36 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             # print('ENCODER HIDDEN_STATES shape', encoder_hidden_states.shape)
             
             if self.training and self.gradient_checkpointing:
+                # def create_custom_forward(module):
+                #     def custom_forward(*inputs):
+                #         return module(*inputs)
+                # return custom_forward
                 def create_custom_forward(module):
-                    def custom_forward(*inputs):
-                        return module(*inputs)
-
+                    def custom_forward(hidden_states, encoder_hidden_states, temb, enc_hidden_states1=None,
+                                    image_rotary_emb=None, embed_ref_img=False, ref_img_seq_start=0,
+                                    ref_img_seq_end=0, position_delta=0, ref_image_rotary_emb=None):
+                        return module(hidden_states=hidden_states, encoder_hidden_states=encoder_hidden_states, temb=temb, 
+                                      enc_hidden_states1=enc_hidden_states1, image_rotary_emb=image_rotary_emb, embed_ref_img=embed_ref_img,
+                                      ref_img_seq_start=ref_img_seq_start, ref_img_seq_end=ref_img_seq_end, position_delta=position_delta,
+                                      ref_image_rotary_emb=ref_image_rotary_emb)
                     return custom_forward
+
                 if layernorm_fix:
                     ckpt_kwargs: Dict[str, Any] = {"use_reentrant": False} if is_torch_version(">=", "1.11.0") else {}
                     hidden_states, enc_hidden_states0, enc_hidden_states1 = torch.utils.checkpoint.checkpoint(
                         create_custom_forward(block),
-                        hidden_states,
-                        enc_hidden_states0,
-                        emb,
-                        enc_hidden_states1,
-                        image_rotary_emb,
-                        embed_ref_img,
-                        ref_img_seq_start,
-                        ref_img_seq_end,
-                        position_delta,
-                        ref_image_rotary_emb,
+                        hidden_states, enc_hidden_states0, emb, enc_hidden_states1,  
+                        image_rotary_emb, embed_ref_img, ref_img_seq_start,
+                        ref_img_seq_end, position_delta, ref_image_rotary_emb,
                         **ckpt_kwargs,
                     )
                 else:
                     ckpt_kwargs: Dict[str, Any] = {"use_reentrant": False} if is_torch_version(">=", "1.11.0") else {}
                     hidden_states, encoder_hidden_states = torch.utils.checkpoint.checkpoint(
                         create_custom_forward(block),
-                        hidden_states,
-                        encoder_hidden_states,
-                        emb,
-                        image_rotary_emb,
-                        embed_ref_img,
-                        ref_img_seq_start,
-                        ref_img_seq_end,
-                        position_delta,
-                        ref_image_rotary_emb,
+                        hidden_states, encoder_hidden_states, emb,  
+                        image_rotary_emb, embed_ref_img, ref_img_seq_start,
+                        ref_img_seq_end, position_delta, ref_image_rotary_emb,
                         **ckpt_kwargs,
                     )
             else:

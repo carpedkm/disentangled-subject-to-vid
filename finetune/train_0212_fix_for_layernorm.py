@@ -624,6 +624,11 @@ def get_args():
         action='store_true',
         help='Whether to norm final feature or not'
     )
+    parser.add_argument(
+        '--pos_embed_inf_match',
+        action='store_true',
+        help='Whether to use positional embedding for inference match or not'
+    )
     return parser.parse_args()
 
 
@@ -840,7 +845,7 @@ class ImageDataset(Dataset):
                 # id_  = file.split('.')[0]
                 tmp_desc = meta_seen['description_0']
                 self.val_instance_prompt_dict[id_] = tmp_desc
-        if add_special and seen_validation:
+        if add_special:
             self.val_instance_prompt_dict = {k: self.prefix + v for k, v in self.val_instance_prompt_dict.items()}
         
         self.instance_prompts = []
@@ -1300,7 +1305,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 1, #args.max_num_frames,
+                'num_frames': 9, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
@@ -1331,7 +1336,8 @@ def log_validation(
                     .replace('"', "_")
                     .replace("/", "_")
                 )
-                filename = os.path.join(args.output_dir, f"{epoch}_{phase_name}_video_{i}_{prompt}.mp4")
+                max_num_frames = current_pipeline_args['num_frames']
+                filename = os.path.join(args.output_dir, f"{epoch}_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
                 export_to_video(video, filename, fps=args.fps)
                 video_filenames.append(filename)
 
@@ -2516,22 +2522,39 @@ def main(args):
                     0, scheduler.config.num_train_timesteps, (batch_size,), device=model_input.device
                 )
                 timesteps = timesteps.long()
-
-                # Prepare rotary embeds
-                image_rotary_emb = (
-                    prepare_rotary_positional_embeddings(
-                        height=args.height,
-                        width=args.width,
-                        num_frames=num_frames,
-                        vae_scale_factor_spatial=vae_scale_factor_spatial,
-                        patch_size=model_config.patch_size,
-                        attention_head_dim=model_config.attention_head_dim,
-                        device=accelerator.device,
+                
+                if args.pos_embed_inf_match:
+                    # Prepare rotary embeds
+                    image_rotary_emb = (
+                        prepare_rotary_positional_embeddings(
+                            height=args.height,
+                            width=args.width,
+                            num_frames=49,
+                            vae_scale_factor_spatial=vae_scale_factor_spatial,
+                            patch_size=model_config.patch_size,
+                            attention_head_dim=model_config.attention_head_dim,
+                            device=accelerator.device,
+                        )
+                        if model_config.use_rotary_positional_embeddings
+                        else None
                     )
-                    if model_config.use_rotary_positional_embeddings
-                    else None
-                )
-
+                    # Get the first one only for training
+                    image_rotary_emb = (image_rotary_emb[0][:1350,...], image_rotary_emb[1][:1350,...])
+                else:
+                    # Prepare rotary embeds
+                    image_rotary_emb = (
+                        prepare_rotary_positional_embeddings(
+                            height=args.height,
+                            width=args.width,
+                            num_frames=args.max_num_frames,
+                            vae_scale_factor_spatial=vae_scale_factor_spatial,
+                            patch_size=model_config.patch_size,
+                            attention_head_dim=model_config.attention_head_dim,
+                            device=accelerator.device,
+                        )
+                        if model_config.use_rotary_positional_embeddings
+                        else None
+                    )
                 # Add noise to the model input according to the noise magnitude at each timestep
                 # (this is the forward diffusion process)
                 
@@ -2559,6 +2582,7 @@ def main(args):
                     clip_prompt_embeds=clip_prompt_embeds,
                     timestep=timesteps,
                     image_rotary_emb=image_rotary_emb,
+                    ref_image_rotary_emb=image_rotary_emb,
                     return_dict=False,
                     customization=True,
                     t5_first=t5_first,

@@ -2076,11 +2076,11 @@ class CogVideoXAttnProcessor2_0:
             # else: # if it is True
             if embed_ref_img is True:
                 query[:, :, ref_img_seq_start:ref_img_seq_end] = apply_rotary_emb(
-                    query[:, :, ref_img_seq_start:ref_img_seq_end], image_rotary_emb
+                    query[:, :, ref_img_seq_start:ref_img_seq_end], ref_image_rotary_emb
                 ) + position_delta
                 if not attn.is_cross_attention:
                     key[:, :, ref_img_seq_start:ref_img_seq_end] = apply_rotary_emb(
-                        key[:, :, ref_img_seq_start:ref_img_seq_end], image_rotary_emb
+                        key[:, :, ref_img_seq_start:ref_img_seq_end], ref_image_rotary_emb
                     ) + position_delta
         # ----- extract attention map -----
         # query_to_save = copy.deepcopy(query).detach().cpu().numpy()
