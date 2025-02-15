@@ -1315,7 +1315,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 9, #args.max_num_frames,
+                'num_frames': 13, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
@@ -2508,7 +2508,7 @@ def main(args):
                             prepare_rotary_positional_embeddings(
                                 height=args.height,
                                 width=args.width,
-                                num_frames=13,
+                                num_frames=14,
                                 vae_scale_factor_spatial=vae_scale_factor_spatial,
                                 patch_size=model_config.patch_size,
                                 attention_head_dim=model_config.attention_head_dim,
@@ -2519,7 +2519,7 @@ def main(args):
                         )
                         if args.random_pos:
                             # Randomly select a location for the positional embeddings between 0 and 49 (inclusive)
-                            random_loc = random.randint(0, 11)
+                            random_loc = random.randint(0, 12)
                             ref_image_rotary_emb = (image_rotary_emb_src[0][1350 * random_loc:1350 * (random_loc + 1),...], image_rotary_emb_src[1][1350 * random_loc:1350 * (random_loc + 1),...])
                             image_rotary_emb = (image_rotary_emb_src[0][1350 * (random_loc + 1):1350 * (random_loc + 2),...], image_rotary_emb_src[1][1350 * (random_loc + 1):1350 * (random_loc + 2),...])
                         else:
@@ -2531,7 +2531,7 @@ def main(args):
                             prepare_rotary_positional_embeddings(
                                 height=args.height,
                                 width=args.width,
-                                num_frames=49,
+                                num_frames=13,
                                 vae_scale_factor_spatial=vae_scale_factor_spatial,
                                 patch_size=model_config.patch_size,
                                 attention_head_dim=model_config.attention_head_dim,
