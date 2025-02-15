@@ -21,6 +21,8 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
     # Load the VAE model
     vae = AutoencoderKLCogVideoX.from_pretrained(vae_model_path, subfolder="vae")
     vae.to(device)
+    vae.enable_tiling()
+    vae.enable_slicing()
     vae.eval()
 
     while True:
@@ -40,7 +42,7 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             # Extract frames
             # frames = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
             frames = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
-
+            print(frames.shape)
             # Ensure exact number of frames
             if frames.shape[0] < max_frames:
                 pad_frames = max_frames - frames.shape[0]
@@ -64,8 +66,9 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
                 latents = latent_dist.sample() * vae.config.scaling_factor
 
             # Save latents
+            print(latents.shape)
             output_path = os.path.join(output_dir, Path(video_path).stem + "_vae_latents.npy")
-            np.save(output_path, latents.cpu().numpy())
+            # np.save(output_path, latents.cpu().numpy())
 
         except Exception as e:
             print(f"Error processing video {video_path}: {e}")

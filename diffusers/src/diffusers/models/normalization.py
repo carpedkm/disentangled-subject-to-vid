@@ -474,11 +474,13 @@ class CogVideoXLayerNormZero(nn.Module):
         if cond_hidden_states is not None:
             # print('************ LORA ENABLED ************')
             cond_shift, cond_scale, cond_gate, _, _, _ = self.linear(self.silu(temb)).chunk(6, dim=1)
+        else:
+            cond_shift, cond_scale, cond_gate = torch.zeros_like(shift), torch.zeros_like(scale), torch.zeros_like(gate)
         hidden_states = self.norm(hidden_states) * (1 + scale)[:, None, :] + shift[:, None, :]
         encoder_hidden_states = self.norm(encoder_hidden_states) * (1 + enc_scale)[:, None, :] + enc_shift[:, None, :]
         if cond_hidden_states is not None:
             cond_hidden_states = self.norm(cond_hidden_states) * (1 + cond_scale)[:, None, :] + cond_shift[:, None, :]
-
+        
         return hidden_states, encoder_hidden_states, cond_hidden_states, gate[:, None, :], enc_gate[:, None, :], cond_gate[:, None, :]
        
 

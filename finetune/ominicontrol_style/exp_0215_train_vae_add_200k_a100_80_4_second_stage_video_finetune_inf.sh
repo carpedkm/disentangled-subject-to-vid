@@ -10,7 +10,7 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
-accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --multi_gpu \
+accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi_gpu \
   ../train_0214_video_posttrain.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
@@ -58,4 +58,5 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
-  --resume_from_checkpoint /mnt/carpedkm_data/result250214/special_tk_layernorm_fix_pos_embed_fix_40_32/checkpoint-6000
+  --resume_from_checkpoint /mnt/carpedkm_data/result250214/special_tk_layernorm_fix_pos_embed_fix_40_32/checkpoint-6000 \
+  --inference 
