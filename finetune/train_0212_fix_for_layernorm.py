@@ -634,6 +634,11 @@ def get_args():
         action='store_true',
         help='Whether to use non shared positional embedding or not'
     )
+    parser.add_argument(
+        '--random_pos',
+        action='store_true',
+        help='Whether to use random positional embedding or not'
+    )
     return parser.parse_args()
 
 
@@ -2273,40 +2278,6 @@ def main(args):
         # quick_poc_subset=args.quick_poc_subset,
     )
 
-    # def encode_video(video):
-    #     video = video.to(accelerator.device, dtype=vae.dtype).unsqueeze(0)
-    #     video = video.permute(0, 2, 1, 3, 4)  # [B, C, F, H, W]
-    #     latent_dist = vae.encode(video).latent_dist
-    #     return latent_dist
-
-    # train_dataset.instance_videos = [encode_video(video) for video in train_dataset.instance_videos]
-
-    # def collate_fn(examples, vae, accelerator):
-    #     videos = [example["instance_video"] for example in examples]
-    #     prompts = [example["instance_prompt"] for example in examples]
-    #     if 'instance_ref_image' in examples[0]:
-    #         ref_images = [example["instance_ref_image"] for example in examples]
-    #     else:
-    #         ref_images = None
-
-    #     # Stack the videos
-    #     videos = torch.stack(videos)
-    #     videos = videos.to(memory_format=torch.contiguous_format).float()
-
-    #     # Encode videos using VAE
-    #     videos = videos.to(accelerator.device, dtype=vae.dtype)
-    #     videos = videos.permute(0, 2, 1, 3, 4)  # [B, C, F, H, W]
-    #     with torch.no_grad():
-    #         latent_dist = vae.encode(videos).latent_dist
-    #     videos = latent_dist.sample() * vae.config.scaling_factor
-
-    #     batch = {
-    #         "videos": videos,
-    #         "prompts": prompts,
-    #     }
-    #     if ref_images is not None:
-    #         batch["ref_images"] = ref_images
-    #     return batch
     def collate_fn(examples):
         videos = [example["instance_video"] for example in examples]
         prompts = [example["instance_prompt"] for example in examples]
@@ -2540,7 +2511,7 @@ def main(args):
                                 attention_head_dim=model_config.attention_head_dim,
                                 device=accelerator.device,
                             )
-                            if model.config.use_rotary_positional_embeddings
+                            if model_config.use_rotary_positional_embeddings
                             else None
                         )
                         image_rotary_emb = (image_rotary_emb_src[0][1350:2700,...], image_rotary_emb_src[1][1350:2700,...])
