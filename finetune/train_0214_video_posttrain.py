@@ -630,9 +630,9 @@ def get_args():
         help='Whether to use positional embedding for inference match or not'
     )
     parser.add_argument(
-        '--non_shared_pos_embed',
+        '--second_stage',
         action='store_true',
-        help='Whether to use non shared positional embedding or not'
+        help='Whether to use second stage video training or not'
     )
     return parser.parse_args()
 
@@ -763,7 +763,97 @@ class QFormerAligner(nn.Module):
         qformer_features = self.fc(qformer_features)
         # get it back to bfloat16
         return qformer_features.bfloat16()
+    
+class VideoDataset(Dataset):
+    def __init__(
+        self,
+        video_instance_root: Optional[str] = None,
+        height: int = 480,
+        width: int = 720,
+        fps: int = 8,
+        max_num_frames: int = 49,
+        id_token: Optional[str] = None,
+    ) -> None:
+        super().__init__()
+
+        self.video_instance_root = Path(video_instance_root) if video_instance_root is not None else None
+        self.height = height
+        self.width = width
+        self.fps = fps
+        self.max_num_frames = max_num_frames
+        self.id_token = id_token or ""
+
+        self.instance_video_paths = list(self.video_instance_root.glob("*.mp4"))
         
+
+        self.num_instance_videos = len(self.video_instance_root)
+        if self.num_instance_videos != len(self.instance_prompts):
+            raise ValueError(
+                f"Expected length of instance prompts and videos to be the same but found {len(self.instance_prompts)=} and {len(self.instance_video_paths)=}. Please ensure that the number of caption prompts and videos match in your dataset."
+            )
+
+        self.instance_videos = self._preprocess_data()
+
+    def __len__(self):
+        return self.num_instance_videos
+
+    def __getitem__(self, index):
+        return {
+            "instance_prompt": self.id_token + self.instance_prompts[index],
+            "instance_video": self.instance_videos[index],
+        }
+
+
+    def _preprocess_data(self):
+        try:
+            import decord
+        except ImportError:
+            raise ImportError(
+                "The `decord` package is required for loading the video dataset. Install with `pip install decord`"
+            )
+
+        decord.bridge.set_bridge("torch")
+
+        videos = []
+        train_transforms = transforms.Compose(
+            [
+                transforms.Lambda(lambda x: x / 255.0 * 2.0 - 1.0),
+            ]
+        )
+
+        for filename in self.instance_video_paths:
+            video_reader = decord.VideoReader(uri=filename.as_posix(), width=self.width, height=self.height)
+            video_num_frames = len(video_reader)
+
+            start_frame = min(self.skip_frames_start, video_num_frames)
+            end_frame = max(0, video_num_frames - self.skip_frames_end)
+            if end_frame <= start_frame:
+                frames = video_reader.get_batch([start_frame])
+            elif end_frame - start_frame <= self.max_num_frames:
+                frames = video_reader.get_batch(list(range(start_frame, end_frame)))
+            else:
+                indices = list(range(start_frame, end_frame, (end_frame - start_frame) // self.max_num_frames))
+                frames = video_reader.get_batch(indices)
+
+            # Ensure that we don't go over the limit
+            frames = frames[: self.max_num_frames]
+            selected_num_frames = frames.shape[0]
+
+            # Choose first (4k + 1) frames as this is how many is required by the VAE
+            remainder = (3 + (selected_num_frames % 4)) % 4
+            if remainder != 0:
+                frames = frames[:-remainder]
+            selected_num_frames = frames.shape[0]
+
+            assert (selected_num_frames - 1) % 4 == 0
+
+            # Training transforms
+            frames = frames.float()
+            frames = torch.stack([train_transforms(frame) for frame in frames], dim=0)
+            videos.append(frames.permute(0, 3, 1, 2).contiguous())  # [F, C, H, W]
+
+        return videos
+    
 class ImageDataset(Dataset):
     def __init__(
         self,
@@ -1310,7 +1400,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 49, #args.max_num_frames,
+                'num_frames': 9, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
@@ -1752,6 +1842,7 @@ def main(args):
         cross_attn_num_heads=args.cross_attn_num_head,
         qk_replace=args.qk_replace,
         qformer=args.qformer,
+        second_stage=args.second_stage,
         # cross_attn_kv_dim=args.cross_attn_kv_dim,
     )
     print("Done - CogVideoX Transformer model loaded")
@@ -2237,108 +2328,64 @@ def main(args):
 
     print("Dataset and DataLoader")
     # Dataset and DataLoader
-    train_dataset = ImageDataset(
-        instance_data_root=args.instance_data_root,
-        dataset_name=args.dataset_name,
-        anno_path=args.anno_root,
-        # dataset_name=args.dataset_name,
-        # dataset_config_name=args.dataset_config_name,
-        # caption_column=args.caption_column,
-        # video_column=args.video_column,
-        # height=args.height,
-        # width=args.width,
-        # fps=args.fps,
-        # max_num_frames=args.max_num_frames,
-        # skip_frames_start=args.skip_frames_start,
-        # skip_frames_end=args.skip_frames_end,
-        cache_dir=args.cache_dir,
-        id_token=args.id_token,
-        subset_cnt=args.subset_cnt,
-        # cross_pairs=args.cross_pairs,
-        # sub_driven=args.sub_driven,
-        # wo_bg=args.wo_bg,
-        use_latent=args.use_latent,
-        vae_add=args.vae_add,
-        cross_attend=args.cross_attend,
-        cross_attend_text=args.cross_attend_text,
-        seen_validation=args.seen_validation,
-        add_special=args.add_special,
-        add_multiple_special=args.add_multiple_special,
-        add_specific_loc=args.add_specific_loc,
-        wo_shuffle=args.wo_shuffle,
-        add_new_split=args.add_new_split,
-        qk_replace=args.qk_replace,
-        qformer=args.qformer,
-        # latent_data_root=args.latent_data_root,
-        # quick_poc_subset=args.quick_poc_subset,
-    )
-
-    # def encode_video(video):
-    #     video = video.to(accelerator.device, dtype=vae.dtype).unsqueeze(0)
-    #     video = video.permute(0, 2, 1, 3, 4)  # [B, C, F, H, W]
-    #     latent_dist = vae.encode(video).latent_dist
-    #     return latent_dist
-
-    # train_dataset.instance_videos = [encode_video(video) for video in train_dataset.instance_videos]
-
-    # def collate_fn(examples, vae, accelerator):
-    #     videos = [example["instance_video"] for example in examples]
-    #     prompts = [example["instance_prompt"] for example in examples]
-    #     if 'instance_ref_image' in examples[0]:
-    #         ref_images = [example["instance_ref_image"] for example in examples]
-    #     else:
-    #         ref_images = None
-
-    #     # Stack the videos
-    #     videos = torch.stack(videos)
-    #     videos = videos.to(memory_format=torch.contiguous_format).float()
-
-    #     # Encode videos using VAE
-    #     videos = videos.to(accelerator.device, dtype=vae.dtype)
-    #     videos = videos.permute(0, 2, 1, 3, 4)  # [B, C, F, H, W]
-    #     with torch.no_grad():
-    #         latent_dist = vae.encode(videos).latent_dist
-    #     videos = latent_dist.sample() * vae.config.scaling_factor
-
-    #     batch = {
-    #         "videos": videos,
-    #         "prompts": prompts,
-    #     }
-    #     if ref_images is not None:
-    #         batch["ref_images"] = ref_images
-    #     return batch
-    def collate_fn(examples):
-        videos = [example["instance_video"] for example in examples]
-        prompts = [example["instance_prompt"] for example in examples]
-        if 'instance_ref_image' in examples[0]:
-            ref_images = [example["instance_ref_image"] for example in examples]
-        else:
-            ref_images = None
-
-        # Stack the videos
-        if args.use_latent:
-            videos = torch.cat(videos, dim=0)
-        else:
-            videos = torch.stack(videos)
-        videos = videos.to(memory_format=torch.contiguous_format).float()
-
-        batch = {
-            "videos": videos,
-            "prompts": prompts,
-        }
-        if ref_images is not None:
-            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
-                batch["ref_images"] = ref_images
+    if args.second_stage is True:
+        train_dataset = VideoDataset(
+            
+        )
+        def collate_fn(examples):
+            
+            return batch
+    else:
+        train_dataset = ImageDataset(
+            instance_data_root=args.instance_data_root,
+            dataset_name=args.dataset_name,
+            anno_path=args.anno_root,
+            cache_dir=args.cache_dir,
+            id_token=args.id_token,
+            subset_cnt=args.subset_cnt,
+            use_latent=args.use_latent,
+            vae_add=args.vae_add,
+            cross_attend=args.cross_attend,
+            cross_attend_text=args.cross_attend_text,
+            seen_validation=args.seen_validation,
+            add_special=args.add_special,
+            add_multiple_special=args.add_multiple_special,
+            add_specific_loc=args.add_specific_loc,
+            wo_shuffle=args.wo_shuffle,
+            add_new_split=args.add_new_split,
+            qk_replace=args.qk_replace,
+            qformer=args.qformer,
+        )
+        def collate_fn(examples):
+            videos = [example["instance_video"] for example in examples]
+            prompts = [example["instance_prompt"] for example in examples]
+            if 'instance_ref_image' in examples[0]:
+                ref_images = [example["instance_ref_image"] for example in examples]
             else:
-                batch["ref_images"] = torch.cat(ref_images, dim=0).to(memory_format=torch.contiguous_format).float()
-        return batch
+                ref_images = None
+
+            # Stack the videos
+            if args.use_latent:
+                videos = torch.cat(videos, dim=0)
+            else:
+                videos = torch.stack(videos)
+            videos = videos.to(memory_format=torch.contiguous_format).float()
+
+            batch = {
+                "videos": videos,
+                "prompts": prompts,
+            }
+            if ref_images is not None:
+                if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
+                    batch["ref_images"] = ref_images
+                else:
+                    batch["ref_images"] = torch.cat(ref_images, dim=0).to(memory_format=torch.contiguous_format).float()
+            return batch
+   
     def worker_init_fn(worker_id):
         seed = torch.initial_seed() % 2**32
         np.random.seed(seed)
         random.seed(seed)
-    
-    # collate_fn_with_args = partial(collate_fn, vae=vae, accelerator=accelerator)
-    
     train_dataloader = DataLoader(
         train_dataset,
         batch_size=args.train_batch_size,
@@ -2529,39 +2576,22 @@ def main(args):
                 timesteps = timesteps.long()
                 
                 if args.pos_embed_inf_match:
-                    if args.non_shared_pos_embed:
-                        image_rotary_emb_src = (
-                            prepare_rotary_positional_embeddings(
-                                height=args.height,
-                                width=args.width,
-                                num_frames=50,
-                                vae_scale_factor_spatial=vae_scale_factor_spatial,
-                                patch_size=model_config.patch_size,
-                                attention_head_dim=model_config.attention_head_dim,
-                                device=accelerator.device,
-                            )
-                            if model.config.use_rotary_positional_embeddings
-                            else None
+                    # Prepare rotary embeds
+                    image_rotary_emb = (
+                        prepare_rotary_positional_embeddings(
+                            height=args.height,
+                            width=args.width,
+                            num_frames=49,
+                            vae_scale_factor_spatial=vae_scale_factor_spatial,
+                            patch_size=model_config.patch_size,
+                            attention_head_dim=model_config.attention_head_dim,
+                            device=accelerator.device,
                         )
-                        image_rotary_emb = (image_rotary_emb_src[0][1350:2700,...], image_rotary_emb_src[1][1350:2700,...])
-                        ref_image_rotary_emb = (image_rotary_emb_src[0][:1350,...], image_rotary_emb_src[1][:1350,...])
-                    else:
-                        # Prepare rotary embeds
-                        image_rotary_emb = (
-                            prepare_rotary_positional_embeddings(
-                                height=args.height,
-                                width=args.width,
-                                num_frames=49,
-                                vae_scale_factor_spatial=vae_scale_factor_spatial,
-                                patch_size=model_config.patch_size,
-                                attention_head_dim=model_config.attention_head_dim,
-                                device=accelerator.device,
-                            )
-                            if model_config.use_rotary_positional_embeddings
-                            else None
-                        )
-                        # Get the first one only for training
-                        image_rotary_emb = (image_rotary_emb[0][:1350,...], image_rotary_emb[1][:1350,...])
+                        if model_config.use_rotary_positional_embeddings
+                        else None
+                    )
+                    # Get the first one only for training
+                    image_rotary_emb = (image_rotary_emb[0][:1350,...], image_rotary_emb[1][:1350,...])
                 else:
                     # Prepare rotary embeds
                     image_rotary_emb = (
@@ -2604,7 +2634,7 @@ def main(args):
                     clip_prompt_embeds=clip_prompt_embeds,
                     timestep=timesteps,
                     image_rotary_emb=image_rotary_emb,
-                    ref_image_rotary_emb=image_rotary_emb if not args.non_shared_pos_embed else ref_image_rotary_emb,
+                    ref_image_rotary_emb=image_rotary_emb if args.second_stage else None,
                     return_dict=False,
                     customization=True,
                     t5_first=t5_first,
@@ -2744,8 +2774,7 @@ def main(args):
                         'output_dir' : args.output_dir,
                         'save_every_timestep' : args.save_every_timestep,
                         'layernorm_fix': args.layernorm_fix,
-                        'text_only_norm_final': args.text_only_norm_final,
-                        "non_shared_pos_embed": args.non_shared_pos_embed,
+                        'text_only_norm_final': args.text_only_norm_final
                     }
 
                     validation_outputs = log_validation(

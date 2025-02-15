@@ -289,6 +289,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         save_every_timestep : bool = False, 
         layernorm_fix: bool = False,
         text_only_norm_final: bool = False,
+        non_shared_pos_embed: bool = False,
     ) -> Union[CogVideoXPipelineOutput, Tuple]:
         if num_frames > 49:
             raise ValueError(
@@ -375,15 +376,30 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         #     if getattr(self.transformer.config, "use_rotary_positional_embeddings", False)
         #     else None
         # )
-        image_rotary_emb = (
-            self._prepare_rotary_positional_embeddings(height, width, latents.size(1), device)
-            if getattr(self.transformer.config, "use_rotary_positional_embeddings", False)
-            else None
-        )
-        ref_image_rotary_emb = (
-            image_rotary_emb[0][:1350,...],
-            image_rotary_emb[1][:1350,...]
-        )
+        if non_shared_pos_embed is True:
+            image_rotary_emb = (
+                self._prepare_rotary_positional_embeddings(height, width, 50, device)
+                if getattr(self.transformer.config, "use_rotary_positional_embeddings", False)
+                else None
+            )
+            ref_image_rotary_emb = (
+                image_rotary_emb[0][:1350,...],
+                image_rotary_emb[1][:1350,...]
+            )
+            image_rotary_emb = (
+                image_rotary_emb[0][1350:(1350 * (latents.size(1) + 1)),...],
+                image_rotary_emb[1][1350:(1350 * (latents.size(1) + 1)),...]
+            )
+        else:
+            image_rotary_emb = (
+                self._prepare_rotary_positional_embeddings(height, width, latents.size(1), device)
+                if getattr(self.transformer.config, "use_rotary_positional_embeddings", False)
+                else None
+            )
+            ref_image_rotary_emb = (
+                image_rotary_emb[0][:1350,...],
+                image_rotary_emb[1][:1350,...]
+            )
 
         # 8. Denoising loop
         num_warmup_steps = max(len(timesteps) - num_inference_steps * self.scheduler.order, 0)
