@@ -2346,11 +2346,14 @@ def main(args):
             num_cycles=args.lr_num_cycles,
             power=args.lr_power,
         )
-
+    print('BEFORE OPTIMIZER CHECK>>>>>>>', optimizer)
     # Prepare everything with our `accelerator`.
     transformer, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
         transformer, optimizer, train_dataloader, lr_scheduler
     )
+    print('AFTER OPTIMIZER CHECK>>>>>>>', optimizer)
+    # print('OPTIMIZER.OPTIMIZER CHECK>>>>>>>', optimizer.optimizer)
+    # print('OPTIMIZER.OPTIMIZER.OPTIMIZER CHECK>>>>>>>', optimizer.optimizer.optimizer)
 
     # We need to recalculate our total training steps as the size of the training dataloader may have changed.
     num_update_steps_per_epoch = math.ceil(len(train_dataloader) / args.gradient_accumulation_steps)
@@ -2505,7 +2508,7 @@ def main(args):
                             prepare_rotary_positional_embeddings(
                                 height=args.height,
                                 width=args.width,
-                                num_frames=50,
+                                num_frames=13,
                                 vae_scale_factor_spatial=vae_scale_factor_spatial,
                                 patch_size=model_config.patch_size,
                                 attention_head_dim=model_config.attention_head_dim,
@@ -2516,7 +2519,7 @@ def main(args):
                         )
                         if args.random_pos:
                             # Randomly select a location for the positional embeddings between 0 and 49 (inclusive)
-                            random_loc = random.randint(0, 48)
+                            random_loc = random.randint(0, 11)
                             ref_image_rotary_emb = (image_rotary_emb_src[0][1350 * random_loc:1350 * (random_loc + 1),...], image_rotary_emb_src[1][1350 * random_loc:1350 * (random_loc + 1),...])
                             image_rotary_emb = (image_rotary_emb_src[0][1350 * (random_loc + 1):1350 * (random_loc + 2),...], image_rotary_emb_src[1][1350 * (random_loc + 1):1350 * (random_loc + 2),...])
                         else:

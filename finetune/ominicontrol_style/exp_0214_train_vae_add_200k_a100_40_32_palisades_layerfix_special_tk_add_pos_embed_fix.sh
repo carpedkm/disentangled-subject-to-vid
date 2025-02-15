@@ -1,5 +1,4 @@
 #!/bin/bash
-
 export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"

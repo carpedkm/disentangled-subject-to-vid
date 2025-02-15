@@ -379,7 +379,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         # )
         if non_shared_pos_embed is True:
             image_rotary_emb = (
-                self._prepare_rotary_positional_embeddings(height, width, 50, device)
+                self._prepare_rotary_positional_embeddings(height, width, 14, device)
                 if getattr(self.transformer.config, "use_rotary_positional_embeddings", False)
                 else None
             )

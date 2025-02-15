@@ -634,6 +634,16 @@ def get_args():
         action='store_true',
         help='Whether to use second stage video training or not'
     )
+    parser.add_argument(
+        '--video_anno',
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        '--video_instance_root',
+        type=str,
+        default=None,
+    )
     return parser.parse_args()
 
 
@@ -768,92 +778,72 @@ class VideoDataset(Dataset):
     def __init__(
         self,
         video_instance_root: Optional[str] = None,
+        video_anno: Optional[str] = None,
         height: int = 480,
         width: int = 720,
         fps: int = 8,
         max_num_frames: int = 49,
         id_token: Optional[str] = None,
+        seen_validation: bool = False,
     ) -> None:
-        super().__init__()
-
-        self.video_instance_root = Path(video_instance_root) if video_instance_root is not None else None
-        self.height = height
-        self.width = width
-        self.fps = fps
-        self.max_num_frames = max_num_frames
+        self.seen_validation = seen_validation
         self.id_token = id_token or ""
+        super().__init__()
+        with open(video_anno, 'r') as f:
+            self.video_dict = json.load(f)
+        id_mapper = {}
+        for id_ in list(self.video_dict.keys()):
+            id_splitted = id_.split('/')[-1]
+            id_mapper[id_splitted] = self.video_dict[id_]
+        self.video_path_dict = {}
+        for id_ in list(id_mapper.keys()):
+            self.video_path_dict[id_] = os.path.join(video_instance_root, id_ + '_vae_latents.npy')
+        self.prompt_dict = {}
+        for id_ in list(id_mapper.keys()):
+            self.prompt_dict[id_] = self.id_token + id_mapper[id_]['text']
+            
+        self.prefix = "<cls>"
 
-        self.instance_video_paths = list(self.video_instance_root.glob("*.mp4"))
+        self.val_instance_prompt_dict = {
+                                    'oranges_omini':"A close up view. A bowl of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+                                    'clock_omini':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+                                    'rc_car_omini': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+                                    'shirt_omini': "On the beach, a lady sits under a beach umbrella. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                                    'cat' : "cat is rollerblading in the park",
+                                    'dog' : 'dog is flying in the sky',
+                                    'red_toy' : 'red toy is dancing in the room',
+                                    'dog_toy' : 'dog toy is walking around the grass',
+                                }
+        
+        if self.seen_validation is True:
+            self.val_instance_prompt_dict = {}
+            path_for_seen_meta = '../seen_samples/omini_meta/'
+            for file in os.listdir(path_for_seen_meta):
+                with open(os.path.join(path_for_seen_meta, file), 'r') as f:
+                    meta_seen = json.load(f)
+                id_ = 'right_' + file.split('_')[1].split('.')[0]
+                # id_  = file.split('.')[0]
+                tmp_desc = meta_seen['description_0']
+                self.val_instance_prompt_dict[id_] = tmp_desc
+
+        self.val_instance_prompt_dict = {k: self.prefix + v for k, v in self.val_instance_prompt_dict.items()}
         
 
-        self.num_instance_videos = len(self.video_instance_root)
-        if self.num_instance_videos != len(self.instance_prompts):
-            raise ValueError(
-                f"Expected length of instance prompts and videos to be the same but found {len(self.instance_prompts)=} and {len(self.instance_video_paths)=}. Please ensure that the number of caption prompts and videos match in your dataset."
-            )
-
-        self.instance_videos = self._preprocess_data()
-
     def __len__(self):
-        return self.num_instance_videos
+        return len(self.video_path_dict)
 
     def __getitem__(self, index):
+        id_key = list(self.video_path_dict.keys())[index]
+        video_path_to_load = self.video_path_dict[id_key]
+        prompt_loaded = self.prompt_dict[id_key]
+        
+        np_loaded = torch.from_numpy(np.load(video_path_to_load))
+        
         return {
-            "instance_prompt": self.id_token + self.instance_prompts[index],
-            "instance_video": self.instance_videos[index],
+            "instance_prompt": prompt_loaded,
+            "instance_video": np_loaded,
         }
-
-
-    def _preprocess_data(self):
-        try:
-            import decord
-        except ImportError:
-            raise ImportError(
-                "The `decord` package is required for loading the video dataset. Install with `pip install decord`"
-            )
-
-        decord.bridge.set_bridge("torch")
-
-        videos = []
-        train_transforms = transforms.Compose(
-            [
-                transforms.Lambda(lambda x: x / 255.0 * 2.0 - 1.0),
-            ]
-        )
-
-        for filename in self.instance_video_paths:
-            video_reader = decord.VideoReader(uri=filename.as_posix(), width=self.width, height=self.height)
-            video_num_frames = len(video_reader)
-
-            start_frame = min(self.skip_frames_start, video_num_frames)
-            end_frame = max(0, video_num_frames - self.skip_frames_end)
-            if end_frame <= start_frame:
-                frames = video_reader.get_batch([start_frame])
-            elif end_frame - start_frame <= self.max_num_frames:
-                frames = video_reader.get_batch(list(range(start_frame, end_frame)))
-            else:
-                indices = list(range(start_frame, end_frame, (end_frame - start_frame) // self.max_num_frames))
-                frames = video_reader.get_batch(indices)
-
-            # Ensure that we don't go over the limit
-            frames = frames[: self.max_num_frames]
-            selected_num_frames = frames.shape[0]
-
-            # Choose first (4k + 1) frames as this is how many is required by the VAE
-            remainder = (3 + (selected_num_frames % 4)) % 4
-            if remainder != 0:
-                frames = frames[:-remainder]
-            selected_num_frames = frames.shape[0]
-
-            assert (selected_num_frames - 1) % 4 == 0
-
-            # Training transforms
-            frames = frames.float()
-            frames = torch.stack([train_transforms(frame) for frame in frames], dim=0)
-            videos.append(frames.permute(0, 3, 1, 2).contiguous())  # [F, C, H, W]
-
-        return videos
-    
+        
 class ImageDataset(Dataset):
     def __init__(
         self,
@@ -1400,7 +1390,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 9, #args.max_num_frames,
+                'num_frames': 13, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
@@ -1847,150 +1837,153 @@ def main(args):
     )
     print("Done - CogVideoX Transformer model loaded")
     # Initialize submodules
-    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
-        transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
-    if args.qformer is True:
-        transformer.QformerAligner = QFormerAligner(model_name="Salesforce/blip2-opt-2.7b")
-        transformer.QformerAligner.qformer.requires_grad_(True)
-        transformer.QformerAligner.fc.requires_grad_(True)
+    if args.second_stage:
+        pass
     else:
-        if (args.vae_add or args.qk_replace) and (not args.cross_attend) and ( not args.cross_attend):
-            # transformer.CLIPTextProjectionLayer = None
-            # transformer.CLIPVisionProjectionLayer = None
-            # transformer.CLIPTextProjectionLayer2 = None
-            # transformer.CLIPVisionProjectionLayer2 = None
-            # transformer.T5ProjectionLayer = None
-            pass
-        elif (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
-            if args.zero_conv_add:
-                transformer.text_sequence_aligner = SequenceAligner(77, 226)
-                transformer.vision_sequence_aligner = SequenceAligner(197, 226)
-                
-                transformer.CLIPTextProjectionLayer = ZeroConv1D(in_dim=512, out_dim=4096)
-                transformer.CLIPVisionProjectionLayer = ZeroConv1D(in_dim=768, out_dim=4096)
-                transformer.CLIPTextProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
-                transformer.CLIPVisionProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
-                transformer.T5ProjectionLayer = SkipProjectionLayer(4096, 4096)
-                with torch.no_grad():
-                    transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
-                    if transformer.T5ProjectionLayer.projection.bias is not None:
-                        transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
-                
-                # Learnable single parameter
-                # transformer.alpha = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
-                # transformer.beta = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
-                
-                # requries grad True
-                transformer.CLIPTextProjectionLayer.requires_grad_(True)
-                transformer.CLIPVisionProjectionLayer.requires_grad_(True)
-                transformer.CLIPTextProjectionLayer2.requires_grad_(True)
-                transformer.CLIPVisionProjectionLayer2.requires_grad_(True)
-                transformer.reference_vision_encoder.requires_grad_(True)
-                transformer.T5ProjectionLayer.requires_grad_(True)
-                
-                # transformer.alpha.requires_grad_(True)
-                # transformer.beta.requires_grad_(True)
-                
-            else:
-                if args.add_token is True:
-                    transformer.T5ProjectionLayer = ProjectionLayer(in_features=4096, out_features=4096)
+        if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
+            transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
+        if args.qformer is True:
+            transformer.QformerAligner = QFormerAligner(model_name="Salesforce/blip2-opt-2.7b")
+            transformer.QformerAligner.qformer.requires_grad_(True)
+            transformer.QformerAligner.fc.requires_grad_(True)
+        else:
+            if (args.vae_add or args.qk_replace) and (not args.cross_attend) and ( not args.cross_attend):
+                # transformer.CLIPTextProjectionLayer = None
+                # transformer.CLIPVisionProjectionLayer = None
+                # transformer.CLIPTextProjectionLayer2 = None
+                # transformer.CLIPVisionProjectionLayer2 = None
+                # transformer.T5ProjectionLayer = None
+                pass
+            elif (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
+                if args.zero_conv_add:
+                    transformer.text_sequence_aligner = SequenceAligner(77, 226)
+                    transformer.vision_sequence_aligner = SequenceAligner(197, 226)
+                    
+                    transformer.CLIPTextProjectionLayer = ZeroConv1D(in_dim=512, out_dim=4096)
+                    transformer.CLIPVisionProjectionLayer = ZeroConv1D(in_dim=768, out_dim=4096)
+                    transformer.CLIPTextProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
+                    transformer.CLIPVisionProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
+                    transformer.T5ProjectionLayer = SkipProjectionLayer(4096, 4096)
                     with torch.no_grad():
-                        transformer.T5ProjectionLayer.projection.weight.fill_(1.0)
+                        transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
                         if transformer.T5ProjectionLayer.projection.bias is not None:
-                            transformer.T5ProjectionLayer.projection.bias.fill_(1.0)
-                    transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=77, out_features=226)
-                    with torch.no_grad():
-                        transformer.CLIPTextProjectionLayer.projection.weight.fill_(0.0)
-                        if transformer.CLIPTextProjectionLayer.projection.bias is not None:
-                            transformer.CLIPTextProjectionLayer.projection.bias.fill_(0.0)
-                    transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=197, out_features=226)
-                    with torch.no_grad():
-                        transformer.CLIPVisionProjectionLayer.projection.weight.fill_(0.0)
-                        if transformer.CLIPVisionProjectionLayer.projection.bias is not None:
-                            transformer.CLIPVisionProjectionLayer.projection.bias.fill_(0.0)
-                    # Requires grad true
-                    transformer.reference_vision_encoder.requires_grad_(True)
-                    transformer.T5ProjectionLayer.requires_grad_(True)
+                            transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
+                    
+                    # Learnable single parameter
+                    # transformer.alpha = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
+                    # transformer.beta = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
+                    
+                    # requries grad True
                     transformer.CLIPTextProjectionLayer.requires_grad_(True)
                     transformer.CLIPVisionProjectionLayer.requires_grad_(True)
-                else:    
-                    if reduce_token is not True:
-                        transformer.T5ProjectionLayer = SkipProjectionLayer(in_features=4096, out_features=4096)
+                    transformer.CLIPTextProjectionLayer2.requires_grad_(True)
+                    transformer.CLIPVisionProjectionLayer2.requires_grad_(True)
+                    transformer.reference_vision_encoder.requires_grad_(True)
+                    transformer.T5ProjectionLayer.requires_grad_(True)
+                    
+                    # transformer.alpha.requires_grad_(True)
+                    # transformer.beta.requires_grad_(True)
+                    
+                else:
+                    if args.add_token is True:
+                        transformer.T5ProjectionLayer = ProjectionLayer(in_features=4096, out_features=4096)
                         with torch.no_grad():
-                            transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
+                            transformer.T5ProjectionLayer.projection.weight.fill_(1.0)
                             if transformer.T5ProjectionLayer.projection.bias is not None:
-                                transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
-                        # Requires grad true
-                        transformer.reference_vision_encoder.requires_grad_(True)
-                        transformer.T5ProjectionLayer.requires_grad_(True)
-                        
-                        # if concatenated_all:
-                        transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=512, out_features=4096)
+                                transformer.T5ProjectionLayer.projection.bias.fill_(1.0)
+                        transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=77, out_features=226)
                         with torch.no_grad():
                             transformer.CLIPTextProjectionLayer.projection.weight.fill_(0.0)
                             if transformer.CLIPTextProjectionLayer.projection.bias is not None:
                                 transformer.CLIPTextProjectionLayer.projection.bias.fill_(0.0)
-                        transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=768, out_features=4096)
+                        transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=197, out_features=226)
                         with torch.no_grad():
                             transformer.CLIPVisionProjectionLayer.projection.weight.fill_(0.0)
                             if transformer.CLIPVisionProjectionLayer.projection.bias is not None:
                                 transformer.CLIPVisionProjectionLayer.projection.bias.fill_(0.0)
                         # Requires grad true
-                        transformer.CLIPTextProjectionLayer.requires_grad_(True)
-                        transformer.CLIPVisionProjectionLayer.requires_grad_(True)
-                    else:
-                        transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
-                        transformer.T5ProjectionLayer = ReduceProjectionLayer(in_features=500, out_features=226)
-                        with torch.no_grad():
-                            transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
-                            if transformer.T5ProjectionLayer.projection.bias is not None:
-                                transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
-                        # Requires grad true
                         transformer.reference_vision_encoder.requires_grad_(True)
                         transformer.T5ProjectionLayer.requires_grad_(True)
-        elif args.cross_attend or args.cross_attend_text:
-                if args.cross_attend:
-                    print('Loading PERCEIVER CROSS ATTENTION')
-                    perceiver_cross_attention = None
-                    local_reference_scale = args.local_reference_scale
-                    num_cross_attn = 42 // args.cross_attn_interval
-                    cross_inner_dim = 3072
-                    cross_attn_dim_head = args.cross_attn_dim_head
-                    cross_attn_num_head = args.cross_attn_num_head
-                    # cross_attn_kv_dim =  int(cross_inner_dim / 3 * 2)
-                    cross_attn_kv_dim = 3072
-                    transformer.perceiver_cross_attention = nn.ModuleList(
-                        [
-                            PerceiverCrossAttention(
-                                dim=cross_inner_dim,
-                                dim_head=cross_attn_dim_head,
-                                heads=cross_attn_num_head,
-                                kv_dim=cross_attn_kv_dim,
-                            ).to(dtype=torch.bfloat16)
-                            for _ in range(num_cross_attn)
-                        ]
-                    )
-                    transformer.perceiver_cross_attention.requires_grad_(True)
-                if args.cross_attend_text:
-                    print('Loading PERCEIVER CROSS ATTENTION FOR TEXT')
-                    perceiver_cross_attention_text = None
-                    local_reference_scale = args.local_reference_scale
-                    num_cross_attn = 42 // args.cross_attn_interval
-                    cross_inner_dim = 3072
-                    cross_attn_dim_head = args.cross_attn_dim_head
-                    cross_attn_num_head = args.cross_attn_num_head
-                    cross_attn_kv_dim = 3072
-                    transformer.perceiver_cross_attention_text = nn.ModuleList(
-                        [
-                            PerceiverCrossAttention(
-                                dim=cross_inner_dim,
-                                dim_head=cross_attn_dim_head,
-                                heads=cross_attn_num_head,
-                                kv_dim=cross_attn_kv_dim,
-                            ).to(dtype=torch.bfloat16)
-                            for _ in range(num_cross_attn)
-                        ]
-                    )
+                        transformer.CLIPTextProjectionLayer.requires_grad_(True)
+                        transformer.CLIPVisionProjectionLayer.requires_grad_(True)
+                    else:    
+                        if reduce_token is not True:
+                            transformer.T5ProjectionLayer = SkipProjectionLayer(in_features=4096, out_features=4096)
+                            with torch.no_grad():
+                                transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
+                                if transformer.T5ProjectionLayer.projection.bias is not None:
+                                    transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
+                            # Requires grad true
+                            transformer.reference_vision_encoder.requires_grad_(True)
+                            transformer.T5ProjectionLayer.requires_grad_(True)
+                            
+                            # if concatenated_all:
+                            transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=512, out_features=4096)
+                            with torch.no_grad():
+                                transformer.CLIPTextProjectionLayer.projection.weight.fill_(0.0)
+                                if transformer.CLIPTextProjectionLayer.projection.bias is not None:
+                                    transformer.CLIPTextProjectionLayer.projection.bias.fill_(0.0)
+                            transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=768, out_features=4096)
+                            with torch.no_grad():
+                                transformer.CLIPVisionProjectionLayer.projection.weight.fill_(0.0)
+                                if transformer.CLIPVisionProjectionLayer.projection.bias is not None:
+                                    transformer.CLIPVisionProjectionLayer.projection.bias.fill_(0.0)
+                            # Requires grad true
+                            transformer.CLIPTextProjectionLayer.requires_grad_(True)
+                            transformer.CLIPVisionProjectionLayer.requires_grad_(True)
+                        else:
+                            transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
+                            transformer.T5ProjectionLayer = ReduceProjectionLayer(in_features=500, out_features=226)
+                            with torch.no_grad():
+                                transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
+                                if transformer.T5ProjectionLayer.projection.bias is not None:
+                                    transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
+                            # Requires grad true
+                            transformer.reference_vision_encoder.requires_grad_(True)
+                            transformer.T5ProjectionLayer.requires_grad_(True)
+            elif args.cross_attend or args.cross_attend_text:
+                    if args.cross_attend:
+                        print('Loading PERCEIVER CROSS ATTENTION')
+                        perceiver_cross_attention = None
+                        local_reference_scale = args.local_reference_scale
+                        num_cross_attn = 42 // args.cross_attn_interval
+                        cross_inner_dim = 3072
+                        cross_attn_dim_head = args.cross_attn_dim_head
+                        cross_attn_num_head = args.cross_attn_num_head
+                        # cross_attn_kv_dim =  int(cross_inner_dim / 3 * 2)
+                        cross_attn_kv_dim = 3072
+                        transformer.perceiver_cross_attention = nn.ModuleList(
+                            [
+                                PerceiverCrossAttention(
+                                    dim=cross_inner_dim,
+                                    dim_head=cross_attn_dim_head,
+                                    heads=cross_attn_num_head,
+                                    kv_dim=cross_attn_kv_dim,
+                                ).to(dtype=torch.bfloat16)
+                                for _ in range(num_cross_attn)
+                            ]
+                        )
+                        transformer.perceiver_cross_attention.requires_grad_(True)
+                    if args.cross_attend_text:
+                        print('Loading PERCEIVER CROSS ATTENTION FOR TEXT')
+                        perceiver_cross_attention_text = None
+                        local_reference_scale = args.local_reference_scale
+                        num_cross_attn = 42 // args.cross_attn_interval
+                        cross_inner_dim = 3072
+                        cross_attn_dim_head = args.cross_attn_dim_head
+                        cross_attn_num_head = args.cross_attn_num_head
+                        cross_attn_kv_dim = 3072
+                        transformer.perceiver_cross_attention_text = nn.ModuleList(
+                            [
+                                PerceiverCrossAttention(
+                                    dim=cross_inner_dim,
+                                    dim_head=cross_attn_dim_head,
+                                    heads=cross_attn_num_head,
+                                    kv_dim=cross_attn_kv_dim,
+                                ).to(dtype=torch.bfloat16)
+                                for _ in range(num_cross_attn)
+                            ]
+                        )
     # Print out parameter names to verify # FOR DEBUGGING
     # for name, param in transformer.named_parameters():
     #     if param.requires_grad:
@@ -2130,6 +2123,13 @@ def main(args):
                 weights.pop()
 
             # Save LoRA weights for CogVideoX
+            # if args.second_stage:
+            #     CogVideoXPipeline.save_lora_weights(
+            #         output_dir,
+            #         weight_name="pytorch_lora_weights_transformer_second_stage.safetensors",
+            #         transformer_lora_layers=transformer_lora_layers_to_save,
+            #     )
+            # else:
             if transformer_lora_layers_to_save:
                 CogVideoXPipeline.save_lora_weights(
                     output_dir,
@@ -2330,10 +2330,24 @@ def main(args):
     # Dataset and DataLoader
     if args.second_stage is True:
         train_dataset = VideoDataset(
-            
+            video_instance_root=args.video_instance_root,
+            video_anno=args.video_anno,
+            height=args.height,
+            width=args.width,
+            seen_validation=args.seen_validation,
         )
         def collate_fn(examples):
-            
+            videos = [example['instance_video'] for example in examples]
+            prompts = [example['instance_prompt'] for example in examples]
+            if args.use_latent:
+                videos = torch.cat(videos, dim=0)
+            else:
+                videos = torch.stack(videos)
+            videos = videos.to(memory_format=torch.contiguous_format).float()
+            batch = {
+                "videos": videos,
+                "prompts": prompts,
+            }
             return batch
     else:
         train_dataset = ImageDataset(
@@ -2469,28 +2483,37 @@ def main(args):
     if not args.resume_from_checkpoint:
         initial_global_step = 0
     else:
-        if args.resume_from_checkpoint != "latest":
-            path = os.path.basename(args.resume_from_checkpoint)
-        else:
-            # Get the mos recent checkpoint
-            dirs = os.listdir(args.output_dir)
-            dirs = [d for d in dirs if d.startswith("checkpoint")]
-            dirs = sorted(dirs, key=lambda x: int(x.split("-")[1]))
-            path = dirs[-1] if len(dirs) > 0 else None
+        if not args.second_stage:
+            if args.resume_from_checkpoint != "latest":
+                path = os.path.basename(args.resume_from_checkpoint)
+            else:
+                # Get the mos recent checkpoint
+                dirs = os.listdir(args.output_dir)
+                dirs = [d for d in dirs if d.startswith("checkpoint")]
+                dirs = sorted(dirs, key=lambda x: int(x.split("-")[1]))
+                path = dirs[-1] if len(dirs) > 0 else None
 
-        if path is None:
+            if path is None:
+                accelerator.print(
+                    f"Checkpoint '{args.resume_from_checkpoint}' does not exist. Starting a new training run."
+                )
+                args.resume_from_checkpoint = None
+                initial_global_step = 0
+            else:
+                accelerator.print(f"Resuming from checkpoint {path}")
+                accelerator.load_state(os.path.join(args.output_dir, path))
+                global_step = int(path.split("-")[1])
+
+                initial_global_step = global_step
+                first_epoch = global_step // num_update_steps_per_epoch
+        else:
             accelerator.print(
-                f"Checkpoint '{args.resume_from_checkpoint}' does not exist. Starting a new training run."
+                f"Resuming from checkpoint {args.resume_from_checkpoint} for the second stage training"
             )
-            args.resume_from_checkpoint = None
+            accelerator.load_state(args.resume_from_checkpoint)
+            global_step = 0
             initial_global_step = 0
-        else:
-            accelerator.print(f"Resuming from checkpoint {path}")
-            accelerator.load_state(os.path.join(args.output_dir, path))
-            global_step = int(path.split("-")[1])
-
-            initial_global_step = global_step
-            first_epoch = global_step // num_update_steps_per_epoch
+            first_epoch = 0
 
     progress_bar = tqdm(
         range(0, args.max_train_steps),
@@ -2528,21 +2551,27 @@ def main(args):
                     model_input = latent_dist.sample() * vae.config.scaling_factor
                     model_input = model_input.permute(0, 2, 1, 3, 4)
                 else: # if use latent vectors directly loaded with pre-extracted numpy files
-                    latent_dist = videos * 0.7
-                    model_input = latent_dist
+                    if args.second_stage:
+                        model_input = videos
+                    else:
+                        latent_dist = videos * 0.7
+                        model_input = latent_dist
                 
                 
                 prompts = batch["prompts"]
-                if train_dataset.dataset_name == 'customization':
-                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
-                        image_processor = clip_processor.image_processor
-                        images = image_processor(batch["ref_images"], return_tensors="pt").to(accelerator.device)
-                    elif args.qformer:
-                        images = torch.stack(batch['ref_images'], dim=0).to(accelerator.device, dtype=weight_dtype)
-                    else:
-                        images = batch["ref_images"].permute(0, 2, 1, 3, 4).to(dtype=weight_dtype)  # [B, F, C, H, W]
-                        images = images * 0.7
-                        # print(images.shape)
+                if args.second_stage:
+                    pass
+                else:
+                    if train_dataset.dataset_name == 'customization':
+                        if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
+                            image_processor = clip_processor.image_processor
+                            images = image_processor(batch["ref_images"], return_tensors="pt").to(accelerator.device)
+                        elif args.qformer:
+                            images = torch.stack(batch['ref_images'], dim=0).to(accelerator.device, dtype=weight_dtype)
+                        else:
+                            images = batch["ref_images"].permute(0, 2, 1, 3, 4).to(dtype=weight_dtype)  # [B, F, C, H, W]
+                            images = images * 0.7
+                            # print(images.shape)
                         
                 # encode prompts
                 prompt_embeds, clip_prompt_embeds = compute_prompt_embeddings(
@@ -2557,13 +2586,16 @@ def main(args):
                     requires_grad=False,
                 )
                 # Process images
-                if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
-                    if images is not None and 'pixel_values' in images:
-                        image_input = images['pixel_values'].to(device=accelerator.device, dtype=weight_dtype)
+                if args.second_stage:
+                    image_input = None
                 else:
-                    image_input = images
-                # # Projection through the linear layer to match dimension
-                # prompt_embeds = torch.cat([prompt_embeds, clip_prompt_embeds, image_embeds], dim=1) # FIXME (Learn additional separate projection layer to match the dimension)
+                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
+                        if images is not None and 'pixel_values' in images:
+                            image_input = images['pixel_values'].to(device=accelerator.device, dtype=weight_dtype)
+                    else:
+                        image_input = images
+                    # # Projection through the linear layer to match dimension
+                    # prompt_embeds = torch.cat([prompt_embeds, clip_prompt_embeds, image_embeds], dim=1) # FIXME (Learn additional separate projection layer to match the dimension)
 
                 # Sample noise that will be added to the latents
                 noise = torch.randn_like(model_input)
@@ -2575,7 +2607,7 @@ def main(args):
                 )
                 timesteps = timesteps.long()
                 
-                if args.pos_embed_inf_match:
+                if args.pos_embed_inf_match and (not args.second_stage):
                     # Prepare rotary embeds
                     image_rotary_emb = (
                         prepare_rotary_positional_embeddings(
@@ -2598,7 +2630,7 @@ def main(args):
                         prepare_rotary_positional_embeddings(
                             height=args.height,
                             width=args.width,
-                            num_frames=args.max_num_frames,
+                            num_frames=args.max_num_frames // 4 + 1,
                             vae_scale_factor_spatial=vae_scale_factor_spatial,
                             patch_size=model_config.patch_size,
                             attention_head_dim=model_config.attention_head_dim,
@@ -2627,6 +2659,8 @@ def main(args):
                 else:
                     noisy_model_input = scheduler.add_noise(model_input, noise, timesteps)
                 # Predict the noise residual
+                # print('SHAPE OF NOISY MODEL INPUT >>>', noisy_model_input.shape)
+                # print('SHAPE OF IMAGE ROTARY EMB >>>', image_rotary_emb[0].shape)
                 model_output = transformer(
                     hidden_states=noisy_model_input,
                     ref_img_states=noisy_image_input if args.input_noise_fix else image_input,
@@ -2647,7 +2681,7 @@ def main(args):
                     cross_attend=args.cross_attend,
                     cross_attend_text=args.cross_attend_text,
                     layernorm_fix=args.layernorm_fix,
-                    text_only_norm_final=args.text_only_norm_final
+                    text_only_norm_final=args.text_only_norm_final,
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
@@ -2759,22 +2793,22 @@ def main(args):
                         "guidance_scale": args.guidance_scale,
                         "use_dynamic_cfg": args.use_dynamic_cfg,
                         "validation_reference_image": validation_ref_img,
-                        "height": 512,
-                        "width": 512,
+                        "height": 480,
+                        "width": 720,
                         "eval" : True,
                         "concatenated_all" : concatenated_all,
                         "reduce_token" : reduce_token,
                         "add_token": args.add_token,
                         'zero_conv_add': args.zero_conv_add,
                         'vae_add' : args.vae_add,
-                        'pos_embed' : args.pos_embed,
+                        'pos_embed' : args.pos_embed if args.second_stage is not True else True,
                         'cross_attend' : args.cross_attend,
                         'cross_attend_text' : args.cross_attend_text,
                         'input_noise_fix' : args.input_noise_fix,
                         'output_dir' : args.output_dir,
                         'save_every_timestep' : args.save_every_timestep,
-                        'layernorm_fix': args.layernorm_fix,
-                        'text_only_norm_final': args.text_only_norm_final
+                        'layernorm_fix': args.layernorm_fix if args.second_stage is not True else True,
+                        'text_only_norm_final': args.text_only_norm_final,
                     }
 
                     validation_outputs = log_validation(

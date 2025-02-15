@@ -579,6 +579,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
     ):  
         qk_replace = self.qk_replace
         qformer = self.qformer
+        if eval:
+            self.second_stage = False
         if self.second_stage:
             encoder_hidden_states = encoder_hidden_states
         else:
@@ -738,6 +740,12 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 
             
         hidden_states = self.patch_embed(encoder_hidden_states, hidden_states)
+        if self.second_stage:
+            encoder_hidden_states = hidden_states[:, :encoder_hidden_states.shape[1]]
+            hidden_states = hidden_states[:, encoder_hidden_states.shape[1]:]
+            # pad the encoder_hidden_states with zeros at the end - to match the dimension of 1350 in number of tokens after the embedding  
+            encoder_hidden_states = F.pad(encoder_hidden_states, (0, 0, 0, 1350 - 226))
+            text_seq_length = encoder_hidden_states.shape[1]
         hidden_states = self.embedding_dropout(hidden_states)
         
         if self.second_stage:
@@ -766,11 +774,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
 
     
         if self.second_stage:
-            encoder_hidden_states = hidden_states[:, :encoder_hidden_states.shape[1]]
-            hidden_states = hidden_states[:, encoder_hidden_states.shape[1]:]
-            # pad the encoder_hidden_states with zeros at the end - to match the dimension of 1350 in number of tokens after the embedding  
-            encoder_hidden_states = F.pad(encoder_hidden_states, (0, 1350 - encoder_hidden_states.shape[1]))
-            text_seq_length = encoder_hidden_states.shape[1]
+            pass
         else:
             if not qk_replace:
                 if vae_add is False and not qformer:
@@ -799,13 +803,16 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 hidden_states = hidden_states[:, text_seq_length:]
                 enc_hidden_states0 = F.pad(enc_hidden_states0, (0, 0, 0, 1350 - 226))
                 text_seq_length = enc_hidden_states0.shape[1]
-            
-        if vae_add:
-            hidden_states = hidden_states[:, text_seq_length:]
-            if layernorm_fix:
-                pass
-            else:
-                text_seq_length = text_seq_length_temp
+        
+        if self.second_stage:
+            pass
+        else:
+            if vae_add:
+                hidden_states = hidden_states[:, text_seq_length:]
+                if layernorm_fix:
+                    pass
+                else:
+                    text_seq_length = text_seq_length_temp
         
         # 3. Transformer blocks
         ca_idx = 0
@@ -838,6 +845,15 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                                       ref_img_seq_start=ref_img_seq_start, ref_img_seq_end=ref_img_seq_end, position_delta=position_delta,
                                       ref_image_rotary_emb=ref_image_rotary_emb)
                     return custom_forward
+                def create_custom_forward_wo_enc_hidden_states1(module):
+                    def custom_forward(hidden_states, encoder_hidden_states, temb,
+                                    image_rotary_emb=None, embed_ref_img=False, ref_img_seq_start=0,
+                                    ref_img_seq_end=0, position_delta=0, ref_image_rotary_emb=None):
+                        return module(hidden_states=hidden_states, encoder_hidden_states=encoder_hidden_states, temb=temb, 
+                                      image_rotary_emb=image_rotary_emb, embed_ref_img=embed_ref_img,
+                                      ref_img_seq_start=ref_img_seq_start, ref_img_seq_end=ref_img_seq_end, position_delta=position_delta,
+                                      ref_image_rotary_emb=ref_image_rotary_emb)
+                    return custom_forward
 
                 if layernorm_fix:
                     ckpt_kwargs: Dict[str, Any] = {"use_reentrant": False} if is_torch_version(">=", "1.11.0") else {}
@@ -851,7 +867,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 else:
                     ckpt_kwargs: Dict[str, Any] = {"use_reentrant": False} if is_torch_version(">=", "1.11.0") else {}
                     hidden_states, encoder_hidden_states = torch.utils.checkpoint.checkpoint(
-                        create_custom_forward(block),
+                        create_custom_forward_wo_enc_hidden_states1(block),
                         hidden_states, encoder_hidden_states, emb,  
                         image_rotary_emb, embed_ref_img, ref_img_seq_start,
                         ref_img_seq_end, position_delta, ref_image_rotary_emb,
