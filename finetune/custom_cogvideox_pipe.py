@@ -1,6 +1,7 @@
 from typing import Optional, Union, List, Dict, Any, Tuple, Callable
 import math
 import torch
+import random
 
 from diffusers import CogVideoXPipeline
 from diffusers.pipelines.cogvideo.pipeline_cogvideox import CogVideoXPipelineOutput
