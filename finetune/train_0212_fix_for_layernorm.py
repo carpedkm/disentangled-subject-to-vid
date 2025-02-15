@@ -1315,7 +1315,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 49, #args.max_num_frames,
+                'num_frames': 9, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
@@ -2514,8 +2514,14 @@ def main(args):
                             if model_config.use_rotary_positional_embeddings
                             else None
                         )
-                        image_rotary_emb = (image_rotary_emb_src[0][1350:2700,...], image_rotary_emb_src[1][1350:2700,...])
-                        ref_image_rotary_emb = (image_rotary_emb_src[0][:1350,...], image_rotary_emb_src[1][:1350,...])
+                        if args.random_pos:
+                            # Randomly select a location for the positional embeddings between 0 and 49 (inclusive)
+                            random_loc = random.randint(0, 48)
+                            ref_image_rotary_emb = (image_rotary_emb_src[0][1350 * random_loc:1350 * (random_loc + 1),...], image_rotary_emb_src[1][1350 * random_loc:1350 * (random_loc + 1),...])
+                            image_rotary_emb = (image_rotary_emb_src[0][1350 * (random_loc + 1):1350 * (random_loc + 2),...], image_rotary_emb_src[1][1350 * (random_loc + 1):1350 * (random_loc + 2),...])
+                        else:
+                            image_rotary_emb = (image_rotary_emb_src[0][1350:2700,...], image_rotary_emb_src[1][1350:2700,...])
+                            ref_image_rotary_emb = (image_rotary_emb_src[0][:1350,...], image_rotary_emb_src[1][:1350,...])
                     else:
                         # Prepare rotary embeds
                         image_rotary_emb = (
