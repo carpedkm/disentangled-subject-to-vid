@@ -19,7 +19,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --enable_slicing \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
-  --validation_epochs 100 \
+  --validation_epochs 1 \
   --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
@@ -33,7 +33,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --max_num_frames 49 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 1 \
+  --train_batch_size 6 \
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
