@@ -802,7 +802,7 @@ class VideoDataset(Dataset):
         for id_ in list(id_mapper.keys()):
             self.prompt_dict[id_] = self.id_token + id_mapper[id_]['text']
             
-        self.prefix = "<cls>"
+        self.prefix = "<cls> "
 
         self.val_instance_prompt_dict = {
                                     'oranges_omini':"A close up view. A bowl of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
