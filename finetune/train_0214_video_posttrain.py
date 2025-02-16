@@ -2263,14 +2263,14 @@ def main(args):
                 if args.cross_attend_text:
                     cross_attention_layer_state_dict_text = torch.load(os.path.join(input_dir, "perceiver_cross_attention_text.pth"))
                     transformer_.perceiver_cross_attention_text.load_state_dict(cross_attention_layer_state_dict_text)
-            if incompatible_keys is not None:
-                # check only for unexpected keys
-                unexpected_keys = getattr(incompatible_keys, "unexpected_keys", None)
-                if unexpected_keys:
-                    logger.warning(
-                        f"Loading adapter weights from state_dict led to unexpected keys not found in the model: "
-                        f" {unexpected_keys}. "
-                    )
+            # if incompatible_keys is not None:
+            #     # check only for unexpected keys
+            #     unexpected_keys = getattr(incompatible_keys, "unexpected_keys", None)
+            #     if unexpected_keys:
+            #         logger.warning(
+            #             f"Loading adapter weights from state_dict led to unexpected keys not found in the model: "
+            #             f" {unexpected_keys}. "
+            #         )
         
     print("Registering save and load hooks")
     accelerator.register_save_state_pre_hook(save_model_hook)
