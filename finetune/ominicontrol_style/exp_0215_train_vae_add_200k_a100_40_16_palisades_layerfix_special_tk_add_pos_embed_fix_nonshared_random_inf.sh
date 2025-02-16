@@ -14,7 +14,7 @@ export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
 # if you are not using wth 8 gus, change `accelerate_config_machine_single.yaml` num_processes as your gpu number
 accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi_gpu  \
-  ../train_0212_fix_for_layernorm.py \
+  ../train_0214_video_posttrain.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
   --cache_dir $CACHE_PATH \

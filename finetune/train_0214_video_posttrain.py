@@ -635,6 +635,11 @@ def get_args():
         help='Whether to use second stage video training or not'
     )
     parser.add_argument(
+        '--second_stage_ref_image',
+        action='store_true',
+        help='Whether to use second stage ref image or not'
+    )
+    parser.add_argument(
         '--video_anno',
         type=str,
         default=None,
@@ -850,9 +855,12 @@ class VideoDataset(Dataset):
                 prompt_loaded = self.prompt_dict[id_key]
                 
                 np_loaded = torch.from_numpy(np.load(video_path_to_load))
+                # what is the shape of np_loaded?
+                
                 
                 return {
                     "instance_prompt": prompt_loaded,
+                    "instance_ref_image": np_loaded[:,:,0,...].unsqueeze(2),
                     "instance_video": np_loaded,
                 }
             except Exception as e:
@@ -1407,7 +1415,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 13, #args.max_num_frames,
+                'num_frames': 1, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
@@ -2357,14 +2365,17 @@ def main(args):
         def collate_fn(examples):
             videos = [example['instance_video'] for example in examples]
             prompts = [example['instance_prompt'] for example in examples]
+            ref_images = [example['instance_ref_image'] for example in examples]
             # if args.use_latent:
             videos = torch.cat(videos, dim=0)
+            ref_images = torch.cat(ref_images, dim=0)
             # else:
             # videos = torch.stack(videos, dim=0)
             videos = videos.to(memory_format=torch.contiguous_format).float()
             batch = {
                 "videos": videos,
                 "prompts": prompts,
+                "ref_images": ref_images,
             }
             return batch
     else:
@@ -2579,7 +2590,10 @@ def main(args):
                 
                 prompts = batch["prompts"]
                 if args.second_stage:
-                    pass
+                    if args.second_stage_ref_image:
+                        images = batch["ref_images"].permute(0, 2, 1, 3, 4).to(dtype=weight_dtype)  # [B, F, C, H, W]
+                    else:
+                        pass
                 else:
                     if train_dataset.dataset_name == 'customization':
                         if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
@@ -2606,7 +2620,10 @@ def main(args):
                 )
                 # Process images
                 if args.second_stage:
-                    image_input = None
+                    if args.second_stage_ref_image:
+                        image_input = images
+                    else:
+                        image_input = None
                 else:
                     if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
                         if images is not None and 'pixel_values' in images:
@@ -2667,20 +2684,38 @@ def main(args):
                         # Get the first one only for training
                         image_rotary_emb = (image_rotary_emb[0][:1350,...], image_rotary_emb[1][:1350,...])
                 else:
-                    # Prepare rotary embeds
-                    image_rotary_emb = (
-                        prepare_rotary_positional_embeddings(
-                            height=args.height,
-                            width=args.width,
-                            num_frames=args.max_num_frames // 4 + 1,
-                            vae_scale_factor_spatial=vae_scale_factor_spatial,
-                            patch_size=model_config.patch_size,
-                            attention_head_dim=model_config.attention_head_dim,
-                            device=accelerator.device,
+                    if args.second_stage_ref_image:
+                        image_rotary_emb = (
+                            prepare_rotary_positional_embeddings(
+                                height=args.height,
+                                width=args.width,
+                                num_frames=args.max_num_frames // 4 + 2,
+                                vae_scale_factor_spatial=vae_scale_factor_spatial,
+                                patch_size=model_config.patch_size,
+                                attention_head_dim=model_config.attention_head_dim,
+                                device=accelerator.device,
+                            )
+                            if model_config.use_rotary_positional_embeddings
+                            else None
                         )
-                        if model_config.use_rotary_positional_embeddings
-                        else None
-                    )
+                        ref_image_rotary_emb = (image_rotary_emb[0][:1350,...], image_rotary_emb[1][:1350,...])
+                        image_rotary_emb = (image_rotary_emb[0][1350:,...], image_rotary_emb[1][1350:,...])
+                        
+                    else:
+                        # Prepare rotary embeds
+                        image_rotary_emb = (
+                            prepare_rotary_positional_embeddings(
+                                height=args.height,
+                                width=args.width,
+                                num_frames=args.max_num_frames // 4 + 1,
+                                vae_scale_factor_spatial=vae_scale_factor_spatial,
+                                patch_size=model_config.patch_size,
+                                attention_head_dim=model_config.attention_head_dim,
+                                device=accelerator.device,
+                            )
+                            if model_config.use_rotary_positional_embeddings
+                            else None
+                        )
                 # Add noise to the model input according to the noise magnitude at each timestep
                 # (this is the forward diffusion process)
                 
@@ -2704,7 +2739,10 @@ def main(args):
                 # print('SHAPE OF NOISY MODEL INPUT >>>', noisy_model_input.shape)
                 # print('SHAPE OF IMAGE ROTARY EMB >>>', image_rotary_emb[0].shape)
                 if args.second_stage:
-                    ref_image_rotary_emb = None
+                    if not args.second_stage_ref_image:
+                        ref_image_rotary_emb = None
+                    else:
+                        pass
                 else:
                     if args.non_shared_pos_embed:
                         ref_image_rotary_emb = ref_image_rotary_emb
@@ -2717,7 +2755,7 @@ def main(args):
                     clip_prompt_embeds=clip_prompt_embeds,
                     timestep=timesteps,
                     image_rotary_emb=image_rotary_emb,
-                    ref_image_rotary_emb=image_rotary_emb,
+                    ref_image_rotary_emb=ref_image_rotary_emb,
                     return_dict=False,
                     customization=True,
                     t5_first=t5_first,
@@ -2731,6 +2769,7 @@ def main(args):
                     cross_attend_text=args.cross_attend_text,
                     layernorm_fix=args.layernorm_fix,
                     text_only_norm_final=args.text_only_norm_final,
+                    second_stage_ref_image=args.second_stage_ref_image,
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
