@@ -2550,7 +2550,7 @@ def main(args):
 
             with accelerator.accumulate(models_to_accumulate):
                 # videos = batch["videos"].to(accelerator.device, dtype=vae.dtype)
-                print('Batch shape: ', batch["videos"].shape)
+                # print('Batch shape: ', batch["videos"].shape)
                 videos = batch["videos"].to(accelerator.device, dtype=weight_dtype)
                 videos = videos.permute(0, 2, 1, 3, 4).to(dtype=weight_dtype)  # [B, F, C, H, W]
                 if not args.use_latent: # if use videos directly in end-to-end manner
