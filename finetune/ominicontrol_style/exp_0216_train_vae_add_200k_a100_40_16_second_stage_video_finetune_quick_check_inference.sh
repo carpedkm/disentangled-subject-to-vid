@@ -10,17 +10,7 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
-export NCCL_IB_DISABLE=0
-export NCCL_IB_PCI_RELAXED_ORDERING=1
-export NCCL_SOCKET_IFNAME=eth0
-export NCCL_NET_GDR_LEVEL=5
-export NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml
-export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
-
-RANDOM_PORT=$((49152 + RANDOM % 16384))
-
-accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_gpu --machine_rank ${NODE_RANK} \
-  --main_process_port ${MASTER_PORT} \
+accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi_gpu \
   ../train_0214_video_posttrain.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
@@ -45,7 +35,7 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --skip_frames_end 0 \
   --train_batch_size 1 \
   --num_train_epochs 30 \
-  --checkpointing_steps 1 \
+  --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
   --learning_rate 5e-5 \
   --lr_scheduler cosine_with_restarts \
@@ -62,10 +52,15 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --t5_first \
   --use_latent \
   --vae_add \
-  --second_stage \
+  --pos_embed \
+  --pos_embed_inf_match \
+  --non_shared_pos_embed \
+  --add_special \
   --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
   --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
-  --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000
+  --resume_from_checkpoint checkpoint-50 \
+  --inference
+  # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000

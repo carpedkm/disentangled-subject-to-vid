@@ -644,6 +644,16 @@ def get_args():
         type=str,
         default=None,
     )
+    parser.add_argument(
+        '--non_shared_pos_embed',
+        action='store_true',
+        help='Whether to use non shared positional embedding or not'
+    )
+    parser.add_argument(
+        '--random_pos',
+        action='store_true',
+        help='Whether to use random positional embedding or not'
+    )
     return parser.parse_args()
 
 
@@ -2617,22 +2627,45 @@ def main(args):
                 timesteps = timesteps.long()
                 
                 if args.pos_embed_inf_match and (not args.second_stage):
-                    # Prepare rotary embeds
-                    image_rotary_emb = (
-                        prepare_rotary_positional_embeddings(
-                            height=args.height,
-                            width=args.width,
-                            num_frames=49,
-                            vae_scale_factor_spatial=vae_scale_factor_spatial,
-                            patch_size=model_config.patch_size,
-                            attention_head_dim=model_config.attention_head_dim,
-                            device=accelerator.device,
+                    if args.non_shared_pos_embed:
+                        image_rotary_emb_src = (
+                            prepare_rotary_positional_embeddings(
+                                height=args.height,
+                                width=args.width,
+                                num_frames=14,
+                                vae_scale_factor_spatial=vae_scale_factor_spatial,
+                                patch_size=model_config.patch_size,
+                                attention_head_dim=model_config.attention_head_dim,
+                                device=accelerator.device,
+                            )
+                            if model_config.use_rotary_positional_embeddings
+                            else None
                         )
-                        if model_config.use_rotary_positional_embeddings
-                        else None
-                    )
-                    # Get the first one only for training
-                    image_rotary_emb = (image_rotary_emb[0][:1350,...], image_rotary_emb[1][:1350,...])
+                        if args.random_pos:
+                            # Randomly select a location for the positional embeddings between 0 and 49 (inclusive)
+                            random_loc = random.randint(0, 12)
+                            ref_image_rotary_emb = (image_rotary_emb_src[0][1350 * random_loc:1350 * (random_loc + 1),...], image_rotary_emb_src[1][1350 * random_loc:1350 * (random_loc + 1),...])
+                            image_rotary_emb = (image_rotary_emb_src[0][1350 * (random_loc + 1):1350 * (random_loc + 2),...], image_rotary_emb_src[1][1350 * (random_loc + 1):1350 * (random_loc + 2),...])
+                        else:
+                            image_rotary_emb = (image_rotary_emb_src[0][1350:2700,...], image_rotary_emb_src[1][1350:2700,...])
+                            ref_image_rotary_emb = (image_rotary_emb_src[0][:1350,...], image_rotary_emb_src[1][:1350,...])
+                    else:
+                        # Prepare rotary embeds
+                        image_rotary_emb = (
+                            prepare_rotary_positional_embeddings(
+                                height=args.height,
+                                width=args.width,
+                                num_frames=13,
+                                vae_scale_factor_spatial=vae_scale_factor_spatial,
+                                patch_size=model_config.patch_size,
+                                attention_head_dim=model_config.attention_head_dim,
+                                device=accelerator.device,
+                            )
+                            if model_config.use_rotary_positional_embeddings
+                            else None
+                        )
+                        # Get the first one only for training
+                        image_rotary_emb = (image_rotary_emb[0][:1350,...], image_rotary_emb[1][:1350,...])
                 else:
                     # Prepare rotary embeds
                     image_rotary_emb = (
@@ -2670,6 +2703,13 @@ def main(args):
                 # Predict the noise residual
                 # print('SHAPE OF NOISY MODEL INPUT >>>', noisy_model_input.shape)
                 # print('SHAPE OF IMAGE ROTARY EMB >>>', image_rotary_emb[0].shape)
+                if args.second_stage:
+                    ref_image_rotary_emb = None
+                else:
+                    if args.non_shared_pos_embed:
+                        ref_image_rotary_emb = ref_image_rotary_emb
+                    else:
+                        ref_image_rotary_emb = image_rotary_emb
                 model_output = transformer(
                     hidden_states=noisy_model_input,
                     ref_img_states=noisy_image_input if args.input_noise_fix else image_input,
@@ -2677,7 +2717,7 @@ def main(args):
                     clip_prompt_embeds=clip_prompt_embeds,
                     timestep=timesteps,
                     image_rotary_emb=image_rotary_emb,
-                    ref_image_rotary_emb=image_rotary_emb if args.second_stage else None,
+                    ref_image_rotary_emb=image_rotary_emb,
                     return_dict=False,
                     customization=True,
                     t5_first=t5_first,
@@ -2818,6 +2858,7 @@ def main(args):
                         'save_every_timestep' : args.save_every_timestep,
                         'layernorm_fix': args.layernorm_fix if args.second_stage is not True else True,
                         'text_only_norm_final': args.text_only_norm_final,
+                        'non_shared_pos_embed': args.non_shared_pos_embed,
                     }
 
                     validation_outputs = log_validation(
