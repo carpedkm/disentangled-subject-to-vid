@@ -57,6 +57,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --pos_embed_inf_match \
   --non_shared_pos_embed \
   --add_special \
+  --layernorm_fix \
   --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
   --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels \
   --load_to_ram \
