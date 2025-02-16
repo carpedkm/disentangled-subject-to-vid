@@ -2206,17 +2206,42 @@ def main(args):
                 for k, v in lora_state_dict.items() 
                 if k.startswith("transformer.")
             }
-            # For transformer, keep the UNet conversion if needed
+            # Convert UNet weights if needed
             transformer_state_dict = convert_unet_state_dict_to_peft(transformer_state_dict)
+
+            # Get current model's state dict
+            model_state_dict = transformer_.state_dict()
+
+            # Identify missing and extra keys due to config change
+            missing_keys = [k for k in transformer_state_dict.keys() if k not in model_state_dict]
+            extra_keys = [k for k in model_state_dict.keys() if k not in transformer_state_dict]
+
+            # Log mismatched keys
+            if missing_keys:
+                print(f"[Warning] Missing keys in new LoRA config (ignored): {missing_keys}")
+            if extra_keys:
+                print(f"[Warning] Extra keys in old LoRA weights (ignored): {extra_keys}")
+
+            # **Filter state dict**: Load only weights that match the new configuration
+            filtered_state_dict = {k: v for k, v in transformer_state_dict.items() if k in model_state_dict}
+
+            # **Load weights into model**
+            transformer_.load_state_dict(filtered_state_dict, strict=False)
+            # transformer_state_dict = {
+            #     f'{k.replace("transformer.", "")}': v 
+            #     for k, v in lora_state_dict.items() 
+            #     if k.startswith("transformer.")
+            # }
+            # # For transformer, keep the UNet conversion if needed
+            # transformer_state_dict = convert_unet_state_dict_to_peft(transformer_state_dict)
             
-            incompatible_keys = set_peft_model_state_dict(
-                transformer_, 
-                transformer_state_dict, 
-                adapter_name="default",
-                strict=False,
-            )
-            if incompatible_keys:
-                print(f"Incompatible keys when loading LoRA weights: {incompatible_keys}")
+            # incompatible_keys = set_peft_model_state_dict(
+            #     transformer_, 
+            #     transformer_state_dict, 
+            #     adapter_name="default",
+            # )
+            # if incompatible_keys:
+            #     print(f"Incompatible keys when loading LoRA weights: {incompatible_keys}")
 
             if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
                 # Load ProjectionLayer weights
