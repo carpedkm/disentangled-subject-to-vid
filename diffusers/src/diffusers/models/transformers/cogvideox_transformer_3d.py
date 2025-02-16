@@ -575,11 +575,14 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         cross_attend_text: bool = False,
         layernorm_fix: bool = False,
         text_only_norm_final: bool = False, 
+        second_stage_ref_image: bool = False,
         # qk_replace: bool = False,
     ):  
         qk_replace = self.qk_replace
         qformer = self.qformer
         if eval:
+            self.second_stage = False
+        if second_stage_ref_image is True:
             self.second_stage = False
         if self.second_stage:
             encoder_hidden_states = encoder_hidden_states

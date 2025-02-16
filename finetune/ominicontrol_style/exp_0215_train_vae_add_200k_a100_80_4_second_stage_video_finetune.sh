@@ -35,7 +35,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --skip_frames_end 0 \
   --train_batch_size 6 \
   --num_train_epochs 30 \
-  --checkpointing_steps 50 \
+  --checkpointing_steps 5 \
   --gradient_accumulation_steps 1 \
   --learning_rate 5e-5 \
   --lr_scheduler cosine_with_restarts \
@@ -53,9 +53,10 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --use_latent \
   --vae_add \
   --second_stage \
+  --second_stage_ref_image \
   --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
   --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
-  --resume_from_checkpoint /mnt/carpedkm_data/result250214/special_tk_layernorm_fix_pos_embed_fix_40_32/checkpoint-6000
+  --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000
