@@ -833,16 +833,23 @@ class VideoDataset(Dataset):
         return len(self.video_path_dict)
 
     def __getitem__(self, index):
-        id_key = list(self.video_path_dict.keys())[index]
-        video_path_to_load = self.video_path_dict[id_key]
-        prompt_loaded = self.prompt_dict[id_key]
-        
-        np_loaded = torch.from_numpy(np.load(video_path_to_load))
-        
-        return {
-            "instance_prompt": prompt_loaded,
-            "instance_video": np_loaded,
-        }
+        while True:
+            try:
+                id_key = list(self.video_path_dict.keys())[index]
+                video_path_to_load = self.video_path_dict[id_key]
+                prompt_loaded = self.prompt_dict[id_key]
+                
+                np_loaded = torch.from_numpy(np.load(video_path_to_load))
+                
+                return {
+                    "instance_prompt": prompt_loaded,
+                    "instance_video": np_loaded,
+                }
+            except Exception as e:
+                print(f"Error loading video {id_key}: {e}")
+                index = (index + 1) % len(self.video_path_dict)
+            
+            
         
 class ImageDataset(Dataset):
     def __init__(
