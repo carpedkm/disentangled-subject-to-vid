@@ -2183,9 +2183,8 @@ def main(args):
                     save_path = os.path.join(output_dir, "perceiver_cross_attention_text.pth")
                     torch.save(cross_attention_layer_state_dict_text, save_path)
 
-
     def load_model_hook(models, input_dir):
-        """Load LoRA weights for transformer and vision models"""
+        """Load LoRA weights for transformer and vision models with optional strict flag"""
         transformer_ = None
         
         # Extract models while emptying the list
@@ -2195,10 +2194,10 @@ def main(args):
                 transformer_ = model
             else:
                 raise ValueError(f"Unexpected save model: {model.__class__}")
-        
-        # Load the combined lora state dict
+
+        # Load the combined LoRA state dict
         lora_state_dict = CogVideoXPipeline.lora_state_dict(input_dir)
-        
+
         # Handle transformer model weights
         if transformer_ is not None:
             transformer_state_dict = {
@@ -2209,53 +2208,36 @@ def main(args):
             # Convert UNet weights if needed
             transformer_state_dict = convert_unet_state_dict_to_peft(transformer_state_dict)
 
-            # Get current model's state dict
-            model_state_dict = transformer_.state_dict()
+            # Flag-based strict loading
+            use_strict=False
+            # use_strict = args.use_strict_loading if hasattr(args, "use_strict_loading") else False
 
-            # Identify missing and extra keys due to config change
-            missing_keys = [k for k in transformer_state_dict.keys() if k not in model_state_dict]
-            extra_keys = [k for k in model_state_dict.keys() if k not in transformer_state_dict]
+            if use_strict:
+                incompatible_keys = set_peft_model_state_dict(
+                    transformer_, transformer_state_dict, adapter_name="default"
+                )
+            else:
+                # Handle missing/extra keys manually
+                model_state_dict = transformer_.state_dict()
+                filtered_state_dict = {k: v for k, v in transformer_state_dict.items() if k in model_state_dict}
+                transformer_.load_state_dict(filtered_state_dict, strict=False)
+                incompatible_keys = None  # No strict check
 
-            # Log mismatched keys
-            if missing_keys:
-                print(f"[Warning] Missing keys in new LoRA config (ignored): {missing_keys}")
-            if extra_keys:
-                print(f"[Warning] Extra keys in old LoRA weights (ignored): {extra_keys}")
-
-            # **Filter state dict**: Load only weights that match the new configuration
-            filtered_state_dict = {k: v for k, v in transformer_state_dict.items() if k in model_state_dict}
-
-            # **Load weights into model**
-            transformer_.load_state_dict(filtered_state_dict, strict=False)
-            # transformer_state_dict = {
-            #     f'{k.replace("transformer.", "")}': v 
-            #     for k, v in lora_state_dict.items() 
-            #     if k.startswith("transformer.")
-            # }
-            # # For transformer, keep the UNet conversion if needed
-            # transformer_state_dict = convert_unet_state_dict_to_peft(transformer_state_dict)
-            
-            # incompatible_keys = set_peft_model_state_dict(
-            #     transformer_, 
-            #     transformer_state_dict, 
-            #     adapter_name="default",
-            # )
-            # if incompatible_keys:
-            #     print(f"Incompatible keys when loading LoRA weights: {incompatible_keys}")
-
-            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
-                # Load ProjectionLayer weights
+            # Additional model components (Projection & CLIP layers)
+            if not (args.vae_add or args.cross_attend or args.cross_attend_text or args.qk_replace or args.qformer):
                 transformer_.T5ProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "T5ProjectionLayer.pth")))
                 transformer_.CLIPTextProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPTextProjectionLayer.pth")))
                 transformer_.CLIPVisionProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPVisionProjectionLayer.pth")))
-                
+
                 # Load CLIPVisionModel weights
                 vision_model_state_dict = torch.load(os.path.join(input_dir, "pytorch_clip_vision_model.bin"))
                 transformer_.reference_vision_encoder.load_state_dict(vision_model_state_dict)
+
             elif args.qformer:
                 # Load QFormer weights
                 qformer_state = torch.load(os.path.join(input_dir, "QformerAligner.pth"))
-                transformer.QformerAligner.load_state_dict(qformer_state)
+                transformer_.QformerAligner.load_state_dict(qformer_state)
+
             if args.cross_attend or args.cross_attend_text:
                 if args.cross_attend:
                     cross_attention_layer_state_dict = torch.load(os.path.join(input_dir, "perceiver_cross_attention.pth"))
@@ -2263,14 +2245,102 @@ def main(args):
                 if args.cross_attend_text:
                     cross_attention_layer_state_dict_text = torch.load(os.path.join(input_dir, "perceiver_cross_attention_text.pth"))
                     transformer_.perceiver_cross_attention_text.load_state_dict(cross_attention_layer_state_dict_text)
-            # if incompatible_keys is not None:
-            #     # check only for unexpected keys
-            #     unexpected_keys = getattr(incompatible_keys, "unexpected_keys", None)
-            #     if unexpected_keys:
-            #         logger.warning(
-            #             f"Loading adapter weights from state_dict led to unexpected keys not found in the model: "
-            #             f" {unexpected_keys}. "
-            #         )
+
+            # Log unexpected keys only if `strict=True`
+            if incompatible_keys is not None:
+                unexpected_keys = getattr(incompatible_keys, "unexpected_keys", None)
+                if unexpected_keys:
+                    logger.warning(f"Unexpected keys not found in the model: {unexpected_keys}.")
+
+        return transformer_
+
+    # def load_model_hook(models, input_dir):
+    #     """Load LoRA weights for transformer and vision models"""
+    #     transformer_ = None
+        
+    #     # Extract models while emptying the list
+    #     while len(models) > 0:
+    #         model = models.pop()
+    #         if isinstance(model, type(unwrap_model(transformer))):
+    #             transformer_ = model
+    #         else:
+    #             raise ValueError(f"Unexpected save model: {model.__class__}")
+        
+    #     # Load the combined lora state dict
+    #     lora_state_dict = CogVideoXPipeline.lora_state_dict(input_dir)
+        
+    #     # Handle transformer model weights
+    #     if transformer_ is not None:
+    #         transformer_state_dict = {
+    #             f'{k.replace("transformer.", "")}': v 
+    #             for k, v in lora_state_dict.items() 
+    #             if k.startswith("transformer.")
+    #         }
+    #         # Convert UNet weights if needed
+    #         transformer_state_dict = convert_unet_state_dict_to_peft(transformer_state_dict)
+
+    #         # Get current model's state dict
+    #         model_state_dict = transformer_.state_dict()
+
+    #         # Identify missing and extra keys due to config change
+    #         missing_keys = [k for k in transformer_state_dict.keys() if k not in model_state_dict]
+    #         extra_keys = [k for k in model_state_dict.keys() if k not in transformer_state_dict]
+
+    #         # Log mismatched keys
+    #         if missing_keys:
+    #             print(f"[Warning] Missing keys in new LoRA config (ignored): {missing_keys}")
+    #         if extra_keys:
+    #             print(f"[Warning] Extra keys in old LoRA weights (ignored): {extra_keys}")
+
+    #         # **Filter state dict**: Load only weights that match the new configuration
+    #         filtered_state_dict = {k: v for k, v in transformer_state_dict.items() if k in model_state_dict}
+
+    #         # **Load weights into model**
+    #         transformer_.load_state_dict(filtered_state_dict, strict=False)
+    #         # transformer_state_dict = {
+    #         #     f'{k.replace("transformer.", "")}': v 
+    #         #     for k, v in lora_state_dict.items() 
+    #         #     if k.startswith("transformer.")
+    #         # }
+    #         # # For transformer, keep the UNet conversion if needed
+    #         # transformer_state_dict = convert_unet_state_dict_to_peft(transformer_state_dict)
+            
+    #         # incompatible_keys = set_peft_model_state_dict(
+    #         #     transformer_, 
+    #         #     transformer_state_dict, 
+    #         #     adapter_name="default",
+    #         # )
+    #         # if incompatible_keys:
+    #         #     print(f"Incompatible keys when loading LoRA weights: {incompatible_keys}")
+
+    #         if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
+    #             # Load ProjectionLayer weights
+    #             transformer_.T5ProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "T5ProjectionLayer.pth")))
+    #             transformer_.CLIPTextProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPTextProjectionLayer.pth")))
+    #             transformer_.CLIPVisionProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPVisionProjectionLayer.pth")))
+                
+    #             # Load CLIPVisionModel weights
+    #             vision_model_state_dict = torch.load(os.path.join(input_dir, "pytorch_clip_vision_model.bin"))
+    #             transformer_.reference_vision_encoder.load_state_dict(vision_model_state_dict)
+    #         elif args.qformer:
+    #             # Load QFormer weights
+    #             qformer_state = torch.load(os.path.join(input_dir, "QformerAligner.pth"))
+    #             transformer.QformerAligner.load_state_dict(qformer_state)
+    #         if args.cross_attend or args.cross_attend_text:
+    #             if args.cross_attend:
+    #                 cross_attention_layer_state_dict = torch.load(os.path.join(input_dir, "perceiver_cross_attention.pth"))
+    #                 transformer_.perceiver_cross_attention.load_state_dict(cross_attention_layer_state_dict)
+    #             if args.cross_attend_text:
+    #                 cross_attention_layer_state_dict_text = torch.load(os.path.join(input_dir, "perceiver_cross_attention_text.pth"))
+    #                 transformer_.perceiver_cross_attention_text.load_state_dict(cross_attention_layer_state_dict_text)
+    #         # if incompatible_keys is not None:
+    #         #     # check only for unexpected keys
+    #         #     unexpected_keys = getattr(incompatible_keys, "unexpected_keys", None)
+    #         #     if unexpected_keys:
+    #         #         logger.warning(
+    #         #             f"Loading adapter weights from state_dict led to unexpected keys not found in the model: "
+    #         #             f" {unexpected_keys}. "
+    #         #         )
         
     print("Registering save and load hooks")
     accelerator.register_save_state_pre_hook(save_model_hook)
