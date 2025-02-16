@@ -2212,7 +2212,7 @@ def main(args):
             incompatible_keys = set_peft_model_state_dict(
                 transformer_, 
                 transformer_state_dict, 
-                adapter_name="default"
+                adapter_name="default",
                 strict=False,
             )
             if incompatible_keys:
