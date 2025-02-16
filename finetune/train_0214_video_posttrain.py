@@ -2213,7 +2213,11 @@ def main(args):
                 transformer_, 
                 transformer_state_dict, 
                 adapter_name="default"
+                strict=False,
             )
+            if incompatible_keys:
+                print(f"Incompatible keys when loading LoRA weights: {incompatible_keys}")
+
             if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
                 # Load ProjectionLayer weights
                 transformer_.T5ProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "T5ProjectionLayer.pth")))
