@@ -2336,6 +2336,7 @@ def main(args):
     print("Dataset and DataLoader")
     # Dataset and DataLoader
     if args.second_stage is True:
+        print('Loading VideoDataset for Second Stage')
         train_dataset = VideoDataset(
             video_instance_root=args.video_instance_root,
             video_anno=args.video_anno,
@@ -2346,10 +2347,10 @@ def main(args):
         def collate_fn(examples):
             videos = [example['instance_video'] for example in examples]
             prompts = [example['instance_prompt'] for example in examples]
-            if args.use_latent:
-                videos = torch.cat(videos, dim=0)
-            else:
-                videos = torch.stack(videos)
+            # if args.use_latent:
+            videos = torch.cat(videos, dim=0)
+            # else:
+            # videos = torch.stack(videos, dim=0)
             videos = videos.to(memory_format=torch.contiguous_format).float()
             batch = {
                 "videos": videos,
@@ -2549,6 +2550,7 @@ def main(args):
 
             with accelerator.accumulate(models_to_accumulate):
                 # videos = batch["videos"].to(accelerator.device, dtype=vae.dtype)
+                print('Batch shape: ', batch["videos"].shape)
                 videos = batch["videos"].to(accelerator.device, dtype=weight_dtype)
                 videos = videos.permute(0, 2, 1, 3, 4).to(dtype=weight_dtype)  # [B, F, C, H, W]
                 if not args.use_latent: # if use videos directly in end-to-end manner

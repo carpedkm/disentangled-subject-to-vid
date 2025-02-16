@@ -24,6 +24,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
   --rank 128 \
+  
   --lora_alpha 64 \
   --mixed_precision bf16 \
   --output_dir $OUTPUT_PATH \
