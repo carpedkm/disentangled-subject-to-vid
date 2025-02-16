@@ -1217,6 +1217,7 @@ class ImageDataset(Dataset):
         # print(f"Image tensor shape after permute: {image.shape}")  
         return image
 
+
 class CombinedDataset(Dataset):
     def __init__(self, video_dataset, image_dataset, p=0.5):
         """
@@ -1230,17 +1231,21 @@ class CombinedDataset(Dataset):
         self.p = p
 
     def __len__(self):
-        # The total length of the combined dataset will be the sum of the lengths
         return max(len(self.video_dataset), len(self.image_dataset))
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx, batch_idx=None):
+        # get random seed set with batch_idx
+        random.seed(batch_idx)
         if random.random() < self.p:
-            # With probability p, return a sample from the video dataset
-            return self.video_dataset[idx % len(self.video_dataset)]  # Ensure the index is within range
+            return self.video_dataset[idx % len(self.video_dataset)]
         else:
-            # With probability (1-p), return a sample from the image dataset
-            return self.image_dataset[idx % len(self.image_dataset)]  # Ensure the index is within range
+            return self.image_dataset[idx % len(self.image_dataset)]
 
+class CustomDataLoader(DataLoader):
+    def __iter__(self):
+        for batch_idx, batch in enumerate(super().__iter__()):
+            yield [(data, batch_idx) for data in batch]
+            
 def save_model_card(
     repo_id: str,
     videos=None,
@@ -2420,6 +2425,7 @@ def main(args):
             videos = [example["instance_video"] for example in examples]
             prompts = [example["instance_prompt"] for example in examples]
             ref_images = [example["instance_ref_image"] for example in examples]
+            print('TYPES :::::', [example["type"] for example in examples])
             # Stack the videos
             if args.use_latent:
                 videos = torch.cat(videos, dim=0)
@@ -2512,7 +2518,7 @@ def main(args):
         seed = torch.initial_seed() % 2**32
         np.random.seed(seed)
         random.seed(seed)
-    train_dataloader = DataLoader(
+    train_dataloader = CustomDataLoader(
         train_dataset,
         batch_size=args.train_batch_size,
         shuffle=True,
@@ -2647,6 +2653,8 @@ def main(args):
         # update random seed
         # set_seed(args.seed + epoch)
         for step, batch in enumerate(train_dataloader):
+            batch, batch_idx = batch
+            print('Batch Index: ', batch_idx)
             if args.combined_training is True:
                 type_of_batch = batch["type"]
                 if type_of_batch == 0: #FIXME
