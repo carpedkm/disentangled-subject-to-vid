@@ -61,6 +61,5 @@ accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
-  --resume_from_checkpoint checkpoint-50 \
   --inference
   # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000
