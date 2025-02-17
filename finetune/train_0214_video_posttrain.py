@@ -659,6 +659,11 @@ def get_args():
         action='store_true',
         help='Whether to use random positional embedding or not'
     )
+    parser.add_argument(
+        '--video_ref_root',
+        type=str,
+        default=None,
+    )
     return parser.parse_args()
 
 
@@ -794,6 +799,7 @@ class VideoDataset(Dataset):
         self,
         video_instance_root: Optional[str] = None,
         video_anno: Optional[str] = None,
+        video_ref_root: Optional[str] = None,
         height: int = 480,
         width: int = 720,
         fps: int = 8,
@@ -813,6 +819,9 @@ class VideoDataset(Dataset):
         self.video_path_dict = {}
         for id_ in list(id_mapper.keys()):
             self.video_path_dict[id_] = os.path.join(video_instance_root, id_ + '_vae_latents.npy')
+        self.video_ref_path_dict = {}
+        for id_ in list(id_mapper.keys()):
+            self.video_ref_path_dict[id_] = os.path.join(video_ref_root, id_ + '_vae_latents.npy')
         self.prompt_dict = {}
         for id_ in list(id_mapper.keys()):
             self.prompt_dict[id_] = self.id_token + id_mapper[id_]['text']
@@ -846,7 +855,7 @@ class VideoDataset(Dataset):
 
     def __len__(self):
         return len(self.video_path_dict)
-
+ 
     def __getitem__(self, index):
         while True:
             try:
@@ -855,12 +864,13 @@ class VideoDataset(Dataset):
                 prompt_loaded = self.prompt_dict[id_key]
                 
                 np_loaded = torch.from_numpy(np.load(video_path_to_load))
+                ref_loaded = torch.from_numpy(np.load(self.video_ref_path_dict[id_key]))
                 # what is the shape of np_loaded?
                 
                 
                 return {
                     "instance_prompt": prompt_loaded,
-                    "instance_ref_image": np_loaded[:,:,0,...].unsqueeze(2),
+                    "instance_ref_image": ref_loaded,
                     "instance_video": np_loaded,
                 }
             except Exception as e:
@@ -2092,7 +2102,7 @@ def main(args):
         r=args.rank,
         lora_alpha=args.lora_alpha,
         init_lora_weights=True,
-        target_modules=["to_k", "to_q", "to_v", "to_out.0", "proj"], # "time_embedding.linear_1", "time_embedding.linear_2"],
+        target_modules=["to_k", "to_q", "to_v", "to_out.0", "proj", "text_proj","norm1.linear", "norm2.linear", "ff.net.2"], # "time_embedding.linear_1", "time_embedding.linear_2"],
         exclude_modules=unfreeze_modules
     )
     # need to also train cross_attention layer separately wholely, not with LoRA
@@ -2183,8 +2193,9 @@ def main(args):
                     save_path = os.path.join(output_dir, "perceiver_cross_attention_text.pth")
                     torch.save(cross_attention_layer_state_dict_text, save_path)
 
+
     def load_model_hook(models, input_dir):
-        """Load LoRA weights for transformer and vision models with optional strict flag"""
+        """Load LoRA weights for transformer and vision models"""
         transformer_ = None
         
         # Extract models while emptying the list
@@ -2194,10 +2205,10 @@ def main(args):
                 transformer_ = model
             else:
                 raise ValueError(f"Unexpected save model: {model.__class__}")
-
-        # Load the combined LoRA state dict
+        
+        # Load the combined lora state dict
         lora_state_dict = CogVideoXPipeline.lora_state_dict(input_dir)
-
+        
         # Handle transformer model weights
         if transformer_ is not None:
             transformer_state_dict = {
@@ -2205,39 +2216,27 @@ def main(args):
                 for k, v in lora_state_dict.items() 
                 if k.startswith("transformer.")
             }
-            # Convert UNet weights if needed
+            # For transformer, keep the UNet conversion if needed
             transformer_state_dict = convert_unet_state_dict_to_peft(transformer_state_dict)
-
-            # Flag-based strict loading
-            use_strict=False
-            # use_strict = args.use_strict_loading if hasattr(args, "use_strict_loading") else False
-
-            if use_strict:
-                incompatible_keys = set_peft_model_state_dict(
-                    transformer_, transformer_state_dict, adapter_name="default"
-                )
-            else:
-                # Handle missing/extra keys manually
-                model_state_dict = transformer_.state_dict()
-                filtered_state_dict = {k: v for k, v in transformer_state_dict.items() if k in model_state_dict}
-                transformer_.load_state_dict(filtered_state_dict, strict=False)
-                incompatible_keys = None  # No strict check
-
-            # Additional model components (Projection & CLIP layers)
-            if not (args.vae_add or args.cross_attend or args.cross_attend_text or args.qk_replace or args.qformer):
+            
+            incompatible_keys = set_peft_model_state_dict(
+                transformer_, 
+                transformer_state_dict, 
+                adapter_name="default"
+            )
+            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
+                # Load ProjectionLayer weights
                 transformer_.T5ProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "T5ProjectionLayer.pth")))
                 transformer_.CLIPTextProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPTextProjectionLayer.pth")))
                 transformer_.CLIPVisionProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPVisionProjectionLayer.pth")))
-
+                
                 # Load CLIPVisionModel weights
                 vision_model_state_dict = torch.load(os.path.join(input_dir, "pytorch_clip_vision_model.bin"))
                 transformer_.reference_vision_encoder.load_state_dict(vision_model_state_dict)
-
             elif args.qformer:
                 # Load QFormer weights
                 qformer_state = torch.load(os.path.join(input_dir, "QformerAligner.pth"))
-                transformer_.QformerAligner.load_state_dict(qformer_state)
-
+                transformer.QformerAligner.load_state_dict(qformer_state)
             if args.cross_attend or args.cross_attend_text:
                 if args.cross_attend:
                     cross_attention_layer_state_dict = torch.load(os.path.join(input_dir, "perceiver_cross_attention.pth"))
@@ -2245,102 +2244,14 @@ def main(args):
                 if args.cross_attend_text:
                     cross_attention_layer_state_dict_text = torch.load(os.path.join(input_dir, "perceiver_cross_attention_text.pth"))
                     transformer_.perceiver_cross_attention_text.load_state_dict(cross_attention_layer_state_dict_text)
-
-            # Log unexpected keys only if `strict=True`
             if incompatible_keys is not None:
+                # check only for unexpected keys
                 unexpected_keys = getattr(incompatible_keys, "unexpected_keys", None)
                 if unexpected_keys:
-                    logger.warning(f"Unexpected keys not found in the model: {unexpected_keys}.")
-
-        return transformer_
-
-    # def load_model_hook(models, input_dir):
-    #     """Load LoRA weights for transformer and vision models"""
-    #     transformer_ = None
-        
-    #     # Extract models while emptying the list
-    #     while len(models) > 0:
-    #         model = models.pop()
-    #         if isinstance(model, type(unwrap_model(transformer))):
-    #             transformer_ = model
-    #         else:
-    #             raise ValueError(f"Unexpected save model: {model.__class__}")
-        
-    #     # Load the combined lora state dict
-    #     lora_state_dict = CogVideoXPipeline.lora_state_dict(input_dir)
-        
-    #     # Handle transformer model weights
-    #     if transformer_ is not None:
-    #         transformer_state_dict = {
-    #             f'{k.replace("transformer.", "")}': v 
-    #             for k, v in lora_state_dict.items() 
-    #             if k.startswith("transformer.")
-    #         }
-    #         # Convert UNet weights if needed
-    #         transformer_state_dict = convert_unet_state_dict_to_peft(transformer_state_dict)
-
-    #         # Get current model's state dict
-    #         model_state_dict = transformer_.state_dict()
-
-    #         # Identify missing and extra keys due to config change
-    #         missing_keys = [k for k in transformer_state_dict.keys() if k not in model_state_dict]
-    #         extra_keys = [k for k in model_state_dict.keys() if k not in transformer_state_dict]
-
-    #         # Log mismatched keys
-    #         if missing_keys:
-    #             print(f"[Warning] Missing keys in new LoRA config (ignored): {missing_keys}")
-    #         if extra_keys:
-    #             print(f"[Warning] Extra keys in old LoRA weights (ignored): {extra_keys}")
-
-    #         # **Filter state dict**: Load only weights that match the new configuration
-    #         filtered_state_dict = {k: v for k, v in transformer_state_dict.items() if k in model_state_dict}
-
-    #         # **Load weights into model**
-    #         transformer_.load_state_dict(filtered_state_dict, strict=False)
-    #         # transformer_state_dict = {
-    #         #     f'{k.replace("transformer.", "")}': v 
-    #         #     for k, v in lora_state_dict.items() 
-    #         #     if k.startswith("transformer.")
-    #         # }
-    #         # # For transformer, keep the UNet conversion if needed
-    #         # transformer_state_dict = convert_unet_state_dict_to_peft(transformer_state_dict)
-            
-    #         # incompatible_keys = set_peft_model_state_dict(
-    #         #     transformer_, 
-    #         #     transformer_state_dict, 
-    #         #     adapter_name="default",
-    #         # )
-    #         # if incompatible_keys:
-    #         #     print(f"Incompatible keys when loading LoRA weights: {incompatible_keys}")
-
-    #         if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
-    #             # Load ProjectionLayer weights
-    #             transformer_.T5ProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "T5ProjectionLayer.pth")))
-    #             transformer_.CLIPTextProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPTextProjectionLayer.pth")))
-    #             transformer_.CLIPVisionProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPVisionProjectionLayer.pth")))
-                
-    #             # Load CLIPVisionModel weights
-    #             vision_model_state_dict = torch.load(os.path.join(input_dir, "pytorch_clip_vision_model.bin"))
-    #             transformer_.reference_vision_encoder.load_state_dict(vision_model_state_dict)
-    #         elif args.qformer:
-    #             # Load QFormer weights
-    #             qformer_state = torch.load(os.path.join(input_dir, "QformerAligner.pth"))
-    #             transformer.QformerAligner.load_state_dict(qformer_state)
-    #         if args.cross_attend or args.cross_attend_text:
-    #             if args.cross_attend:
-    #                 cross_attention_layer_state_dict = torch.load(os.path.join(input_dir, "perceiver_cross_attention.pth"))
-    #                 transformer_.perceiver_cross_attention.load_state_dict(cross_attention_layer_state_dict)
-    #             if args.cross_attend_text:
-    #                 cross_attention_layer_state_dict_text = torch.load(os.path.join(input_dir, "perceiver_cross_attention_text.pth"))
-    #                 transformer_.perceiver_cross_attention_text.load_state_dict(cross_attention_layer_state_dict_text)
-    #         # if incompatible_keys is not None:
-    #         #     # check only for unexpected keys
-    #         #     unexpected_keys = getattr(incompatible_keys, "unexpected_keys", None)
-    #         #     if unexpected_keys:
-    #         #         logger.warning(
-    #         #             f"Loading adapter weights from state_dict led to unexpected keys not found in the model: "
-    #         #             f" {unexpected_keys}. "
-    #         #         )
+                    logger.warning(
+                        f"Loading adapter weights from state_dict led to unexpected keys not found in the model: "
+                        f" {unexpected_keys}. "
+                    )
         
     print("Registering save and load hooks")
     accelerator.register_save_state_pre_hook(save_model_hook)
@@ -2362,28 +2273,6 @@ def main(args):
         cast_training_params([transformer], dtype=torch.float32)
 
     transformer_lora_parameters = list(filter(lambda p: p.requires_grad, transformer.parameters()))
-
-    # ADDED CLIP VISION MODEL's PARAM
-    # clip_vision_model_parameters = list(filter(lambda p: p.requires_grad, clip_vision_model.parameters()))
-    # transformer_lora_parameters.extend(clip_vision_model_parameters)
-
-    # Optimization parameters for the transformer (w/o projection layers)
-    # transformer_parameters_with_lr = {"params": transformer_lora_parameters, "lr": args.learning_rate}
-    # params_to_optimize = [transformer_parameters_with_lr]
-
-    # use_deepspeed_optimizer = (
-    #     accelerator.state.deepspeed_plugin is not None
-    #     and "optimizer" in accelerator.state.deepspeed_plugin.deepspeed_config
-    # )
-    # use_deepspeed_scheduler = (
-    #     accelerator.state.deepspeed_plugin is not None
-    #     and "scheduler" not in accelerator.state.deepspeed_plugin.deepspeed_config
-    # )
-    # print("Getting optimizer")
-    # optimizer = get_optimizer(args, params_to_optimize, use_deepspeed=use_deepspeed_optimizer)
-    
-    
-    # Optimization parameters (w/ projection layers)
     transformer_parameters_with_lr = {"params": transformer_lora_parameters, "lr": args.learning_rate}
 
     # Add the parameters of the projection layers with their learning rates
@@ -2457,6 +2346,7 @@ def main(args):
         train_dataset = VideoDataset(
             video_instance_root=args.video_instance_root,
             video_anno=args.video_anno,
+            video_ref_root = args.video_ref_root,
             height=args.height,
             width=args.width,
             seen_validation=args.seen_validation,
