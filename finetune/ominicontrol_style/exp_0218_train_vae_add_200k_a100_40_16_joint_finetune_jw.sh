@@ -70,8 +70,8 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --joint_train \
   --prob_sample_video 0.1 \
   --video_anno /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
-  --video_instance_root /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train_pexels \
-  --video_ref_root /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train_pexels_last \
+  --video_instance_root /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train_pexels/second_stage_video_train_pexels \
+  --video_ref_root /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train_pexels_last/second_stage_video_train_pexels_last \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
