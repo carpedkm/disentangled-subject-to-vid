@@ -6,7 +6,7 @@ export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_u
 export OUTPUT_PATH="/mnt/carpedkm_data/result250218/joint_train_debug_80_4"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
