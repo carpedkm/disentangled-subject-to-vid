@@ -1295,22 +1295,22 @@ class CustomBatchSampler(Sampler):
     def __iter__(self):
         while True:
             if random.random() < self.p:
-                print('VIDEO BATCH : ', self.video_flag, self.video_flag + self.video_batch_size)
+                # print('VIDEO BATCH : ', self.video_flag, self.video_flag + self.video_batch_size)
                 # Sample from the video dataset
                 video_batch = self.video_ids[self.video_flag : self.video_flag + self.video_batch_size]
                 self.video_flag = (self.video_flag + self.video_batch_size) % (len(self.video_ids) - self.video_batch_size)
-                print('video flag', self.video_flag)
+                # print('video flag', self.video_flag)
                 yield video_batch
                 # # video_batch = random.sample(self.video_ids, self.batch_size)
                 # for idx in video_batch:
                 #     yield idx
             else:
-                print('IMAGE BATCH : ', self.image_flag, self.image_flag + self.image_batch_size)
+                # print('IMAGE BATCH : ', self.image_flag, self.image_flag + self.image_batch_size)
                 # Sample from the image dataset
                 image_batch = self.image_ids[self.image_flag : self.image_flag + self.image_batch_size]
                 # image_batch = random.sample(self.image_ids, self.batch_size)
                 self.image_flag = (self.image_flag + self.image_batch_size) % (len(self.video_ids) - self.image_batch_size)
-                print('image flag', self.image_flag)
+                # print('image flag', self.image_flag)
                 yield image_batch
 
     def __len__(self):
