@@ -42,7 +42,12 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             # Extract frames
             # frames = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
             frames = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
-            print(frames.shape)
+            # print('FRAMES SHAPE ', frames.shape)
+            # FIXME
+            frames = frames[-1,...]
+            frames = np.expand_dims(frames, axis=0)
+            max_frames = 1
+            # print('AFTER FRAMES SHAPE ', frames.shape)
             # Ensure exact number of frames
             if frames.shape[0] < max_frames:
                 pad_frames = max_frames - frames.shape[0]
@@ -50,6 +55,8 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
                 frames = np.pad(frames, ((0, pad_frames), (0, 0), (0, 0), (0, 0)), mode="constant")
             elif frames.shape[0] > max_frames:
                 frames = frames[:max_frames]
+            else:
+                print('FRAME COUNT MATCHED')
             # Resize frames using OpenCV
             frames = np.array([cv2.resize(frame, (width, height), interpolation=cv2.INTER_LINEAR) for frame in frames])
 
@@ -151,7 +158,7 @@ if __name__ == "__main__":
         
     video_dir = '/mnt/video_data/'
     vae_model_path = "THUDM/CogVideoX-5b"
-    output_dir = "/mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_first"
+    output_dir = "/mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_last"
     video_paths = [str(Path(video_dir) / f"{video_key}.mp4") for video_key in video_keys]
     extract_vae_latents(
             video_dir,
@@ -160,7 +167,7 @@ if __name__ == "__main__":
             output_dir,
             height=480,
             width=720,
-            max_frames=1,
-            fps=4,
+            max_frames=49,
+            fps=16,
             video_dict=video_dict,
         )

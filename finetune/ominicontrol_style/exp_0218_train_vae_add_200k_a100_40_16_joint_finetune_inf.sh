@@ -66,4 +66,4 @@ accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
   --inference \
-  --resume_from_checkpoint checkpoint-500
+  --resume_from_checkpoint checkpoint-1050
