@@ -1295,7 +1295,7 @@ class CustomSampler(Sampler):
                 print('VIDEO BATCH : ', self.video_flag, self.video_flag + self.batch_size)
                 # Sample from the video dataset
                 video_batch = self.video_ids[self.video_flag : self.video_flag + self.batch_size]
-                self.video_flag = (self.video_flat + self.batch_size) % len(self.video_ids - self.batch_size)
+                self.video_flag = (self.video_flat + self.batch_size) % (len(self.video_ids) - self.batch_size)
                 print('video flag', self.video_flag)
                 # video_batch = random.sample(self.video_ids, self.batch_size)
                 for idx in video_batch:
@@ -1305,7 +1305,7 @@ class CustomSampler(Sampler):
                 # Sample from the image dataset
                 image_batch = self.image_ids[self.image_flag : self.image_flag + self.batch_size]
                 # image_batch = random.sample(self.image_ids, self.batch_size)
-                self.image_flag = (self.image_flag + self.batch_size) % len(self.video_ids - self.batch_size)
+                self.image_flag = (self.image_flag + self.batch_size) % (len(self.video_ids) - self.batch_size)
                 print('image flag', self.image_flag)
                 for idx in image_batch:
                     yield idx
