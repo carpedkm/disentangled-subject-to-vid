@@ -1246,8 +1246,8 @@ class CombinedDataset(Dataset):
         """
         self.video_dataset = video_dataset
         self.image_dataset = image_dataset
-
-
+        self.val_instance_prompt_dict = self.image_dataset.val_instance_prompt_dict
+        self.dataset_name = self.image_dataset.dataset_name
     def __len__(self):
         return len(self.video_dataset) + len(self.image_dataset)
 
@@ -1266,7 +1266,7 @@ class CombinedDataset(Dataset):
             return self.image_dataset[idx % len(self.image_dataset)]
 
 
-class CustomBatchSampler(Sampler):
+class CustomSampler(Sampler):
     def __init__(self, video_id_len, image_id_len, batch_size, p=0.5):
         """
         Custom batch sampler to ensure each batch contains samples from only one dataset (video or image).
@@ -1277,26 +1277,41 @@ class CustomBatchSampler(Sampler):
             batch_size: The batch size for sampling.
             p: Probability of selecting a batch from the video dataset (default is 0.5).
         """
-        
+        # random seed set
         self.image_ids = list(range(image_id_len))
+        # shuffle the image ids
+        random.shuffle(self.image_ids)
         self.video_ids = [idx_  + image_id_len  for idx_ in list(range(video_id_len))]# to not overlap with image ids
+        # shuffle the video ids
+        random.shuffle(self.video_ids)
         self.batch_size = batch_size
         self.p = p
+        self.video_flag = 0
+        self.image_flag = 0
 
     def __iter__(self):
         while True:
             if random.random() < self.p:
+                print('VIDEO BATCH : ', self.video_flag, self.video_flag + self.batch_size)
                 # Sample from the video dataset
-                video_batch = random.sample(self.video_ids, self.batch_size)
-                yield video_batch
+                video_batch = self.video_ids[self.video_flag : self.video_flag + self.batch_size]
+                self.video_flag = (self.video_flat + self.batch_size) % len(self.video_ids - self.batch_size)
+                print('video flag', self.video_flag)
+                # video_batch = random.sample(self.video_ids, self.batch_size)
+                for idx in video_batch:
+                    yield idx
             else:
+                print('IMAGE BATCH : ', self.image_flag, self.image_flag + self.batch_size)
                 # Sample from the image dataset
-                image_batch = random.sample(self.image_ids, self.batch_size)
-                yield image_batch
+                image_batch = self.image_ids[self.image_flag : self.image_flag + self.batch_size]
+                # image_batch = random.sample(self.image_ids, self.batch_size)
+                self.image_flag = (self.image_flag + self.batch_size) % len(self.video_ids - self.batch_size)
+                print('image flag', self.image_flag)
+                for idx in image_batch:
+                    yield idx
 
     def __len__(self):
-        return max(len(self.video_ids), len(self.image_ids)) // self.batch_size
-
+        return len(self.video_ids) + len(self.image_ids)
 
 def save_model_card(
     repo_id: str,
@@ -1504,7 +1519,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 49, #args.max_num_frames,
+                'num_frames': 13, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
@@ -2454,6 +2469,7 @@ def main(args):
             # SHOULD ALSO UPDATE COMBINED_DATASET-> We do not need prob samp video iside the dataset, as we have it inside custom batch sampler
             train_dataset = CombinedDataset(video_dataset, image_dataset, args.prob_sample_video) #FIXME - add argument for prob_sample_video
             def collate_fn(examples):
+                
                 videos = [example['instance_video'] for example in examples]
                 prompts = [example['instance_prompt'] for example in examples]
                 ref_images = [example['instance_ref_image'] for example in examples]
@@ -2477,7 +2493,7 @@ def main(args):
                 train_dataset,
                 batch_size=args.train_batch_size,
                 shuffle=False,
-                sampler=CustomBatchSampler(len(video_dataset), len(image_dataset), batch_size=args.train_batch_size, p=args.prob_sample_video),
+                sampler=CustomSampler(len(video_dataset), len(image_dataset), batch_size=args.train_batch_size, p=args.prob_sample_video),
                 collate_fn=collate_fn,
                 num_workers=args.dataloader_num_workers,
                 prefetch_factor=4,
@@ -2884,7 +2900,7 @@ def main(args):
                 # Predict the noise residual
                 # print('SHAPE OF NOISY MODEL INPUT >>>', noisy_model_input.shape)
                 # print('SHAPE OF IMAGE ROTARY EMB >>>', image_rotary_emb[0].shape)
-                if args.join_train:
+                if args.joint_train:
                     pass
                 else:
                     if args.second_stage:

@@ -10,7 +10,17 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
-accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --multi_gpu \
+export NCCL_IB_DISABLE=0
+export NCCL_IB_PCI_RELAXED_ORDERING=1
+export NCCL_SOCKET_IFNAME=eth0
+export NCCL_NET_GDR_LEVEL=5
+export NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml
+export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
+
+RANDOM_PORT=$((49152 + RANDOM % 16384))
+
+accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_gpu --machine_rank ${NODE_RANK} \
+  --main_process_port ${MASTER_PORT} \
   ../train_0218_combined.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
