@@ -34,7 +34,7 @@ from accelerate.logging import get_logger
 from accelerate.utils import DistributedDataParallelKwargs, ProjectConfiguration, set_seed
 from huggingface_hub import create_repo, upload_folder
 from peft import LoraConfig, get_peft_model_state_dict, set_peft_model_state_dict ,TaskType, get_peft_model
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, Sampler
 from torchvision import transforms
 from tqdm.auto import tqdm
 
@@ -660,9 +660,19 @@ def get_args():
         help='Whether to use random positional embedding or not'
     )
     parser.add_argument(
-        '--combined_training',
+        '--video_ref_root',
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        '--joint_train',
         action='store_true',
-        help='Whether to use combined training or not'
+        help='Whether to use joint training or not'
+    )
+    parser.add_argument(
+        '--prob_sample_video',
+        type=float,
+        default=0.05,
     )
     return parser.parse_args()
 
@@ -794,21 +804,25 @@ class QFormerAligner(nn.Module):
         # get it back to bfloat16
         return qformer_features.bfloat16()
     
-
 class VideoDataset(Dataset):
     def __init__(
         self,
         video_instance_root: Optional[str] = None,
         video_anno: Optional[str] = None,
+        video_ref_root: Optional[str] = None,
         height: int = 480,
         width: int = 720,
         fps: int = 8,
         max_num_frames: int = 49,
         id_token: Optional[str] = None,
         seen_validation: bool = False,
+        joint_train: bool = False,
+        image_dataset_len: int = 0,
     ) -> None:
         self.seen_validation = seen_validation
         self.id_token = id_token or ""
+        self.joint_train = joint_train
+        self.image_dataset_len = image_dataset_len
         super().__init__()
         with open(video_anno, 'r') as f:
             self.video_dict = json.load(f)
@@ -819,6 +833,9 @@ class VideoDataset(Dataset):
         self.video_path_dict = {}
         for id_ in list(id_mapper.keys()):
             self.video_path_dict[id_] = os.path.join(video_instance_root, id_ + '_vae_latents.npy')
+        self.video_ref_path_dict = {}
+        for id_ in list(id_mapper.keys()):
+            self.video_ref_path_dict[id_] = os.path.join(video_ref_root, id_ + '_vae_latents.npy')
         self.prompt_dict = {}
         for id_ in list(id_mapper.keys()):
             self.prompt_dict[id_] = self.id_token + id_mapper[id_]['text']
@@ -852,29 +869,33 @@ class VideoDataset(Dataset):
 
     def __len__(self):
         return len(self.video_path_dict)
-
+ 
     def __getitem__(self, index):
+        if self.joint_train is True:
+            index = index - self.image_dataset_len
         while True:
+
             try:
                 id_key = list(self.video_path_dict.keys())[index]
                 video_path_to_load = self.video_path_dict[id_key]
                 prompt_loaded = self.prompt_dict[id_key]
                 
                 np_loaded = torch.from_numpy(np.load(video_path_to_load))
+                ref_loaded = torch.from_numpy(np.load(self.video_ref_path_dict[id_key]))
                 # what is the shape of np_loaded?
                 
                 
                 return {
                     "instance_prompt": prompt_loaded,
-                    "instance_ref_image": np_loaded[:,:,0,...].unsqueeze(2),
+                    "instance_ref_image": ref_loaded,
                     "instance_video": np_loaded,
-                    "type": 1,
                 }
             except Exception as e:
                 print(f"Error loading video {id_key}: {e}")
                 index = (index + 1) % len(self.video_path_dict)
             
-
+            
+        
 class ImageDataset(Dataset):
     def __init__(
         self,
@@ -1190,7 +1211,6 @@ class ImageDataset(Dataset):
                     "instance_prompt": prompt,
                     "instance_video": latent,
                     "instance_ref_image": image,
-                    "type": 0
                 }
 
             except Exception as e:
@@ -1216,35 +1236,68 @@ class ImageDataset(Dataset):
         # print(f"Image tensor shape after permute: {image.shape}")  
         return image
 
-
 class CombinedDataset(Dataset):
-    def __init__(self, video_dataset, image_dataset, p=0.5):
+    def __init__(self, video_dataset, image_dataset, p=0.1):
         """
         Args:
             video_dataset: The video dataset object.
             image_dataset: The image dataset object.
-            p: Probability of selecting from video dataset (default is 0.5).
+            p: Probability of selecting from video dataset (default is 0.1).
         """
         self.video_dataset = video_dataset
         self.image_dataset = image_dataset
-        self.p = p
+
 
     def __len__(self):
-        return max(len(self.video_dataset), len(self.image_dataset))
+        return len(self.video_dataset) + len(self.image_dataset)
 
-    def __getitem__(self, idx, batch_idx=None):
-        # get random seed set with batch_idx
-        random.seed(batch_idx)
-        if random.random() < self.p:
-            return self.video_dataset[idx % len(self.video_dataset)]
+    def __getitem__(self, idx):
+        if isinstance(idx, list):
+            return [self.__get_single_item(i) for i in idx]
         else:
+            return self.__get_single_item(idx)
+
+    def __get_single_item(self, idx):
+        # get random seed set with batch_idx
+        if idx >= len(self.image_dataset):
+            return self.video_dataset[idx]
+        else:
+            # Select from image dataset
             return self.image_dataset[idx % len(self.image_dataset)]
 
-class CustomDataLoader(DataLoader):
+
+class CustomBatchSampler(Sampler):
+    def __init__(self, video_id_len, image_id_len, batch_size, p=0.5):
+        """
+        Custom batch sampler to ensure each batch contains samples from only one dataset (video or image).
+        
+        Args:
+            video_ids: List of video sample ids.
+            image_ids: List of image sample ids.
+            batch_size: The batch size for sampling.
+            p: Probability of selecting a batch from the video dataset (default is 0.5).
+        """
+        
+        self.image_ids = list(range(image_id_len))
+        self.video_ids = [idx_  + image_id_len  for idx_ in list(range(video_id_len))]# to not overlap with image ids
+        self.batch_size = batch_size
+        self.p = p
+
     def __iter__(self):
-        for batch_idx, batch in enumerate(super().__iter__()):
-            yield [(data, batch_idx) for data in batch]
-            
+        while True:
+            if random.random() < self.p:
+                # Sample from the video dataset
+                video_batch = random.sample(self.video_ids, self.batch_size)
+                yield video_batch
+            else:
+                # Sample from the image dataset
+                image_batch = random.sample(self.image_ids, self.batch_size)
+                yield image_batch
+
+    def __len__(self):
+        return max(len(self.video_ids), len(self.image_ids)) // self.batch_size
+
+
 def save_model_card(
     repo_id: str,
     videos=None,
@@ -1451,7 +1504,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 1, #args.max_num_frames,
+                'num_frames': 49, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
@@ -2299,28 +2352,6 @@ def main(args):
         cast_training_params([transformer], dtype=torch.float32)
 
     transformer_lora_parameters = list(filter(lambda p: p.requires_grad, transformer.parameters()))
-
-    # ADDED CLIP VISION MODEL's PARAM
-    # clip_vision_model_parameters = list(filter(lambda p: p.requires_grad, clip_vision_model.parameters()))
-    # transformer_lora_parameters.extend(clip_vision_model_parameters)
-
-    # Optimization parameters for the transformer (w/o projection layers)
-    # transformer_parameters_with_lr = {"params": transformer_lora_parameters, "lr": args.learning_rate}
-    # params_to_optimize = [transformer_parameters_with_lr]
-
-    # use_deepspeed_optimizer = (
-    #     accelerator.state.deepspeed_plugin is not None
-    #     and "optimizer" in accelerator.state.deepspeed_plugin.deepspeed_config
-    # )
-    # use_deepspeed_scheduler = (
-    #     accelerator.state.deepspeed_plugin is not None
-    #     and "scheduler" not in accelerator.state.deepspeed_plugin.deepspeed_config
-    # )
-    # print("Getting optimizer")
-    # optimizer = get_optimizer(args, params_to_optimize, use_deepspeed=use_deepspeed_optimizer)
-    
-    
-    # Optimization parameters (w/ projection layers)
     transformer_parameters_with_lr = {"params": transformer_lora_parameters, "lr": args.learning_rate}
 
     # Add the parameters of the projection layers with their learning rates
@@ -2389,63 +2420,76 @@ def main(args):
 
     print("Dataset and DataLoader")
     # Dataset and DataLoader
-    if args.combined_training is True:
-        print('>>>>>>>>> LOADING IMAGE DATASET')
-        train_dataset_img = ImageDataset(
-            instance_data_root=args.instance_data_root,
-            dataset_name=args.dataset_name,
-            anno_path=args.anno_root,
-            cache_dir=args.cache_dir,
-            id_token=args.id_token,
-            subset_cnt=args.subset_cnt,
-            use_latent=args.use_latent,
-            vae_add=args.vae_add,
-            cross_attend=args.cross_attend,
-            cross_attend_text=args.cross_attend_text,
-            seen_validation=args.seen_validation,
-            add_special=args.add_special,
-            add_multiple_special=args.add_multiple_special,
-            add_specific_loc=args.add_specific_loc,
-            wo_shuffle=args.wo_shuffle,
-            add_new_split=args.add_new_split,
-            qk_replace=args.qk_replace,
-            qformer=args.qformer,
-        )
-        print('>>>>>>>>> LOADING VIDEO DATASET')
-        train_dataset_vid = VideoDataset(
-            video_instance_root=args.video_instance_root,
-            video_anno=args.video_anno,
-            height=args.height,
-            width=args.width,
-            seen_validation=args.seen_validation,
-        )
-        train_dataset = CombinedDataset(train_dataset_img, train_dataset_vid, p=0.1)
-        def collate_fn(examples):
-            videos = [example["instance_video"] for example in examples]
-            prompts = [example["instance_prompt"] for example in examples]
-            ref_images = [example["instance_ref_image"] for example in examples]
-            print('TYPES :::::', [example["type"] for example in examples])
-            # Stack the videos
-            if args.use_latent:
+    if args.joint_train is True: #FIXME - add argument for joint training
+            image_dataset = ImageDataset(
+                instance_data_root=args.instance_data_root,
+                dataset_name=args.dataset_name,
+                anno_path=args.anno_root,
+                cache_dir=args.cache_dir,
+                id_token=args.id_token,
+                subset_cnt=args.subset_cnt,
+                use_latent=args.use_latent,
+                vae_add=args.vae_add,
+                cross_attend=args.cross_attend,
+                cross_attend_text=args.cross_attend_text,
+                seen_validation=args.seen_validation,
+                add_special=args.add_special,
+                add_multiple_special=args.add_multiple_special,
+                add_specific_loc=args.add_specific_loc,
+                wo_shuffle=args.wo_shuffle,
+                add_new_split=args.add_new_split,
+                qk_replace=args.qk_replace,
+                qformer=args.qformer,
+            )
+            video_dataset = VideoDataset(
+                video_instance_root=args.video_instance_root,
+                video_anno=args.video_anno,
+                video_ref_root = args.video_ref_root,
+                height=args.height,
+                width=args.width,
+                seen_validation=args.seen_validation,
+                joint_train=args.joint_train,
+                image_dataset_len=len(image_dataset),
+            )
+            # SHOULD ALSO UPDATE COMBINED_DATASET-> We do not need prob samp video iside the dataset, as we have it inside custom batch sampler
+            train_dataset = CombinedDataset(video_dataset, image_dataset, args.prob_sample_video) #FIXME - add argument for prob_sample_video
+            def collate_fn(examples):
+                videos = [example['instance_video'] for example in examples]
+                prompts = [example['instance_prompt'] for example in examples]
+                ref_images = [example['instance_ref_image'] for example in examples]
+                # if args.use_latent:
                 videos = torch.cat(videos, dim=0)
-            else:
-                videos = torch.stack(videos)
-            videos = videos.to(memory_format=torch.contiguous_format).float()
-            ref_images = torch.cat(ref_images, dim=0).to(memory_format=torch.contiguous_format).float()
-            batch = {
-                "videos": videos,
-                "prompts": prompts,
-                "ref_images": ref_images,
-                # "type": int(examples[0]["type"].item()),
-                "type" : examples[0]["type"],
-            }
-            return batch
+                ref_images = torch.cat(ref_images, dim=0).to(memory_format=torch.contiguous_format).float()
+                # else:
+                # videos = torch.stack(videos, dim=0)
+                videos = videos.to(memory_format=torch.contiguous_format).float()
+                batch = {
+                    "videos": videos,
+                    "prompts": prompts,
+                    "ref_images": ref_images,
+                }
+                return batch
+            def worker_init_fn(worker_id):
+                seed = torch.initial_seed() % 2**32
+                np.random.seed(seed)
+                random.seed(seed)
+            train_dataloader = DataLoader(
+                train_dataset,
+                batch_size=args.train_batch_size,
+                shuffle=False,
+                sampler=CustomBatchSampler(len(video_dataset), len(image_dataset), batch_size=args.train_batch_size, p=args.prob_sample_video),
+                collate_fn=collate_fn,
+                num_workers=args.dataloader_num_workers,
+                prefetch_factor=4,
+                worker_init_fn=worker_init_fn,
+            )
     else:
         if args.second_stage is True:
             print('Loading VideoDataset for Second Stage')
             train_dataset = VideoDataset(
                 video_instance_root=args.video_instance_root,
                 video_anno=args.video_anno,
+                video_ref_root = args.video_ref_root,
                 height=args.height,
                 width=args.width,
                 seen_validation=args.seen_validation,
@@ -2513,20 +2557,20 @@ def main(args):
                         batch["ref_images"] = torch.cat(ref_images, dim=0).to(memory_format=torch.contiguous_format).float()
                 return batch
    
-    def worker_init_fn(worker_id):
-        seed = torch.initial_seed() % 2**32
-        np.random.seed(seed)
-        random.seed(seed)
-    train_dataloader = CustomDataLoader(
-        train_dataset,
-        batch_size=args.train_batch_size,
-        shuffle=True,
-        # collate_fn=collate_fn_with_args,
-        collate_fn=collate_fn,
-        num_workers=args.dataloader_num_workers,
-        prefetch_factor=4,
-        worker_init_fn=worker_init_fn,
-    )
+        def worker_init_fn(worker_id):
+            seed = torch.initial_seed() % 2**32
+            np.random.seed(seed)
+            random.seed(seed)
+        train_dataloader = DataLoader(
+            train_dataset,
+            batch_size=args.train_batch_size,
+            shuffle=True,
+            # collate_fn=collate_fn_with_args,
+            collate_fn=collate_fn,
+            num_workers=args.dataloader_num_workers,
+            prefetch_factor=4,
+            worker_init_fn=worker_init_fn,
+        )
 
     # Scheduler and math around the number of training steps.
     overrode_max_train_steps = False
@@ -2600,7 +2644,7 @@ def main(args):
     if not args.resume_from_checkpoint:
         initial_global_step = 0
     else:
-        if not args.second_stage:
+        if (not args.second_stage):
             if args.resume_from_checkpoint != "latest":
                 path = os.path.basename(args.resume_from_checkpoint)
             else:
@@ -2625,7 +2669,7 @@ def main(args):
                 first_epoch = global_step // num_update_steps_per_epoch
         else:
             accelerator.print(
-                f"Resuming from checkpoint {args.resume_from_checkpoint} for the second stage training"
+                f"Resuming from checkpoint {args.resume_from_checkpoint} for the second stage/joint training"
             )
             accelerator.load_state(args.resume_from_checkpoint)
             global_step = 0
@@ -2652,20 +2696,6 @@ def main(args):
         # update random seed
         # set_seed(args.seed + epoch)
         for step, batch in enumerate(train_dataloader):
-            batch, batch_idx = batch
-            print('Batch Index: ', batch_idx)
-            if args.combined_training is True:
-                type_of_batch = batch["type"]
-                if type_of_batch == 0: #FIXME
-                    args.max_num_frames = 1
-                    args.second_stage = False
-                    args.second_stage_ref_image = True #TO MAKE NO MISTAKE --> in order to map to the right place inside transformer passed
-                    print('Image Batch')
-                else:
-                    args.max_num_frames = 49
-                    args.second_stage = True
-                    args.second_stage_ref_image = True
-                    print('Video Batch')
             if (epoch == first_epoch and step == 0)and args.inference:
                 break
             # set_seed(args.seed + epoch)
@@ -2721,7 +2751,7 @@ def main(args):
                     requires_grad=False,
                 )
                 # Process images
-                if args.second_stage:
+                if args.second_stage and (not args.joint_train):
                     if args.second_stage_ref_image:
                         image_input = images
                     else:
@@ -2744,82 +2774,96 @@ def main(args):
                     0, scheduler.config.num_train_timesteps, (batch_size,), device=model_input.device
                 )
                 timesteps = timesteps.long()
-                
-                if args.pos_embed_inf_match and (not args.second_stage):
-                    if args.non_shared_pos_embed:
-                        image_rotary_emb_src = (
-                            prepare_rotary_positional_embeddings(
-                                height=args.height,
-                                width=args.width,
-                                num_frames=14,
-                                vae_scale_factor_spatial=vae_scale_factor_spatial,
-                                patch_size=model_config.patch_size,
-                                attention_head_dim=model_config.attention_head_dim,
-                                device=accelerator.device,
-                            )
-                            if model_config.use_rotary_positional_embeddings
-                            else None
+                if args.joint_train:
+                    image_rotary_emb_src = (
+                        prepare_rotary_positional_embeddings(
+                            height=args.height,
+                            width=args.width,
+                            num_frames=num_frames + 1,
+                            vae_scale_factor_spatial=vae_scale_factor_spatial,
+                            patch_size=model_config.patch_size,
+                            attention_head_dim=model_config.attention_head_dim,
+                            device=accelerator.device,
                         )
-                        if args.random_pos:
-                            # Randomly select a location for the positional embeddings between 0 and 49 (inclusive)
-                            random_loc = random.randint(0, 12)
-                            ref_image_rotary_emb = (image_rotary_emb_src[0][1350 * random_loc:1350 * (random_loc + 1),...], image_rotary_emb_src[1][1350 * random_loc:1350 * (random_loc + 1),...])
-                            image_rotary_emb = (image_rotary_emb_src[0][1350 * (random_loc + 1):1350 * (random_loc + 2),...], image_rotary_emb_src[1][1350 * (random_loc + 1):1350 * (random_loc + 2),...])
-                        else:
-                            image_rotary_emb = (image_rotary_emb_src[0][1350:2700,...], image_rotary_emb_src[1][1350:2700,...])
-                            ref_image_rotary_emb = (image_rotary_emb_src[0][:1350,...], image_rotary_emb_src[1][:1350,...])
-                    else:
-                        # Prepare rotary embeds
-                        image_rotary_emb = (
-                            prepare_rotary_positional_embeddings(
-                                height=args.height,
-                                width=args.width,
-                                num_frames=13,
-                                vae_scale_factor_spatial=vae_scale_factor_spatial,
-                                patch_size=model_config.patch_size,
-                                attention_head_dim=model_config.attention_head_dim,
-                                device=accelerator.device,
-                            )
-                            if model_config.use_rotary_positional_embeddings
-                            else None
-                        )
-                        # Get the first one only for training
-                        image_rotary_emb = (image_rotary_emb[0][:1350,...], image_rotary_emb[1][:1350,...])
+                    )
+                    ref_image_rotary_emb = (image_rotary_emb_src[0][:1350,...], image_rotary_emb_src[1][:1350,...])
+                    image_rotary_emb = (image_rotary_emb_src[0][1350:,...], image_rotary_emb_src[1][1350:,...])
                 else:
-                    if args.second_stage_ref_image:
-                        image_rotary_emb = (
-                            prepare_rotary_positional_embeddings(
-                                height=args.height,
-                                width=args.width,
-                                num_frames=args.max_num_frames // 4 + 2,
-                                vae_scale_factor_spatial=vae_scale_factor_spatial,
-                                patch_size=model_config.patch_size,
-                                attention_head_dim=model_config.attention_head_dim,
-                                device=accelerator.device,
+                    if args.pos_embed_inf_match and (not args.second_stage):
+                        if args.non_shared_pos_embed:
+                            image_rotary_emb_src = (
+                                prepare_rotary_positional_embeddings(
+                                    height=args.height,
+                                    width=args.width,
+                                    num_frames=14,
+                                    vae_scale_factor_spatial=vae_scale_factor_spatial,
+                                    patch_size=model_config.patch_size,
+                                    attention_head_dim=model_config.attention_head_dim,
+                                    device=accelerator.device,
+                                )
+                                if model_config.use_rotary_positional_embeddings
+                                else None
                             )
-                            if model_config.use_rotary_positional_embeddings
-                            else None
-                        )
-                        ref_image_rotary_emb = (image_rotary_emb[0][:1350,...], image_rotary_emb[1][:1350,...])
-                        image_rotary_emb = (image_rotary_emb[0][1350:,...], image_rotary_emb[1][1350:,...])
-                        
+                            if args.random_pos:
+                                # Randomly select a location for the positional embeddings between 0 and 49 (inclusive)
+                                random_loc = random.randint(0, 12)
+                                ref_image_rotary_emb = (image_rotary_emb_src[0][1350 * random_loc:1350 * (random_loc + 1),...], image_rotary_emb_src[1][1350 * random_loc:1350 * (random_loc + 1),...])
+                                image_rotary_emb = (image_rotary_emb_src[0][1350 * (random_loc + 1):1350 * (random_loc + 2),...], image_rotary_emb_src[1][1350 * (random_loc + 1):1350 * (random_loc + 2),...])
+                            else:
+                                image_rotary_emb = (image_rotary_emb_src[0][1350:2700,...], image_rotary_emb_src[1][1350:2700,...])
+                                ref_image_rotary_emb = (image_rotary_emb_src[0][:1350,...], image_rotary_emb_src[1][:1350,...])
+                        else:
+                            # Prepare rotary embeds
+                            image_rotary_emb = (
+                                prepare_rotary_positional_embeddings(
+                                    height=args.height,
+                                    width=args.width,
+                                    num_frames=13,
+                                    vae_scale_factor_spatial=vae_scale_factor_spatial,
+                                    patch_size=model_config.patch_size,
+                                    attention_head_dim=model_config.attention_head_dim,
+                                    device=accelerator.device,
+                                )
+                                if model_config.use_rotary_positional_embeddings
+                                else None
+                            )
+                            # Get the first one only for training
+                            image_rotary_emb = (image_rotary_emb[0][:1350,...], image_rotary_emb[1][:1350,...])
                     else:
-                        # Prepare rotary embeds
-                        image_rotary_emb = (
-                            prepare_rotary_positional_embeddings(
-                                height=args.height,
-                                width=args.width,
-                                num_frames=args.max_num_frames // 4 + 1,
-                                vae_scale_factor_spatial=vae_scale_factor_spatial,
-                                patch_size=model_config.patch_size,
-                                attention_head_dim=model_config.attention_head_dim,
-                                device=accelerator.device,
+                        if args.second_stage_ref_image:
+                            image_rotary_emb = (
+                                prepare_rotary_positional_embeddings(
+                                    height=args.height,
+                                    width=args.width,
+                                    num_frames=args.max_num_frames // 4 + 2,
+                                    vae_scale_factor_spatial=vae_scale_factor_spatial,
+                                    patch_size=model_config.patch_size,
+                                    attention_head_dim=model_config.attention_head_dim,
+                                    device=accelerator.device,
+                                )
+                                if model_config.use_rotary_positional_embeddings
+                                else None
                             )
-                            if model_config.use_rotary_positional_embeddings
-                            else None
-                        )
-                # Add noise to the model input according to the noise magnitude at each timestep
-                # (this is the forward diffusion process)
+                            ref_image_rotary_emb = (image_rotary_emb[0][:1350,...], image_rotary_emb[1][:1350,...])
+                            image_rotary_emb = (image_rotary_emb[0][1350:,...], image_rotary_emb[1][1350:,...])
+                            
+                        else:
+                            # Prepare rotary embeds
+                            image_rotary_emb = (
+                                prepare_rotary_positional_embeddings(
+                                    height=args.height,
+                                    width=args.width,
+                                    num_frames=args.max_num_frames // 4 + 1,
+                                    vae_scale_factor_spatial=vae_scale_factor_spatial,
+                                    patch_size=model_config.patch_size,
+                                    attention_head_dim=model_config.attention_head_dim,
+                                    device=accelerator.device,
+                                )
+                                if model_config.use_rotary_positional_embeddings
+                                else None
+                            )
+                    # Add noise to the model input according to the noise magnitude at each timestep
+                    # (this is the forward diffusion process)
                 
                 if args.input_noise_fix:
                     print('Shape of model_input: ', model_input.shape)
@@ -2840,16 +2884,19 @@ def main(args):
                 # Predict the noise residual
                 # print('SHAPE OF NOISY MODEL INPUT >>>', noisy_model_input.shape)
                 # print('SHAPE OF IMAGE ROTARY EMB >>>', image_rotary_emb[0].shape)
-                if args.second_stage:
-                    if not args.second_stage_ref_image:
-                        ref_image_rotary_emb = None
-                    else:
-                        pass
+                if args.join_train:
+                    pass
                 else:
-                    if args.non_shared_pos_embed:
-                        ref_image_rotary_emb = ref_image_rotary_emb
+                    if args.second_stage:
+                        if not args.second_stage_ref_image:
+                            ref_image_rotary_emb = None
+                        else:
+                            pass
                     else:
-                        ref_image_rotary_emb = image_rotary_emb
+                        if args.non_shared_pos_embed:
+                            ref_image_rotary_emb = ref_image_rotary_emb
+                        else:
+                            ref_image_rotary_emb = image_rotary_emb
                 model_output = transformer(
                     hidden_states=noisy_model_input,
                     ref_img_states=noisy_image_input if args.input_noise_fix else image_input,
@@ -2872,6 +2919,7 @@ def main(args):
                     layernorm_fix=args.layernorm_fix,
                     text_only_norm_final=args.text_only_norm_final,
                     second_stage_ref_image=args.second_stage_ref_image,
+                    joint_train=args.joint_train,
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 

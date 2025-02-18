@@ -68,7 +68,7 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             # Save latents
             print(latents.shape)
             output_path = os.path.join(output_dir, Path(video_path).stem + "_vae_latents.npy")
-            # np.save(output_path, latents.cpu().numpy())
+            np.save(output_path, latents.cpu().numpy())
 
         except Exception as e:
             print(f"Error processing video {video_path}: {e}")
