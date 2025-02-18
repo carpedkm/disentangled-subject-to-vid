@@ -1266,7 +1266,7 @@ class CombinedDataset(Dataset):
             return self.image_dataset[idx % len(self.image_dataset)]
 
 
-class CustomSampler(Sampler):
+class CustomBatchSampler(Sampler):
     def __init__(self, video_id_len, image_id_len, batch_size, p=0.5):
         """
         Custom batch sampler to ensure each batch contains samples from only one dataset (video or image).
@@ -1288,27 +1288,30 @@ class CustomSampler(Sampler):
         self.p = p
         self.video_flag = 0
         self.image_flag = 0
+        
+        self.video_batch_size = 1
+        self.image_batch_size = batch_size
 
     def __iter__(self):
         while True:
             if random.random() < self.p:
-                print('VIDEO BATCH : ', self.video_flag, self.video_flag + self.batch_size)
+                print('VIDEO BATCH : ', self.video_flag, self.video_flag + self.video_batch_size)
                 # Sample from the video dataset
-                video_batch = self.video_ids[self.video_flag : self.video_flag + self.batch_size]
-                self.video_flag = (self.video_flat + self.batch_size) % (len(self.video_ids) - self.batch_size)
+                video_batch = self.video_ids[self.video_flag : self.video_flag + self.video_batch_size]
+                self.video_flag = (self.video_flag + self.video_batch_size) % (len(self.video_ids) - self.video_batch_size)
                 print('video flag', self.video_flag)
-                # video_batch = random.sample(self.video_ids, self.batch_size)
-                for idx in video_batch:
-                    yield idx
+                yield video_batch
+                # # video_batch = random.sample(self.video_ids, self.batch_size)
+                # for idx in video_batch:
+                #     yield idx
             else:
-                print('IMAGE BATCH : ', self.image_flag, self.image_flag + self.batch_size)
+                print('IMAGE BATCH : ', self.image_flag, self.image_flag + self.image_batch_size)
                 # Sample from the image dataset
-                image_batch = self.image_ids[self.image_flag : self.image_flag + self.batch_size]
+                image_batch = self.image_ids[self.image_flag : self.image_flag + self.image_batch_size]
                 # image_batch = random.sample(self.image_ids, self.batch_size)
-                self.image_flag = (self.image_flag + self.batch_size) % (len(self.video_ids) - self.batch_size)
+                self.image_flag = (self.image_flag + self.image_batch_size) % (len(self.video_ids) - self.image_batch_size)
                 print('image flag', self.image_flag)
-                for idx in image_batch:
-                    yield idx
+                yield image_batch
 
     def __len__(self):
         return len(self.video_ids) + len(self.image_ids)
@@ -2469,7 +2472,7 @@ def main(args):
             # SHOULD ALSO UPDATE COMBINED_DATASET-> We do not need prob samp video iside the dataset, as we have it inside custom batch sampler
             train_dataset = CombinedDataset(video_dataset, image_dataset, args.prob_sample_video) #FIXME - add argument for prob_sample_video
             def collate_fn(examples):
-                
+                examples = examples[0]
                 videos = [example['instance_video'] for example in examples]
                 prompts = [example['instance_prompt'] for example in examples]
                 ref_images = [example['instance_ref_image'] for example in examples]
@@ -2491,9 +2494,8 @@ def main(args):
                 random.seed(seed)
             train_dataloader = DataLoader(
                 train_dataset,
-                batch_size=args.train_batch_size,
                 shuffle=False,
-                sampler=CustomSampler(len(video_dataset), len(image_dataset), batch_size=args.train_batch_size, p=args.prob_sample_video),
+                sampler=CustomBatchSampler(len(video_dataset), len(image_dataset), batch_size=args.train_batch_size, p=args.prob_sample_video),
                 collate_fn=collate_fn,
                 num_workers=args.dataloader_num_workers,
                 prefetch_factor=4,
