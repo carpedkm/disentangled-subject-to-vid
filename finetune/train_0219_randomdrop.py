@@ -679,6 +679,11 @@ def get_args():
         action='store_true',
         help='Whether to use random drop or not'
     )
+    parser.add_argument(
+        '--random_pad_zero',
+        action='store_true',
+        help='Whether to use random pad zero or not'
+    )
     return parser.parse_args()
 
 
@@ -2944,7 +2949,8 @@ def main(args):
                     text_only_norm_final=args.text_only_norm_final,
                     second_stage_ref_image=args.second_stage_ref_image,
                     joint_train=args.joint_train,
-                    random_drop_full=args.random_drop_full
+                    random_drop_full=args.random_drop_full,
+                    random_pad_zero=args.random_pad_zero,
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
