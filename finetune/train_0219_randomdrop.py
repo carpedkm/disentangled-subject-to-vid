@@ -680,6 +680,11 @@ def get_args():
         help='Whether to use random drop or not'
     )
     parser.add_argument(
+        '--random_drop_prob',
+        type=float,
+        default=0.5,
+    )
+    parser.add_argument(
         '--random_pad_zero',
         action='store_true',
         help='Whether to use random pad zero or not'
@@ -1532,7 +1537,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 25, #args.max_num_frames,
+                'num_frames': 49, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
@@ -2950,6 +2955,7 @@ def main(args):
                     second_stage_ref_image=args.second_stage_ref_image,
                     joint_train=args.joint_train,
                     random_drop_full=args.random_drop_full,
+                    random_drop_prob=args.random_drop_prob,
                     random_pad_zero=args.random_pad_zero,
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)

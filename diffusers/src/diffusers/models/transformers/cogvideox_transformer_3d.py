@@ -581,6 +581,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         second_stage_ref_image: bool = False,
         joint_train: bool = False,
         random_drop_full: bool = False,
+        random_drop_prob: float = 0.5,
         random_pad_zero: bool = False,
         # qk_replace: bool = False,
     ):  
@@ -593,12 +594,12 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             if random_drop_full is True and hidden_states.shape[1] != 1 and eval is False: 
                 # for video training part in joint train, directly concat text with video noisy latent
                 p_drop = random.random() 
-                if p_drop >= 0.5:
+                if p_drop <= random_drop_prob:
                     self.second_stage = True
                     enc_hidden_states1 = None
             elif random_pad_zero is True and hidden_states.shape[1] != 1 and eval is False:
                 p_drop = random.random()
-                if p_drop >= 0.5:
+                if p_drop <= random_drop_prob:
                     self.second_stage = True
         else:
             if second_stage_ref_image is True:
@@ -766,7 +767,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             encoder_hidden_states = hidden_states[:, :encoder_hidden_states.shape[1]]
             hidden_states = hidden_states[:, encoder_hidden_states.shape[1]:]
             # pad the encoder_hidden_states with zeros at the end - to match the dimension of 1350 in number of tokens after the embedding  
-            if random_drop_full is not True and random_pad_zero is True and p_drop >= 0.5:
+            if random_drop_full is not True and random_pad_zero is True and p_drop <= random_drop_prob:
                 encoder_hidden_states = F.pad(encoder_hidden_states, (0, 0, 0, 1350 - 226))
             text_seq_length = encoder_hidden_states.shape[1]
         hidden_states = self.embedding_dropout(hidden_states)
