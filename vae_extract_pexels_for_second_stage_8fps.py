@@ -39,19 +39,19 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             original_fps = float(original_fps)
             frame_interval = int(original_fps / fps)
             
-            max_frames = 49
+            # max_frames = 49
             # Extract frames
             # frames = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
             frames = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
             print('FRAMES SHAPE ', frames.shape)
-            # FIXME
-            # sample the number from 0 to 48 list
-            fr_idx_to_sample = np.random.choice(np.arange(0, 49), size=1, replace=False)[0]
-            print('FR IDX TO SAMPLE ', fr_idx_to_sample)
-            frames = frames[fr_idx_to_sample,...]
-            frames = np.expand_dims(frames, axis=0)
-            max_frames = 1
-            print('AFTER FRAMES SHAPE ', frames.shape)
+            # # FIXME
+            # # sample the number from 0 to 48 list
+            # fr_idx_to_sample = np.random.choice(np.arange(0, 49), size=1, replace=False)[0]
+            # print('FR IDX TO SAMPLE ', fr_idx_to_sample)
+            # frames = frames[fr_idx_to_sample,...]
+            # frames = np.expand_dims(frames, axis=0)
+            # max_frames = 1
+            # print('AFTER FRAMES SHAPE ', frames.shape)
             # Ensure exact number of frames
             if frames.shape[0] < max_frames:
                 pad_frames = max_frames - frames.shape[0]
@@ -162,7 +162,7 @@ if __name__ == "__main__":
         
     video_dir = '/mnt/video_data/'
     vae_model_path = "THUDM/CogVideoX-5b"
-    output_dir = "/mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_rand"
+    output_dir = "/mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps"
     video_paths = [str(Path(video_dir) / f"{video_key}.mp4") for video_key in video_keys]
     extract_vae_latents(
             video_dir,
@@ -172,6 +172,6 @@ if __name__ == "__main__":
             height=480,
             width=720,
             max_frames=49,
-            fps=16,
+            fps=8,
             video_dict=video_dict,
         )
