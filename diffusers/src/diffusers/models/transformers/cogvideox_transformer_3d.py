@@ -581,6 +581,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         second_stage_ref_image: bool = False,
         joint_train: bool = False,
         random_drop_full: bool = False,
+        random_pad_zero: bool = False,
         # qk_replace: bool = False,
     ):  
         qk_replace = self.qk_replace
@@ -595,6 +596,10 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 if p_drop >= 0.5:
                     self.second_stage = True
                     enc_hidden_states1 = None
+            elif random_pad_zero is True and hidden_states.shape[1] != 1 and eval is False:
+                p_drop = random.random()
+                if p_drop >= 0.5:
+                    self.second_stage = True
         else:
             if second_stage_ref_image is True:
                 self.second_stage = False
@@ -761,7 +766,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             encoder_hidden_states = hidden_states[:, :encoder_hidden_states.shape[1]]
             hidden_states = hidden_states[:, encoder_hidden_states.shape[1]:]
             # pad the encoder_hidden_states with zeros at the end - to match the dimension of 1350 in number of tokens after the embedding  
-            if random_drop_full is not True:
+            if random_drop_full is not True and random_pad_zero is True and p_drop >= 0.5:
                 encoder_hidden_states = F.pad(encoder_hidden_states, (0, 0, 0, 1350 - 226))
             text_seq_length = encoder_hidden_states.shape[1]
         hidden_states = self.embedding_dropout(hidden_states)
@@ -823,6 +828,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 text_seq_length = enc_hidden_states0.shape[1]
         
         if self.second_stage:
+            enc_hidden_states0 = encoder_hidden_states
+            enc_hidden_states1 = None
             pass
         else:
             if vae_add:

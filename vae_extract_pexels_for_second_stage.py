@@ -162,7 +162,7 @@ if __name__ == "__main__":
         
     video_dir = '/mnt/video_data/'
     vae_model_path = "THUDM/CogVideoX-5b"
-    output_dir = "/mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_rand"
+    output_dir = "/mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_rand"
     video_paths = [str(Path(video_dir) / f"{video_key}.mp4") for video_key in video_keys]
     extract_vae_latents(
             video_dir,
@@ -172,6 +172,6 @@ if __name__ == "__main__":
             height=480,
             width=720,
             max_frames=49,
-            fps=16,
+            fps=8,
             video_dict=video_dict,
         )
