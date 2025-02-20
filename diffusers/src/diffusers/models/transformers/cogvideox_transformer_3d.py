@@ -18,6 +18,7 @@ from typing import Any, Dict, Optional, Tuple, Union
 import math
 import torch
 from torch import nn
+import random
 
 import torch.nn.functional as F
 
@@ -132,6 +133,7 @@ class CogVideoXBlock(nn.Module):
         timestep: Optional[int] = None,
         layer : Optional[int] = None,
         ref_image_rotary_emb : Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
+        joint_train: bool = False,
     ) -> torch.Tensor:
         text_seq_length = encoder_hidden_states.size(1)
 
@@ -211,7 +213,8 @@ class CogVideoXBlock(nn.Module):
         else:
             hidden_states = hidden_states + gate_ff * ff_output[:, text_seq_length:]
             encoder_hidden_states = encoder_hidden_states + enc_gate_ff * ff_output[:, :text_seq_length]
-
+            if joint_train is True:
+                return hidden_states, encoder_hidden_states, None
             return hidden_states, encoder_hidden_states
         
 def get_sinusoidal_positional_embeddings(seq_length, embed_dim, device):
@@ -577,6 +580,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         text_only_norm_final: bool = False, 
         second_stage_ref_image: bool = False,
         joint_train: bool = False,
+        random_drop_full: bool = False,
         # qk_replace: bool = False,
     ):  
         qk_replace = self.qk_replace
@@ -585,6 +589,12 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             self.second_stage = False
         if joint_train is True:
             self.second_stage = False
+            if random_drop_full is True and hidden_states.shape[1] != 1 and eval is False: 
+                # for video training part in joint train, directly concat text with video noisy latent
+                p_drop = random.random() 
+                if p_drop >= 0.5:
+                    self.second_stage = True
+                    enc_hidden_states1 = None
         else:
             if second_stage_ref_image is True:
                 self.second_stage = False
@@ -751,7 +761,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             encoder_hidden_states = hidden_states[:, :encoder_hidden_states.shape[1]]
             hidden_states = hidden_states[:, encoder_hidden_states.shape[1]:]
             # pad the encoder_hidden_states with zeros at the end - to match the dimension of 1350 in number of tokens after the embedding  
-            encoder_hidden_states = F.pad(encoder_hidden_states, (0, 0, 0, 1350 - 226))
+            if random_drop_full is not True:
+                encoder_hidden_states = F.pad(encoder_hidden_states, (0, 0, 0, 1350 - 226))
             text_seq_length = encoder_hidden_states.shape[1]
         hidden_states = self.embedding_dropout(hidden_states)
         
@@ -820,7 +831,13 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                     pass
                 else:
                     text_seq_length = text_seq_length_temp
-        
+        ### CHECK
+        if hidden_states.shape[1] != 1350:
+            print('hidden_states shape is ', hidden_states.shape)
+            # print('random_drop_full is ', random_drop_full, ' and enc_hidden_states1 is', enc_hidden_states1.shape)
+            print('random_drop_full is ', random_drop_full, ' and hidden_states shape is ', hidden_states.shape)
+        if random_drop_full and self.second_stage is True:
+            enc_hidden_states0 = encoder_hidden_states
         # 3. Transformer blocks
         ca_idx = 0
         for i, block in enumerate(self.transformer_blocks):
@@ -839,6 +856,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             # print('ENCODER HIDDEN_STATES shape', encoder_hidden_states.shape)
             
             if self.training and self.gradient_checkpointing:
+                # print('JOINT TRAIN IS ', joint_train)
                 # def create_custom_forward(module):
                 #     def custom_forward(*inputs):
                 #         return module(*inputs)
@@ -846,20 +864,20 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 def create_custom_forward(module):
                     def custom_forward(hidden_states, encoder_hidden_states, temb, enc_hidden_states1=None,
                                     image_rotary_emb=None, embed_ref_img=False, ref_img_seq_start=0,
-                                    ref_img_seq_end=0, position_delta=0, ref_image_rotary_emb=None):
+                                    ref_img_seq_end=0, position_delta=0, ref_image_rotary_emb=None, joint_train=False):
                         return module(hidden_states=hidden_states, encoder_hidden_states=encoder_hidden_states, temb=temb, 
                                       enc_hidden_states1=enc_hidden_states1, image_rotary_emb=image_rotary_emb, embed_ref_img=embed_ref_img,
                                       ref_img_seq_start=ref_img_seq_start, ref_img_seq_end=ref_img_seq_end, position_delta=position_delta,
-                                      ref_image_rotary_emb=ref_image_rotary_emb)
+                                      ref_image_rotary_emb=ref_image_rotary_emb, joint_train=joint_train)
                     return custom_forward
                 def create_custom_forward_wo_enc_hidden_states1(module):
                     def custom_forward(hidden_states, encoder_hidden_states, temb,
                                     image_rotary_emb=None, embed_ref_img=False, ref_img_seq_start=0,
-                                    ref_img_seq_end=0, position_delta=0, ref_image_rotary_emb=None):
+                                    ref_img_seq_end=0, position_delta=0, ref_image_rotary_emb=None, joint_train=False):
                         return module(hidden_states=hidden_states, encoder_hidden_states=encoder_hidden_states, temb=temb, 
                                       image_rotary_emb=image_rotary_emb, embed_ref_img=embed_ref_img,
                                       ref_img_seq_start=ref_img_seq_start, ref_img_seq_end=ref_img_seq_end, position_delta=position_delta,
-                                      ref_image_rotary_emb=ref_image_rotary_emb)
+                                      ref_image_rotary_emb=ref_image_rotary_emb, joint_train=joint_train)
                     return custom_forward
 
                 if layernorm_fix:
@@ -868,7 +886,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                         create_custom_forward(block),
                         hidden_states, enc_hidden_states0, emb, enc_hidden_states1,  
                         image_rotary_emb, embed_ref_img, ref_img_seq_start,
-                        ref_img_seq_end, position_delta, ref_image_rotary_emb,
+                        ref_img_seq_end, position_delta, ref_image_rotary_emb, joint_train,
                         **ckpt_kwargs,
                     )
                 else:
@@ -877,7 +895,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                         create_custom_forward_wo_enc_hidden_states1(block),
                         hidden_states, encoder_hidden_states, emb,  
                         image_rotary_emb, embed_ref_img, ref_img_seq_start,
-                        ref_img_seq_end, position_delta, ref_image_rotary_emb,
+                        ref_img_seq_end, position_delta, ref_image_rotary_emb, joint_train,
                         **ckpt_kwargs,
                     )
             else:
@@ -895,6 +913,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                         timestep=timestep,
                         ref_image_rotary_emb=ref_image_rotary_emb,
                         layer=i,
+                        joint_train=joint_train,
                     )
                 else:
                     hidden_states, encoder_hidden_states = block(
@@ -909,6 +928,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                         position_delta=position_delta,
                         timestep=timestep,
                         layer=i,
+                        joint_train=joint_train,
                     )
             if self.cross_attend or self.cross_attend_text:
                 if ca_idx % self.cross_attn_interval == 0 and ca_idx <= self.num_layers:
@@ -934,10 +954,16 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                     text_seq_length = enc_hidden_states0.shape[1]
                     hidden_states = hidden_states[:, text_seq_length:]
                 else:
-                    hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, hidden_states], dim=1)
-                    hidden_states = self.norm_final(hidden_states)
-                    text_seq_length = enc_hidden_states0.shape[1] + enc_hidden_states1.shape[1]
-                    hidden_states = hidden_states[:, text_seq_length:]
+                    if joint_train is True and self.second_stage is True:
+                        hidden_states = torch.cat([enc_hidden_states0, hidden_states], dim=1)
+                        hidden_states = self.norm_final(hidden_states)
+                        text_seq_length = enc_hidden_states0.shape[1]
+                        hidden_states = hidden_states[:, text_seq_length:]
+                    else:
+                        hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, hidden_states], dim=1)
+                        hidden_states = self.norm_final(hidden_states)
+                        text_seq_length = enc_hidden_states0.shape[1] + enc_hidden_states1.shape[1]
+                        hidden_states = hidden_states[:, text_seq_length:]
             else:
                 hidden_states = torch.cat([encoder_hidden_states, hidden_states], dim=1)
                 hidden_states = self.norm_final(hidden_states)
