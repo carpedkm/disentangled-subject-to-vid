@@ -674,6 +674,11 @@ def get_args():
         type=float,
         default=0.05,
     )
+    parser.add_argument(
+        '--random_drop_full',
+        action='store_true',
+        help='Whether to use random drop or not'
+    )
     return parser.parse_args()
 
 
@@ -1522,7 +1527,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 49, #args.max_num_frames,
+                'num_frames': 25, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
@@ -2793,6 +2798,7 @@ def main(args):
                 )
                 timesteps = timesteps.long()
                 if args.joint_train:
+                    print('NUM_FRAMES IN JOINT_TRAINING NOW : ', num_frames, '@ STEP ', step)
                     image_rotary_emb_src = (
                         prepare_rotary_positional_embeddings(
                             height=args.height,
@@ -2938,6 +2944,7 @@ def main(args):
                     text_only_norm_final=args.text_only_norm_final,
                     second_stage_ref_image=args.second_stage_ref_image,
                     joint_train=args.joint_train,
+                    random_drop_full=args.random_drop_full
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
