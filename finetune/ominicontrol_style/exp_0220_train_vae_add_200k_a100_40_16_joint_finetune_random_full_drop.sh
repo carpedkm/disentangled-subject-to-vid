@@ -19,7 +19,7 @@ export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
 
 RANDOM_PORT=$((49152 + RANDOM % 16384))
 
-accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_gpu \
+accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_gpu --machine_rank ${NODE_RANK} \
   --main_process_port ${MASTER_PORT} \
   ../train_0219_randomdrop.py \
   --gradient_checkpointing \
