@@ -583,8 +583,10 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         random_drop_full: bool = False,
         random_drop_prob: float = 0.5,
         random_pad_zero: bool = False,
+        frame_weighted_loss: bool = False,
         # qk_replace: bool = False,
     ):  
+        i2v_set = False # default
         qk_replace = self.qk_replace
         qformer = self.qformer
         if eval:
@@ -592,15 +594,19 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         if joint_train is True:
             self.second_stage = False
             if random_drop_full is True and hidden_states.shape[1] != 1 and eval is False: 
+                i2v_set = True
                 # for video training part in joint train, directly concat text with video noisy latent
                 p_drop = random.random() 
                 if p_drop <= random_drop_prob:
                     self.second_stage = True
                     enc_hidden_states1 = None
+                    i2v_set = False
             elif random_pad_zero is True and hidden_states.shape[1] != 1 and eval is False:
+                i2v_set = True
                 p_drop = random.random()
                 if p_drop <= random_drop_prob:
                     self.second_stage = True
+                    i2v_set = False
         else:
             if second_stage_ref_image is True:
                 self.second_stage = False
@@ -995,5 +1001,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             unscale_lora_layers(self, lora_scale)
 
         if not return_dict:
-            return (output,)
+            if frame_weighted_loss is False:
+                return (output,)
+            else:
+                return (output, i2v_set)
         return Transformer2DModelOutput(sample=output)
