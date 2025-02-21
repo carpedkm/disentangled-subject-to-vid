@@ -3,14 +3,14 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250218/joint_train_40_16_prob01"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250218/joint_train_debug_80_4"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=0,1,2,3
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
-accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi_gpu \
+accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --multi_gpu \
   ../train_0218_combined.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
@@ -33,9 +33,9 @@ accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi
   --max_num_frames 49 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 8 \
+  --train_batch_size 6 \
   --num_train_epochs 30 \
-  --checkpointing_steps 50 \
+  --checkpointing_steps 5 \
   --gradient_accumulation_steps 1 \
   --learning_rate 5e-5 \
   --lr_scheduler cosine_with_restarts \
@@ -58,12 +58,11 @@ accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi
   --add_special \
   --layernorm_fix \
   --joint_train \
-  --prob_sample_video 0.1 \
   --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
   --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels \
-  --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_first \
+  --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_rand \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
-  --inference \
-  --resume_from_checkpoint checkpoint-5400
+  # --inference 채
+  # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 

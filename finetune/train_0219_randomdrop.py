@@ -674,6 +674,21 @@ def get_args():
         type=float,
         default=0.05,
     )
+    parser.add_argument(
+        '--random_drop_full',
+        action='store_true',
+        help='Whether to use random drop or not'
+    )
+    parser.add_argument(
+        '--random_drop_prob',
+        type=float,
+        default=0.5,
+    )
+    parser.add_argument(
+        '--random_pad_zero',
+        action='store_true',
+        help='Whether to use random pad zero or not'
+    )
     return parser.parse_args()
 
 
@@ -2793,6 +2808,7 @@ def main(args):
                 )
                 timesteps = timesteps.long()
                 if args.joint_train:
+                    print('NUM_FRAMES IN JOINT_TRAINING NOW : ', num_frames, '@ STEP ', step)
                     image_rotary_emb_src = (
                         prepare_rotary_positional_embeddings(
                             height=args.height,
@@ -2938,6 +2954,9 @@ def main(args):
                     text_only_norm_final=args.text_only_norm_final,
                     second_stage_ref_image=args.second_stage_ref_image,
                     joint_train=args.joint_train,
+                    random_drop_full=args.random_drop_full,
+                    random_drop_prob=args.random_drop_prob,
+                    random_pad_zero=args.random_pad_zero,
                 )[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
