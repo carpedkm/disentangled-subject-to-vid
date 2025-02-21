@@ -3,7 +3,7 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250221/joint_finetune_randomdrop_full_40_16_dropprob_0.9"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250221/joint_finetune_randomdrop_full_40_16_dropprob_0.9_8fps"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
@@ -69,7 +69,7 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --layernorm_fix \
   --joint_train \
   --random_drop_full \
-  --random_drop_prob 1.0 \
+  --random_drop_prob 0.9 \
   --prob_sample_video 0.2 \
   --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
   --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps \
