@@ -694,6 +694,11 @@ def get_args():
         action='store_true',
         help='Whether to use frame weighted loss or not'
     )
+    parser.add_argument(
+        '--dynamic_prob_update',
+        action='store_true',
+        help='Whether to use dynamic prob update or not'
+    )
     return parser.parse_args()
 
 
@@ -1305,7 +1310,7 @@ class CustomBatchSampler(Sampler):
         # shuffle the video ids
         random.shuffle(self.video_ids)
         self.batch_size = batch_size
-        self.p = p
+        self.p = {"value": p}
         self.video_flag = 0
         self.image_flag = 0
         
@@ -1314,7 +1319,7 @@ class CustomBatchSampler(Sampler):
 
     def __iter__(self):
         while True:
-            if random.random() < self.p:
+            if random.random() < self.p["value"]:
                 # print('VIDEO BATCH : ', self.video_flag, self.video_flag + self.video_batch_size)
                 # Sample from the video dataset
                 video_batch = self.video_ids[self.video_flag : self.video_flag + self.video_batch_size]
@@ -1840,6 +1845,11 @@ def get_optimizer(args, params_to_optimize, use_deepspeed: bool = False):
 
     return optimizer
 
+def update_ema(loss_history, alpha=0.9):
+    # If the history is empty, initialize with the first value
+    if not loss_history:
+        return loss_history[-1]
+    return alpha * loss_history[-1] + (1 - alpha) * loss_history[-2]
 
 def main(args):
     print('Start')
@@ -2512,10 +2522,11 @@ def main(args):
                 seed = torch.initial_seed() % 2**32
                 np.random.seed(seed)
                 random.seed(seed)
+            sampler = CustomBatchSampler(len(video_dataset), len(image_dataset), batch_size=args.train_batch_size, p=args.prob_sample_video)
             train_dataloader = DataLoader(
                 train_dataset,
                 shuffle=False,
-                sampler=CustomBatchSampler(len(video_dataset), len(image_dataset), batch_size=args.train_batch_size, p=args.prob_sample_video),
+                sampler=sampler,
                 collate_fn=collate_fn,
                 num_workers=args.dataloader_num_workers,
                 prefetch_factor=4,
@@ -2729,6 +2740,8 @@ def main(args):
     # For DeepSpeed training
     model_config = transformer.module.config if hasattr(transformer, "module") else transformer.config
     # from tqdm import tqdm
+    video_loss_history = []
+    image_loss_history = []
     for epoch in range(first_epoch, args.num_train_epochs):
         transformer.train()
         # update random seed
@@ -2756,6 +2769,7 @@ def main(args):
                     else:
                         latent_dist = videos * 0.7
                         model_input = latent_dist
+                # model_input shape : [B, F, C, H, W]
                 
                 
                 prompts = batch["prompts"]
@@ -2990,6 +3004,34 @@ def main(args):
                 target = model_input
 
                 loss = torch.mean((weights * (model_pred - target) ** 2).reshape(batch_size, -1), dim=1)
+                
+                # model_input.shape : [B, F, C, H, W]
+                if args.dynamic_prob_update and args.joint_train:
+                    if model_input.shape[1] == 1: # Image pairs
+                        image_loss = loss.mean()
+                        image_loss_history.append(image_loss.item())
+                    else: # Video clips
+                        video_loss = loss.mean()
+                        video_loss_history.append(video_loss.item())
+                    # calculate EMA for each list
+                    if len(video_loss_history) > 3:
+                        video_loss_ema = update_ema(video_loss_history, 0.9)
+                        video_loss_history.pop(0) # CLEAR
+                    if len(image_loss_history) > 3:
+                        image_loss_ema = update_ema(image_loss_history, 0.9)
+                        image_loss_history.pop(0) # CLEAR
+                    min_p = 0.1
+                    max_p = 0.9
+                    beta = 0.1
+                    print('image_ema_loss, video_ema_loss', image_loss_ema, video_loss_ema)
+                    if video_loss_ema > image_loss_ema:
+                        p = max(min_p, min(max_p, 1 - (video_loss_ema - image_loss_ema) * beta))  # increase p dynamically
+                        print('VIDEO LOSS Larger , using updated p to : ', p)
+                    else:
+                        p = max(min_p, min(max_p, (image_loss_ema - video_loss_ema) * beta))  # decrease p dynamically
+                        print('IMAGE LOSS Larger , using updated p to : ', p)
+                    sampler.p["value"] = p # update 'p' value in the sampler
+                
                 loss = loss.mean()
                 accelerator.backward(loss)
 
@@ -3034,7 +3076,7 @@ def main(args):
                         accelerator.save_state(save_path)
                         logger.info(f"Saved state to {save_path}")
 
-            logs = {"loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0]}
+            logs = {"loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0], 'p': p}
             progress_bar.set_postfix(**logs)
             accelerator.log(logs, step=global_step)
 
