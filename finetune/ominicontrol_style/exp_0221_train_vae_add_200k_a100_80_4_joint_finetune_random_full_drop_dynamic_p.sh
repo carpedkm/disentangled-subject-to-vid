@@ -3,15 +3,15 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250220/joint_finetune_randomdrop_full_40_16"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250221/joint_finetune_no_randomdrop_weighted_frame_80_4_8fps"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+export CUDA_VISIBLE_DEVICES=0,1,2,3
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
-accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi_gpu \
-  ../train_0219_randomdrop.py \
+accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --multi_gpu \
+  ../train_0221_lossscale.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
   --cache_dir $CACHE_PATH \
@@ -33,7 +33,7 @@ accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi
   --max_num_frames 49 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 6 \
+  --train_batch_size 32 \
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
@@ -60,13 +60,13 @@ accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi
   --joint_train \
   --random_drop_full \
   --prob_sample_video 0.2 \
+  --random_drop_prob 0.5 \
+  --dynamic_prob_update \
   --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
-  --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels \
-  --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_first \
+  --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps \
+  --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_rand \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
-  --inference \
-  --resume_from_checkpoint checkpoint-9200
   # --inference 채
   # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
