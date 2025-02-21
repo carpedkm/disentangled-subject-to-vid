@@ -72,8 +72,8 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --random_drop_prob 1.0 \
   --prob_sample_video 0.2 \
   --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
-  --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels \
-  --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_first \
+  --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps \
+  --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_rand \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
