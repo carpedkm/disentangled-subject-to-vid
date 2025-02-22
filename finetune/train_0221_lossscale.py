@@ -3024,6 +3024,7 @@ def main(args):
                     max_p = 0.9
                     beta = 0.1
                     if len(video_loss_history) > 3 and len(image_loss_history) > 3:
+                        p = 0
                         if video_loss_ema > image_loss_ema:
                             p = max(min_p, min(max_p, 1 - (video_loss_ema - image_loss_ema) * beta))  # increase p dynamically
                             print('VIDEO LOSS Larger , using updated p to : ', p)
