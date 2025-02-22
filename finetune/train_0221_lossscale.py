@@ -3023,15 +3023,15 @@ def main(args):
                     min_p = 0.1
                     max_p = 0.9
                     beta = 0.1
-                    
-                    if video_loss_ema > image_loss_ema:
-                        p = max(min_p, min(max_p, 1 - (video_loss_ema - image_loss_ema) * beta))  # increase p dynamically
-                        print('VIDEO LOSS Larger , using updated p to : ', p)
-                        print('VIDEO UPDATE :: CURRENT :: image_ema_loss, video_ema_loss', image_loss_ema, video_loss_ema)
-                    else:
-                        p = max(min_p, min(max_p, (image_loss_ema - video_loss_ema) * beta))  # decrease p dynamically
-                        print('IMAGE LOSS Larger , using updated p to : ', p)
-                        print('IMAGE UPDATE :: CURRENT :: image_ema_loss, video_ema_loss', image_loss_ema, video_loss_ema)
+                    if len(video_loss_history) > 3 and len(image_loss_history) > 3:
+                        if video_loss_ema > image_loss_ema:
+                            p = max(min_p, min(max_p, 1 - (video_loss_ema - image_loss_ema) * beta))  # increase p dynamically
+                            print('VIDEO LOSS Larger , using updated p to : ', p)
+                            print('VIDEO UPDATE :: CURRENT :: image_ema_loss, video_ema_loss', image_loss_ema, video_loss_ema)
+                        else:
+                            p = max(min_p, min(max_p, (image_loss_ema - video_loss_ema) * beta))  # decrease p dynamically
+                            print('IMAGE LOSS Larger , using updated p to : ', p)
+                            print('IMAGE UPDATE :: CURRENT :: image_ema_loss, video_ema_loss', image_loss_ema, video_loss_ema)
                     
                     sampler.p["value"] = p # update 'p' value in the sampler
                 
