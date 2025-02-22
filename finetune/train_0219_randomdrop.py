@@ -1416,6 +1416,7 @@ def log_validation(
     accelerator,
     pipeline_args,
     epoch,
+    ckpt_step: int = 0,
     is_final_validation: bool = False,
     # prompt: dict = None,
 ):
@@ -1569,7 +1570,7 @@ def log_validation(
                     .replace("/", "_")
                 )
                 max_num_frames = current_pipeline_args['num_frames']
-                filename = os.path.join(args.output_dir, f"{epoch}_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
+                filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
                 export_to_video(video, filename, fps=args.fps)
                 video_filenames.append(filename)
 
@@ -3086,13 +3087,14 @@ def main(args):
                         'text_only_norm_final': args.text_only_norm_final,
                         'non_shared_pos_embed': args.non_shared_pos_embed,
                     }
-
+                    ckpt_step = int(os.path.basename(args.resume_from_checkpoint).split('-')[1])
                     validation_outputs = log_validation(
                         pipe=pipe,
                         args=args,
                         accelerator=accelerator,
                         pipeline_args=pipeline_args,
                         epoch=epoch,
+                        ckpt_step=ckpt_step,
                     )
         if args.inference: # do inference_only, so no training
             break
