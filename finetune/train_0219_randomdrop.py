@@ -1861,12 +1861,18 @@ def main(args):
     project_name = "video_customization_consis_id_style"
     experiment_name = os.path.splitext(os.path.basename(args.output_dir))[0]
     os.environ["WANDB_NAME"] = experiment_name
+    print("Before accelerator setup")
+    print("Starting ProjectConfiguration setup")
     accelerator_project_config = ProjectConfiguration(project_dir=args.output_dir, logging_dir=logging_dir,)
                                                     #   name=experiment_name)
     # DistributedDataParallelKwargs setup for gradient checkpointing and unused parameters and mixed precision
     # what is distributed dataparallel kwargs here? 
     # find_unused_parameters: If True, find_unused_parameters will be passed to DistributedDataParallel.
+    print("Finished ProjectConfiguration setup")
+    print("Before DistributedDataParallelKwargs setup")
     kwargs = DistributedDataParallelKwargs(find_unused_parameters=False)
+    print("Finished DistributedDataParallelKwargs setup")
+    print("Before accelerator initialization")
     # Accelerator setup
     print("Accelerator setup")
     accelerator = Accelerator(
@@ -1874,7 +1880,7 @@ def main(args):
         mixed_precision=args.mixed_precision, # mixed precision training
         log_with=args.report_to, # logging to wandb
         project_config=accelerator_project_config, # project configuration
-        kwargs_handlers=[kwargs], # DistributedDataParallelKwargs setup
+        # kwargs_handlers=[kwargs], # DistributedDataParallelKwargs setup
     )
     print('Accelerator setup done')
 
