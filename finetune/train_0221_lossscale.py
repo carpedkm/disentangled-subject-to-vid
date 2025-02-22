@@ -3025,7 +3025,7 @@ def main(args):
                         image_loss_ema = update_ema(image_loss_history, 0.9)
                     min_p = 0.1
                     max_p = 0.9
-                    beta = 0.1
+                    beta = 1.
                     if len(video_loss_history) > 3 and len(image_loss_history) > 3:
                         
                         if video_loss_ema > image_loss_ema:
