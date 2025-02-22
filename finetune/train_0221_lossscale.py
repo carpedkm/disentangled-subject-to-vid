@@ -1426,6 +1426,7 @@ def log_validation(
     accelerator,
     pipeline_args,
     epoch,
+    ckpt_step,
     is_final_validation: bool = False,
     # prompt: dict = None,
 ):
@@ -1579,7 +1580,7 @@ def log_validation(
                     .replace("/", "_")
                 )
                 max_num_frames = current_pipeline_args['num_frames']
-                filename = os.path.join(args.output_dir, f"{epoch}_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
+                filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
                 export_to_video(video, filename, fps=args.fps)
                 video_filenames.append(filename)
 
@@ -3007,19 +3008,21 @@ def main(args):
                 
                 # model_input.shape : [B, F, C, H, W]
                 if args.dynamic_prob_update and args.joint_train:
+                    print(model_input.shape)
+                    print('DYNAMIC PROB UPDATE _ DEBUG')
                     if model_input.shape[1] == 1: # Image pairs
                         image_loss = loss.mean()
+                        print('IMAGE LOSS UPDATE', image_loss.item())
                         image_loss_history.append(image_loss.item())
                     else: # Video clips
                         video_loss = loss.mean()
+                        print('VIDEO LOSS UPDATE', video_loss.item())
                         video_loss_history.append(video_loss.item())
                     # calculate EMA for each list
-                    if len(video_loss_history) > 3:
+                    if len(video_loss_history) > 2:
                         video_loss_ema = update_ema(video_loss_history, 0.9)
-                        video_loss_history.pop(0) # CLEAR
-                    if len(image_loss_history) > 3:
+                    if len(image_loss_history) > 2:
                         image_loss_ema = update_ema(image_loss_history, 0.9)
-                        image_loss_history.pop(0) # CLEAR
                     min_p = 0.1
                     max_p = 0.9
                     beta = 0.1
@@ -3029,10 +3032,12 @@ def main(args):
                             p = max(min_p, min(max_p, 1 - (video_loss_ema - image_loss_ema) * beta))  # increase p dynamically
                             print('VIDEO LOSS Larger , using updated p to : ', p)
                             print('VIDEO UPDATE :: CURRENT :: image_ema_loss, video_ema_loss', image_loss_ema, video_loss_ema)
+                            video_loss_history.pop(0) # CLEAR
                         else:
                             p = max(min_p, min(max_p, (image_loss_ema - video_loss_ema) * beta))  # decrease p dynamically
                             print('IMAGE LOSS Larger , using updated p to : ', p)
                             print('IMAGE UPDATE :: CURRENT :: image_ema_loss, video_ema_loss', image_loss_ema, video_loss_ema)
+                            image_loss_history.pop(0) # CLEAR
                     
                         sampler.p["value"] = p # update 'p' value in the sampler
                 
@@ -3154,13 +3159,14 @@ def main(args):
                         'text_only_norm_final': args.text_only_norm_final,
                         'non_shared_pos_embed': args.non_shared_pos_embed,
                     }
-
+                    ckpt_step = int(os.path.basename(args.resume_from_checkpoint).split('-')[1])
                     validation_outputs = log_validation(
                         pipe=pipe,
                         args=args,
                         accelerator=accelerator,
                         pipeline_args=pipeline_args,
                         epoch=epoch,
+                        ckpt_step=ckpt_step,
                     )
         if args.inference: # do inference_only, so no training
             break
