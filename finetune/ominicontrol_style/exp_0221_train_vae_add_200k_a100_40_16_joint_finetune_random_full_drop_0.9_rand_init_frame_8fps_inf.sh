@@ -6,11 +6,11 @@ export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_u
 export OUTPUT_PATH="/mnt/carpedkm_data/result250221/joint_finetune_randomdrop_full_40_16_dropprob_0.9_8fps"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=1
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
-accelerate launch --config_file ../accelerate_config_machine_single.yaml --multi_gpu \
+accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml  \
   ../train_0219_randomdrop.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
