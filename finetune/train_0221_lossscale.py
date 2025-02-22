@@ -3033,7 +3033,7 @@ def main(args):
                             print('IMAGE LOSS Larger , using updated p to : ', p)
                             print('IMAGE UPDATE :: CURRENT :: image_ema_loss, video_ema_loss', image_loss_ema, video_loss_ema)
                     
-                    sampler.p["value"] = p # update 'p' value in the sampler
+                        sampler.p["value"] = p # update 'p' value in the sampler
                 
                 loss = loss.mean()
                 accelerator.backward(loss)
