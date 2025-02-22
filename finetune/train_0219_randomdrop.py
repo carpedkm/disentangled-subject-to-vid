@@ -1538,7 +1538,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 33, #args.max_num_frames,
+                'num_frames': 37, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
