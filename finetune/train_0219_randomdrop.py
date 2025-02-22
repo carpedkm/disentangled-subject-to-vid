@@ -689,6 +689,11 @@ def get_args():
         action='store_true',
         help='Whether to use random pad zero or not'
     )
+    parser.add_argument(
+        '--inference_num_frames',
+        type=int,
+        default=49,
+    )
     return parser.parse_args()
 
 
@@ -1538,7 +1543,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 37, #args.max_num_frames,
+                'num_frames': args.inference_num_frames, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
