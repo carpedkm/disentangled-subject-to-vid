@@ -1314,7 +1314,7 @@ class CustomBatchSampler(Sampler):
         self.video_flag = 0
         self.image_flag = 0
         
-        self.video_batch_size = 6
+        self.video_batch_size = 1
         self.image_batch_size = batch_size
 
     def __iter__(self):
