@@ -105,9 +105,10 @@ def extract_vae_latents(
     # Wait for all processes to finish
     for process in processes:
         process.join()
+        
 if __name__ == "__main__":
     multiprocessing.set_start_method("spawn")
-    video_dir1 = "/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/right_images_updated"
+    video_dir1 = "/root/daneul/projects/refactored/CogVideo/temp_omini/right_images_updated"
     # video_dir2 = "output/right_images"
     video_paths = sorted([os.path.join(video_dir1, f) for f in os.listdir(video_dir1) if f.endswith(".png")]) # single frame video (image)
     total_cnt = len(video_paths)
@@ -120,10 +121,9 @@ if __name__ == "__main__":
     extract_vae_latents(
         video_paths,
         vae_model_path="THUDM/CogVideoX-5b",
-        output_dir="./right_latents_fixed_updated_rgb_12",
-        # output_dir = "/dev/shm/vae_latents",
+        output_dir="/root/daneul/projects/refactored/CogVideo/temp_omini/right_stillvideo_latents_part1",
         height=480,
         width=720,
-        max_frames=13,
+        max_frames=49,
         # fps=8,
     )
