@@ -3425,7 +3425,7 @@ def main(args):
                     # Integrate both frame-wise and timestep-based weights
                     weights = weights * frame_weights  
                 if args.frame_weighted_loss and args.image_man and model_pred.shape[1] > 1:
-                    print('debug - frame_weighted_loss applied for image manipulation')
+                    # print('debug - frame_weighted_loss applied for image manipulation')
                     # Frame-wise weights (choose one of the above methods)
                     N = model_pred.shape[1]  # Number of frames
                     frame_weights = torch.linspace(1, 1/N, N).to(model_pred.device)  # Linear scaling
