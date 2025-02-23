@@ -690,9 +690,14 @@ def get_args():
         help='Whether to use random pad zero or not'
     )
     parser.add_argument(
-        '--inference_num_frames',
-        type=int,
-        default=49,
+        '--frame_weighted_loss',
+        action='store_true',
+        help='Whether to use frame weighted loss or not'
+    )
+    parser.add_argument(
+        '--dynamic_prob_update',
+        action='store_true',
+        help='Whether to use dynamic prob update or not'
     )
     parser.add_argument(
         '--image_man',
@@ -921,7 +926,7 @@ class VideoDataset(Dataset):
             
             
         
-class ImageDataset(Dataset):
+class ImageManDataset(Dataset):
     def __init__(
         self,
         instance_data_root: Optional[str] = None,
@@ -948,6 +953,7 @@ class ImageDataset(Dataset):
         add_new_split: bool = False,
         qk_replace: bool = False,
         qformer: bool = False,
+        image_man: bool = False,
     ) -> None:
         super().__init__()
         print('Data loader init')
@@ -963,6 +969,7 @@ class ImageDataset(Dataset):
         self.width = width
         self.add_new_split=add_new_split
         self.wo_shuffle=wo_shuffle
+        self.image_man=image_man
         if add_multiple_special:
             self.prefix = "<cls> <a> <b> <c> "
         else:
@@ -1112,12 +1119,18 @@ class ImageDataset(Dataset):
         self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_rgb_full')
         self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_rgb_full')
         
+        if self.image_man is True:
+            self.instance_left_latent_root_as_video = os.path.join(self.instance_data_root, 'left_latents_fixed_updated_rgb_13')
+            self.instance_right_latent_root_as_video = os.path.join(self.instance_data_root, 'right_latents_fixed_updated_rgb_13')
+        
         if self.add_new_split is True:
             self.instance_left_latent_root_additional = os.path.join(self.additional_instance_root, 'left_latents')
             self.instance_right_latent_root_additional = os.path.join(self.additional_instance_root, 'right_latents')
         
         self.instance_left_latent_root_map_with_id = {}
         self.instance_right_latent_root_map_with_id = {}
+        self.instance_left_latent_root_map_with_id_for_vid = {}
+        self.instance_right_latent_root_map_with_id_for_vid = {}
         print("MAPPING LATENT IDS")
         for id in tqdm(self.ids):
             if 'add' in str(id):
@@ -1126,7 +1139,375 @@ class ImageDataset(Dataset):
             else:
                 self.instance_left_latent_root_map_with_id[id] = os.path.join(self.instance_left_latent_root, f'left_{id}_vae_latents.npy')
                 self.instance_right_latent_root_map_with_id[id] = os.path.join(self.instance_right_latent_root, f'right_{id}_vae_latents.npy')
+                # if self.image_man is True:
+                #     if os.path.exists(os.path.join(self.instance_left_latent_root_as_video, f'left_{id}_vae_latents.npy')) and os.path.exists(os.path.join(self.instance_right_latent_root_as_video, f'right_{id}_vae_latents.npy')):
+                #         self.instance_left_latent_root_map_with_id_for_vid[id] = os.path.join(self.instance_left_latent_root_as_video, f'left_{id}_vae_latents.npy')
+                #         self.instance_right_latent_root_map_with_id_for_vid[id] = os.path.join(self.instance_right_latent_root_as_video, f'right_{id}_vae_latents.npy')
+        # MAP for image_man
+        if self.image_man:
+            list_of_paths_left_id_vid = os.listdir(self.instance_left_latent_root_as_video)
+            list_of_paths_right_id_vid = os.listdir(self.instance_right_latent_root_as_video)
+            for vid_stuffs in list_of_paths_left_id_vid:
+                id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
+                self.instance_left_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_left_latent_root_as_video, f'left_{id_vid}_vae_latents.npy')
+            for vid_stuffs in list_of_paths_right_id_vid:
+                id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
+                self.instance_right_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_right_latent_root_as_video, f'right_{id_vid}_vae_latents.npy')
         
+        # Update ids
+        self.ids = list(self.instance_left_latent_root_map_with_id.keys())
+        self.len_dataset = len(self.ids)
+        # self.anno_path = os.path.join(str(self.instance_data_root), 'metadata')
+        self.anno_path = anno_path
+        self.instance_prompts_0 = {}
+        self.instance_prompts_1 = {}
+        
+        print("LOADING METADATA")
+        # for id in tqdm(self.ids):
+        #     meta_path = os.path.join(self.anno_path, f'meta_{id}.json')
+        #     with open(meta_path, 'r') as f:
+        #         meta = json.load(f)
+        #     self.instance_prompts_0[id] = self.prefix + meta['description_0']
+        #     self.instance_prompts_1[id] = self.prefix + meta['description_1']
+        with open(self.anno_path, 'r') as f:
+            metadata = json.load(f)
+        for id in tqdm(self.ids):
+            meta = metadata[str(id)]
+            if add_special:
+                if add_specific_loc:
+                    # First find out the 'item' inside the metadata and get the location of the 'item' inside description and then add <cls> in front of the 'item'
+                    item_name = meta['item']
+                    # find item name regardless of capitalization
+                    item_name_lower = item_name.lower()
+                    desc_lower = meta['description_0'].lower()
+
+                    if item_name_lower in desc_lower:
+                        item_loc = desc_lower.find(item_name_lower)
+                        self.instance_prompts_0[id] = (
+                            meta['description_0'][:item_loc] + ' ' + self.prefix + meta['description_0'][item_loc:]
+                        )
+                        # print(f">>>>>> Item name: {item_name}, Item location: {item_loc}, Description: {self.instance_prompts_0[id]}")
+                    else:
+                        self.instance_prompts_0[id] = self.prefix + meta['description_0']
+                    desc_lower = meta['description_1'].lower()
+                    # if meta['description_1'].find(item_name) != -1:
+                    if item_name_lower in desc_lower:
+                        item_loc = desc_lower.find(item_name_lower)
+                        self.instance_prompts_1[id] = (
+                            meta['description_1'][:item_loc] + ' ' + self.prefix + meta['description_1'][item_loc:]
+                        )
+                        # print(f">>>>>> Item name: {item_name}, Item location: {item_loc}, Description: {self.instance_prompts_1[id]}")
+                    else:
+                        self.instance_prompts_1[id] = self.prefix + meta['description_1']
+                    
+                else:
+                    self.instance_prompts_0[id] = self.prefix + meta['description_0']
+                    self.instance_prompts_1[id] = self.prefix + meta['description_1']
+
+            else:
+                self.instance_prompts_0[id] = meta['description_0']
+                self.instance_prompts_1[id] = meta['description_1']
+        
+
+        
+    def __getitem__(self, index):
+        while True:
+            if self.wo_shuffle:
+                target = 1
+            else:
+                target = index % 2
+            index = self.ids[index % self.len_dataset]
+            # print(index)
+            try:
+                if not self.load_to_ram:
+                    if target == 0: # left : condition / right : target
+                        prompt = self.id_token + self.instance_prompts_1[index]
+                        if self.vae_add or self.cross_attend or self.cross_attend_text or self.qk_replace:
+                            if not self.load_to_ram:
+                                image = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
+                            else:
+                                image = torch.from_numpy(self.instance_left_latent_root_map_with_id[index])
+                        else:
+                            image = self._process_single_ref_image(self.instance_left_pixel_root_map_with_id[index])
+                        # image = image.unsqueeze(0) # deal it as single-frame video
+                        if not self.load_to_ram:
+                            latent = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id_for_vid[index]))
+                            
+                        # latent = latent.unsqueeze(0)
+                    else: # left : target / right : condition
+                        prompt = self.id_token + self.instance_prompts_0[index]
+                        if self.vae_add or self.cross_attend or self.cross_attend_text or self.qk_replace:
+                            if not self.load_to_ram:
+                                image = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index]))
+                            else:
+                                image = torch.from_numpy(self.instance_right_latent_root_map_with_id[index])
+                        else:
+                            image = self._process_single_ref_image(self.instance_right_pixel_root_map_with_id[index])
+                        # image = image.unsqueeze(0) # deal it as single-frame video
+                        
+                        if not self.load_to_ram:
+                                latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id_for_vid[index]))
+
+                # latent is preprocessed from cv2.imread, so convert BGR to RGB
+                # latent = latent[...,::-1]
+                    # latent = latent.unsqueeze(0)
+                return {
+                    "instance_prompt": prompt,
+                    "instance_video": latent,
+                    "instance_ref_image": image,
+                }
+
+            except Exception as e:
+                print('>> ERROR', e)
+                # change to other random video 
+                index = (index + 1) % self.len_dataset
+    def __len__(self):
+        return self.len_dataset
+                
+    def _process_single_ref_image(self, ref_image_path):
+        try:
+            from PIL import Image
+            import numpy as np
+        except ImportError:
+            raise ImportError(
+                "The `PIL`, `numpy` package is required for loading the reference images. Install with `pip install PIL numpy`"
+            )
+        image = Image.open(ref_image_path) # [height, width, 3]
+        image = np.array(image.resize((self.width, self.height)))
+        # print(f"Image shape after resize: {image.shape}")  # Add this line
+        image = torch.from_numpy(image).permute(2, 0, 1).float() 
+        # shape : [3, height, width]
+        # print(f"Image tensor shape after permute: {image.shape}")  
+        return image
+
+   
+class ImageDataset(Dataset):
+    def __init__(
+        self,
+        instance_data_root: Optional[str] = None,
+        anno_path: Optional[str] = None,
+        dataset_name: Optional[str] = None,
+        height: int = 512,
+        width: int = 512,
+        cache_dir: Optional[str] = None,
+        id_token: Optional[str] = None,
+        subset_cnt: int = -1,
+        cross_pairs: bool = False,
+        latent_data_root: str = None,
+        use_latent: bool = False,
+        wo_bg : bool = False,
+        vae_add : bool = False,
+        cross_attend : bool = False,
+        cross_attend_text: bool = False,
+        load_to_ram : bool = False,
+        seen_validation : bool = False, 
+        add_special: bool = False,
+        add_multiple_special: bool = False,
+        add_specific_loc: bool = False,
+        wo_shuffle: bool = False,
+        add_new_split: bool = False,
+        qk_replace: bool = False,
+        qformer: bool = False,
+        image_man: bool = False,
+    ) -> None:
+        super().__init__()
+        print('Data loader init')
+        self.vae_add = vae_add
+        self.qk_replace = qk_replace
+        self.cross_attend = cross_attend
+        self.cross_attend_text = cross_attend_text
+        self.qformer = qformer
+        self.use_latent = use_latent
+        self.instance_data_root = Path(instance_data_root) if instance_data_root is not None else None
+        self.seen_validation = seen_validation
+        self.height = height
+        self.width = width
+        self.add_new_split=add_new_split
+        self.wo_shuffle=wo_shuffle
+        self.image_man=image_man
+        if add_multiple_special:
+            self.prefix = "<cls> <a> <b> <c> "
+        else:
+            self.prefix = "<cls> " 
+        # self.val_instance_prompt_dict = {'oranges_omini':"A close up view of the item. It is placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+        #                                  'clock_omini':"In a Bauhaus style room, the item is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+        #                                  'rc_car_omini': "A film style shot. On the moon, this item goes across the moon surface. The background is that Earth looms large in the foreground.",
+        #                                  'shirt_omini': "On the beach, a lady sits under a beach umbrella with 'Omini' written on it. She's wearing this item and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+        #                                 #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
+        #                                 }
+        if add_special and not add_multiple_special:
+            self.val_instance_prompt_dict = {
+                                            'oranges_omini':"A close up view. A <cls> of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+                                            'clock_omini':"In a Bauhaus style room, the <cls> clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+                                            'rc_car_omini': "A film style shot. On the moon, <cls> toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+                                            'shirt_omini': "On the beach, a lady sits under a beach umbrella. She's wearing <cls> hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                                            'cat' : "<cls> cat is rollerblading in the park",
+                                            'dog' : '<cls> dog is flying in the sky',
+                                            'red_toy' : '<cls> red toy is dancing in the room',
+                                            'dog_toy' : '<cls> dog toy is walking around the grass',
+                                            
+                                            #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
+                                            }
+        self.val_instance_prompt_dict = {
+                                    'oranges_omini':"A close up view. A bowl of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+                                    'clock_omini':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+                                    'rc_car_omini': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+                                    'shirt_omini': "On the beach, a lady sits under a beach umbrella. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                                    'cat' : "cat is rollerblading in the park",
+                                    'dog' : 'dog is flying in the sky',
+                                    'red_toy' : 'red toy is dancing in the room',
+                                    'dog_toy' : 'dog toy is walking around the grass',
+                                }
+        
+        if self.seen_validation is True:
+            self.val_instance_prompt_dict = {}
+            path_for_seen_meta = '../seen_samples/omini_meta/'
+            for file in os.listdir(path_for_seen_meta):
+                with open(os.path.join(path_for_seen_meta, file), 'r') as f:
+                    meta_seen = json.load(f)
+                id_ = 'right_' + file.split('_')[1].split('.')[0]
+                # id_  = file.split('.')[0]
+                tmp_desc = meta_seen['description_0']
+                self.val_instance_prompt_dict[id_] = tmp_desc
+        if add_special:
+            self.val_instance_prompt_dict = {k: self.prefix + v for k, v in self.val_instance_prompt_dict.items()}
+        
+        self.instance_prompts = []
+        self.id_token = id_token or ""
+
+        self.instance_left_pixel_root = os.path.join(str(self.instance_data_root), 'left_images_updated')
+        self.instance_right_pixel_root = os.path.join(str(self.instance_data_root), 'right_images_updated')
+        
+        if self.add_new_split is True:
+            print('>> Accessing additional data')
+            self.additional_instance_root = os.path.join(str(self.instance_data_root), 'omini200k_720p_new_1024_renamed')
+            self.instance_left_pixel_root_additional = os.path.join(self.additional_instance_root, 'left_images_updated')
+            self.instance_right_pixel_root_additional = os.path.join(self.additional_instance_root, 'right_images_updated')
+            
+        self.dataset_name = dataset_name
+        
+        self.load_to_ram = load_to_ram
+        # print('>> Accessing additional data Done')
+        print('Get list for image IDs')
+        left_ids = os.listdir(self.instance_left_pixel_root)
+        left_ids = [int(id.split('_')[1].split('.')[0]) for id in tqdm(left_ids)]
+
+        right_ids = os.listdir(self.instance_right_pixel_root)
+        right_ids = [int(id.split('_')[1].split('.')[0]) for id in tqdm(right_ids)]
+        
+        if self.add_new_split is True:
+            additional_left_ids = os.listdir(self.instance_left_pixel_root_additional)
+            additional_left_ids = ['add_' + str(int(id.split('_')[2].split('.')[0])) for id in tqdm(additional_left_ids)] # add_0
+            additional_right_ids = os.listdir(self.instance_right_pixel_root_additional)
+            additional_right_ids = ['add_' + str(int(id.split('_')[2].split('.')[0])) for id in tqdm(additional_right_ids)] # add_0
+            
+        
+        # check if there exists non-existing ids in right_ids
+        print("CHECKING MISSING IDS")
+        left_ids_set = set(left_ids)
+        right_ids_set = set(right_ids)
+
+        if self.add_new_split is True:
+            left_ids_set_add = set(additional_left_ids)
+            right_ids_set_add = set(additional_right_ids)
+        
+        # Find ids in left_ids that are not in right_ids
+        no_right_ids = left_ids_set - right_ids_set
+        for id in no_right_ids:
+            print('>> NO RIGHT ID', id)
+            left_ids.remove(id)
+            
+        # additoinal check
+        if self.add_new_split is True:
+            no_right_ids_add = left_ids_set_add - right_ids_set_add
+            for id in no_right_ids_add:
+                print('>> NO RIGHT ID ADD', id)
+                additional_left_ids.remove(id)
+
+        # Find ids in right_ids that are not in left_ids
+        no_left_ids = right_ids_set - left_ids_set
+        for id in no_left_ids:
+            print('>> NO LEFT ID', id)
+            right_ids.remove(id)
+    
+        # additoinal check
+        if self.add_new_split is True:
+            no_left_ids_add = right_ids_set_add - left_ids_set_add
+            for id in no_left_ids_add:
+                print('>> NO LEFT ID ADD', id)
+                additional_right_ids.remove(id)
+        
+        assert set(left_ids) == set(right_ids) # what about now? -> same ids in both left and right 
+        if self.add_new_split is True:
+            assert set(additional_left_ids) == set(additional_right_ids) # check for additional_ids
+            add_ids = additional_left_ids
+        else:
+            add_ids = []
+        ids = left_ids + add_ids
+        # add_ids = additional_left_ids
+        # self.ids = ids
+        # randomly select ids
+        if subset_cnt != -1:
+            self.ids = random.sample(ids, subset_cnt)
+        else:
+            self.ids = ids
+        self.len_dataset = len(self.ids)
+                
+        self.instance_left_pixel_root_map_with_id = {}
+        self.instance_right_pixel_root_map_with_id = {}
+        
+        if self.add_new_split is True:
+            self.instance_left_pixel_root_map_with_id_add = {}
+            self.instance_right_pixel_root_map_with_id_add = {}
+        
+        print("MAPPING PIXEL IDS")
+        for id in tqdm(self.ids):
+            if 'add' in str(id):
+                self.instance_left_pixel_root_map_with_id[id] = os.path.join(self.instance_left_pixel_root_additional, f'left_{id}.png')
+                self.instance_right_pixel_root_map_with_id[id] = os.path.join(self.instance_right_pixel_root_additional, f'right_{id}.png')
+            else:
+                self.instance_left_pixel_root_map_with_id[id] = os.path.join(self.instance_left_pixel_root, f'left_{id}.png')
+                self.instance_right_pixel_root_map_with_id[id] = os.path.join(self.instance_right_pixel_root, f'right_{id}.png')
+        
+
+        
+        self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_rgb_full')
+        self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_rgb_full')
+        
+        if self.image_man is True:
+            self.instance_left_latent_root_as_video = os.path.join(self.instance_data_root, 'left_latents_fixed_updated_rgb_13')
+            self.instance_right_latent_root_as_video = os.path.join(self.instance_data_root, 'right_latents_fixed_updated_rgb_13')
+        
+        if self.add_new_split is True:
+            self.instance_left_latent_root_additional = os.path.join(self.additional_instance_root, 'left_latents')
+            self.instance_right_latent_root_additional = os.path.join(self.additional_instance_root, 'right_latents')
+        
+        self.instance_left_latent_root_map_with_id = {}
+        self.instance_right_latent_root_map_with_id = {}
+        self.instance_left_latent_root_map_with_id_for_vid = {}
+        self.instance_right_latent_root_map_with_id_for_vid = {}
+        print("MAPPING LATENT IDS")
+        for id in tqdm(self.ids):
+            if 'add' in str(id):
+                self.instance_left_latent_root_map_with_id[id] = os.path.join(self.instance_left_latent_root_additional, f'left_{id}_vae_latents.npy')
+                self.instance_right_latent_root_map_with_id[id] = os.path.join(self.instance_right_latent_root_additional, f'right_{id}_vae_latents.npy')
+            else:
+                self.instance_left_latent_root_map_with_id[id] = os.path.join(self.instance_left_latent_root, f'left_{id}_vae_latents.npy')
+                self.instance_right_latent_root_map_with_id[id] = os.path.join(self.instance_right_latent_root, f'right_{id}_vae_latents.npy')
+                # if self.image_man is True:
+                #     if os.path.exists(os.path.join(self.instance_left_latent_root_as_video, f'left_{id}_vae_latents.npy')) and os.path.exists(os.path.join(self.instance_right_latent_root_as_video, f'right_{id}_vae_latents.npy')):
+                #         self.instance_left_latent_root_map_with_id_for_vid[id] = os.path.join(self.instance_left_latent_root_as_video, f'left_{id}_vae_latents.npy')
+                #         self.instance_right_latent_root_map_with_id_for_vid[id] = os.path.join(self.instance_right_latent_root_as_video, f'right_{id}_vae_latents.npy')
+        # MAP for image_man
+        if self.image_man:
+            list_of_paths_left_id_vid = os.listdir(self.instance_left_latent_root_as_video)
+            list_of_paths_right_id_vid = os.listdir(self.instance_right_latent_root_as_video)
+            for vid_stuffs in list_of_paths_left_id_vid:
+                id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
+                self.instance_left_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_left_latent_root_as_video, f'left_{id_vid}_vae_latents.npy')
+            for vid_stuffs in list_of_paths_right_id_vid:
+                id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
+                self.instance_right_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_right_latent_root_as_video, f'right_{id_vid}_vae_latents.npy')
         
         # self.anno_path = os.path.join(str(self.instance_data_root), 'metadata')
         self.anno_path = anno_path
@@ -1210,7 +1591,13 @@ class ImageDataset(Dataset):
                             image = self._process_single_ref_image(self.instance_left_pixel_root_map_with_id[index])
                         # image = image.unsqueeze(0) # deal it as single-frame video
                         if not self.load_to_ram:
-                            latent = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index])) # already expanded //// expand to deal it as single frame video of shape [seq_len, height, width , 3] of seq_len = 1
+                            if self.image_man is True:
+                                if index in self.instance_right_latent_root_map_with_id_for_vid.keys():
+                                    latent = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id_for_vid[index]))
+                                else:
+                                    latent = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index]))
+                            else:
+                                latent = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index])) # already expanded //// expand to deal it as single frame video of shape [seq_len, height, width , 3] of seq_len = 1
                         else:
                             latent = torch.from_numpy(self.instance_right_latent_root_map_with_id[index])
                         # latent = latent.unsqueeze(0)
@@ -1226,7 +1613,14 @@ class ImageDataset(Dataset):
                         # image = image.unsqueeze(0) # deal it as single-frame video
                         
                         if not self.load_to_ram:
-                            latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
+                            if self.image_man is True:
+                                if index in self.instance_left_latent_root_map_with_id_for_vid.keys():
+                                    print(index)
+                                    latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id_for_vid[index]))
+                                else:
+                                    latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
+                            else:
+                                latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
                         else:
                             latent = torch.from_numpy(self.instance_left_latent_root_map_with_id[index])
                 # latent is preprocessed from cv2.imread, so convert BGR to RGB
@@ -1260,6 +1654,7 @@ class ImageDataset(Dataset):
         # shape : [3, height, width]
         # print(f"Image tensor shape after permute: {image.shape}")  
         return image
+
 
 class CombinedDataset(Dataset):
     def __init__(self, video_dataset, image_dataset, p=0.1):
@@ -1310,7 +1705,7 @@ class CustomBatchSampler(Sampler):
         # shuffle the video ids
         random.shuffle(self.video_ids)
         self.batch_size = batch_size
-        self.p = p
+        self.p = {"value": p}
         self.video_flag = 0
         self.image_flag = 0
         
@@ -1319,7 +1714,7 @@ class CustomBatchSampler(Sampler):
 
     def __iter__(self):
         while True:
-            if random.random() < self.p:
+            if random.random() < self.p["value"]:
                 # print('VIDEO BATCH : ', self.video_flag, self.video_flag + self.video_batch_size)
                 # Sample from the video dataset
                 video_batch = self.video_ids[self.video_flag : self.video_flag + self.video_batch_size]
@@ -1426,7 +1821,7 @@ def log_validation(
     accelerator,
     pipeline_args,
     epoch,
-    ckpt_step: int = 0,
+    ckpt_step,
     is_final_validation: bool = False,
     # prompt: dict = None,
 ):
@@ -1548,7 +1943,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': args.inference_num_frames, #args.max_num_frames,
+                'num_frames': 41, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
@@ -1846,6 +2241,11 @@ def get_optimizer(args, params_to_optimize, use_deepspeed: bool = False):
 
     return optimizer
 
+def update_ema(loss_history, alpha=0.9):
+    # If the history is empty, initialize with the first value
+    if not loss_history:
+        return loss_history[-1]
+    return alpha * loss_history[-1] + (1 - alpha) * loss_history[-2]
 
 def main(args):
     print('Start')
@@ -1871,18 +2271,12 @@ def main(args):
     project_name = "video_customization_consis_id_style"
     experiment_name = os.path.splitext(os.path.basename(args.output_dir))[0]
     os.environ["WANDB_NAME"] = experiment_name
-    print("Before accelerator setup")
-    print("Starting ProjectConfiguration setup")
     accelerator_project_config = ProjectConfiguration(project_dir=args.output_dir, logging_dir=logging_dir,)
                                                     #   name=experiment_name)
     # DistributedDataParallelKwargs setup for gradient checkpointing and unused parameters and mixed precision
     # what is distributed dataparallel kwargs here? 
     # find_unused_parameters: If True, find_unused_parameters will be passed to DistributedDataParallel.
-    print("Finished ProjectConfiguration setup")
-    print("Before DistributedDataParallelKwargs setup")
     kwargs = DistributedDataParallelKwargs(find_unused_parameters=False)
-    print("Finished DistributedDataParallelKwargs setup")
-    print("Before accelerator initialization")
     # Accelerator setup
     print("Accelerator setup")
     accelerator = Accelerator(
@@ -1890,7 +2284,7 @@ def main(args):
         mixed_precision=args.mixed_precision, # mixed precision training
         log_with=args.report_to, # logging to wandb
         project_config=accelerator_project_config, # project configuration
-        # kwargs_handlers=[kwargs], # DistributedDataParallelKwargs setup
+        kwargs_handlers=[kwargs], # DistributedDataParallelKwargs setup
     )
     print('Accelerator setup done')
 
@@ -2490,17 +2884,41 @@ def main(args):
                 add_new_split=args.add_new_split,
                 qk_replace=args.qk_replace,
                 qformer=args.qformer,
+                image_man=args.image_man,
             )
-            video_dataset = VideoDataset(
-                video_instance_root=args.video_instance_root,
-                video_anno=args.video_anno,
-                video_ref_root = args.video_ref_root,
-                height=args.height,
-                width=args.width,
-                seen_validation=args.seen_validation,
-                joint_train=args.joint_train,
-                image_dataset_len=len(image_dataset),
-            )
+            if not args.image_man:
+                video_dataset = VideoDataset(
+                    video_instance_root=args.video_instance_root,
+                    video_anno=args.video_anno,
+                    video_ref_root = args.video_ref_root,
+                    height=args.height,
+                    width=args.width,
+                    seen_validation=args.seen_validation,
+                    joint_train=args.joint_train,
+                    image_dataset_len=len(image_dataset),
+                )
+            else:
+                video_dataset = ImageManDataset(
+                                    instance_data_root=args.instance_data_root,
+                                    dataset_name=args.dataset_name,
+                                    anno_path=args.anno_root,
+                                    cache_dir=args.cache_dir,
+                                    id_token=args.id_token,
+                                    subset_cnt=args.subset_cnt,
+                                    use_latent=args.use_latent,
+                                    vae_add=args.vae_add,
+                                    cross_attend=args.cross_attend,
+                                    cross_attend_text=args.cross_attend_text,
+                                    seen_validation=args.seen_validation,
+                                    add_special=args.add_special,
+                                    add_multiple_special=args.add_multiple_special,
+                                    add_specific_loc=args.add_specific_loc,
+                                    wo_shuffle=args.wo_shuffle,
+                                    add_new_split=args.add_new_split,
+                                    qk_replace=args.qk_replace,
+                                    qformer=args.qformer,
+                                    image_man=args.image_man,
+                )
             # SHOULD ALSO UPDATE COMBINED_DATASET-> We do not need prob samp video iside the dataset, as we have it inside custom batch sampler
             train_dataset = CombinedDataset(video_dataset, image_dataset, args.prob_sample_video) #FIXME - add argument for prob_sample_video
             def collate_fn(examples):
@@ -2524,10 +2942,11 @@ def main(args):
                 seed = torch.initial_seed() % 2**32
                 np.random.seed(seed)
                 random.seed(seed)
+            sampler = CustomBatchSampler(len(video_dataset), len(image_dataset), batch_size=args.train_batch_size, p=args.prob_sample_video)
             train_dataloader = DataLoader(
                 train_dataset,
                 shuffle=False,
-                sampler=CustomBatchSampler(len(video_dataset), len(image_dataset), batch_size=args.train_batch_size, p=args.prob_sample_video),
+                sampler=sampler,
                 collate_fn=collate_fn,
                 num_workers=args.dataloader_num_workers,
                 prefetch_factor=4,
@@ -2741,6 +3160,8 @@ def main(args):
     # For DeepSpeed training
     model_config = transformer.module.config if hasattr(transformer, "module") else transformer.config
     # from tqdm import tqdm
+    video_loss_history = []
+    image_loss_history = []
     for epoch in range(first_epoch, args.num_train_epochs):
         transformer.train()
         # update random seed
@@ -2750,7 +3171,7 @@ def main(args):
                 break
             # set_seed(args.seed + epoch)
             models_to_accumulate = [transformer]
-
+            p = 0.5
             with accelerator.accumulate(models_to_accumulate):
                 # videos = batch["videos"].to(accelerator.device, dtype=vae.dtype)
                 # print('Batch shape: ', batch["videos"].shape)
@@ -2768,6 +3189,7 @@ def main(args):
                     else:
                         latent_dist = videos * 0.7
                         model_input = latent_dist
+                # model_input shape : [B, F, C, H, W]
                 
                 
                 prompts = batch["prompts"]
@@ -2974,17 +3396,81 @@ def main(args):
                     random_drop_full=args.random_drop_full,
                     random_drop_prob=args.random_drop_prob,
                     random_pad_zero=args.random_pad_zero,
-                )[0]
+                    frame_weighted_loss=args.frame_weighted_loss,
+                )
+                if args.frame_weighted_loss:
+                    model_output, i2v_set = model_output
+                else:
+                    i2v_set = False
+                    model_output = model_output[0]
                 model_pred = scheduler.get_velocity(model_output, noisy_model_input, timesteps)
 
                 alphas_cumprod = scheduler.alphas_cumprod[timesteps]
                 weights = 1 / (1 - alphas_cumprod)
                 while len(weights.shape) < len(model_pred.shape):
                     weights = weights.unsqueeze(-1)
+                    
+                if args.frame_weighted_loss and i2v_set and not args.image_man:
+                    # Frame-wise weights (choose one of the above methods)
+                    N = model_pred.shape[1]  # Number of frames
+                    frame_weights = torch.linspace(1/N, 1, N).to(loss.device)  # Linear scaling
+
+                    # Expand frame_weights to match tensor dimensions
+                    while len(frame_weights.shape) < len(weights.shape):
+                        frame_weights = frame_weights.unsqueeze(-1)
+                    # Integrate both frame-wise and timestep-based weights
+                    weights = weights * frame_weights  
+                if args.frame_weighted_loss and args.image_man and model_pred.shape[1] > 1:
+                    print('debug - frame_weighted_loss applied for image manipulation')
+                    # Frame-wise weights (choose one of the above methods)
+                    N = model_pred.shape[1]  # Number of frames
+                    frame_weights = torch.linspace(1, 1/N, N).to(loss.device)  # Linear scaling
+
+                    # Expand frame_weights to match tensor dimensions
+                    while len(frame_weights.shape) < len(weights.shape):
+                        frame_weights = frame_weights.unsqueeze(-1)
+                    # Integrate both frame-wise and timestep-based weights
+                    weights = weights * frame_weights  
 
                 target = model_input
 
                 loss = torch.mean((weights * (model_pred - target) ** 2).reshape(batch_size, -1), dim=1)
+                
+                # model_input.shape : [B, F, C, H, W]
+                if args.dynamic_prob_update and args.joint_train:
+                    print(model_input.shape)
+                    print('DYNAMIC PROB UPDATE _ DEBUG')
+                    if model_input.shape[1] == 1: # Image pairs
+                        image_loss = loss.mean()
+                        print('IMAGE LOSS UPDATE', image_loss.item())
+                        image_loss_history.append(image_loss.item())
+                    else: # Video clips
+                        video_loss = loss.mean()
+                        print('VIDEO LOSS UPDATE', video_loss.item())
+                        video_loss_history.append(video_loss.item())
+                    # calculate EMA for each list
+                    if len(video_loss_history) > 2:
+                        video_loss_ema = update_ema(video_loss_history, 0.9)
+                    if len(image_loss_history) > 2:
+                        image_loss_ema = update_ema(image_loss_history, 0.9)
+                    min_p = 0.1
+                    max_p = 0.9
+                    beta = 1.
+                    if len(video_loss_history) > 3 and len(image_loss_history) > 3:
+                        
+                        if video_loss_ema > image_loss_ema:
+                            p = max(min_p, min(max_p, 1 - (video_loss_ema - image_loss_ema) * beta))  # increase p dynamically
+                            print('VIDEO LOSS Larger , using updated p to : ', p)
+                            print('VIDEO UPDATE :: CURRENT :: image_ema_loss, video_ema_loss', image_loss_ema, video_loss_ema)
+                            video_loss_history.pop(0) # CLEAR
+                        else:
+                            p = max(min_p, min(max_p, (image_loss_ema - video_loss_ema) * beta))  # decrease p dynamically
+                            print('IMAGE LOSS Larger , using updated p to : ', p)
+                            print('IMAGE UPDATE :: CURRENT :: image_ema_loss, video_ema_loss', image_loss_ema, video_loss_ema)
+                            image_loss_history.pop(0) # CLEAR
+                    
+                        sampler.p["value"] = p # update 'p' value in the sampler
+                
                 loss = loss.mean()
                 accelerator.backward(loss)
 
@@ -3029,7 +3515,7 @@ def main(args):
                         accelerator.save_state(save_path)
                         logger.info(f"Saved state to {save_path}")
 
-            logs = {"loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0]}
+            logs = {"loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0], 'p': p}
             progress_bar.set_postfix(**logs)
             accelerator.log(logs, step=global_step)
 

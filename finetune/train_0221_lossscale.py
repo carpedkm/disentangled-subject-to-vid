@@ -699,6 +699,11 @@ def get_args():
         action='store_true',
         help='Whether to use dynamic prob update or not'
     )
+    parser.add_argument(
+        '--image_man',
+        action='store_true',
+        help='Whether to use image manipulation or not'
+    )
     return parser.parse_args()
 
 
@@ -948,6 +953,7 @@ class ImageDataset(Dataset):
         add_new_split: bool = False,
         qk_replace: bool = False,
         qformer: bool = False,
+        image_man: bool = False,
     ) -> None:
         super().__init__()
         print('Data loader init')
@@ -963,6 +969,7 @@ class ImageDataset(Dataset):
         self.width = width
         self.add_new_split=add_new_split
         self.wo_shuffle=wo_shuffle
+        self.image_man=False
         if add_multiple_special:
             self.prefix = "<cls> <a> <b> <c> "
         else:
@@ -1112,12 +1119,18 @@ class ImageDataset(Dataset):
         self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_rgb_full')
         self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_rgb_full')
         
+        if self.image_man is True:
+            self.instance_left_latent_root_as_video = os.path.join(self.instance_data_root, 'left_latents_fixed_updated_rgb_13')
+            self.instance_right_latent_root_as_video = os.path.join(self.instance_data_root, 'right_latents_fixed_updated_rgb_13')
+        
         if self.add_new_split is True:
             self.instance_left_latent_root_additional = os.path.join(self.additional_instance_root, 'left_latents')
             self.instance_right_latent_root_additional = os.path.join(self.additional_instance_root, 'right_latents')
         
         self.instance_left_latent_root_map_with_id = {}
         self.instance_right_latent_root_map_with_id = {}
+        self.instance_left_latent_root_map_with_id_for_vid = {}
+        self.instance_right_latent_root_map_with_id_for_vid = {}
         print("MAPPING LATENT IDS")
         for id in tqdm(self.ids):
             if 'add' in str(id):
@@ -1126,7 +1139,20 @@ class ImageDataset(Dataset):
             else:
                 self.instance_left_latent_root_map_with_id[id] = os.path.join(self.instance_left_latent_root, f'left_{id}_vae_latents.npy')
                 self.instance_right_latent_root_map_with_id[id] = os.path.join(self.instance_right_latent_root, f'right_{id}_vae_latents.npy')
-        
+                # if self.image_man is True:
+                #     if os.path.exists(os.path.join(self.instance_left_latent_root_as_video, f'left_{id}_vae_latents.npy')) and os.path.exists(os.path.join(self.instance_right_latent_root_as_video, f'right_{id}_vae_latents.npy')):
+                #         self.instance_left_latent_root_map_with_id_for_vid[id] = os.path.join(self.instance_left_latent_root_as_video, f'left_{id}_vae_latents.npy')
+                #         self.instance_right_latent_root_map_with_id_for_vid[id] = os.path.join(self.instance_right_latent_root_as_video, f'right_{id}_vae_latents.npy')
+        # MAP for image_man
+        if self.image_man:
+            list_of_paths_left_id_vid = os.listdir(self.instance_left_latent_root_as_video)
+            list_of_paths_right_id_vid = os.listdir(self.instance_right_latent_root_as_video)
+            for vid_stuffs in list_of_paths_left_id_vid:
+                id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
+                self.instance_left_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_left_latent_root_as_video, f'left_{id_vid}_vae_latents.npy')
+            for vid_stuffs in list_of_paths_right_id_vid:
+                id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
+                self.instance_right_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_right_latent_root_as_video, f'right_{id_vid}_vae_latents.npy')
         
         # self.anno_path = os.path.join(str(self.instance_data_root), 'metadata')
         self.anno_path = anno_path
@@ -1210,7 +1236,13 @@ class ImageDataset(Dataset):
                             image = self._process_single_ref_image(self.instance_left_pixel_root_map_with_id[index])
                         # image = image.unsqueeze(0) # deal it as single-frame video
                         if not self.load_to_ram:
-                            latent = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index])) # already expanded //// expand to deal it as single frame video of shape [seq_len, height, width , 3] of seq_len = 1
+                            if self.image_man is True:
+                                if index in self.instance_right_latent_root_map_with_id_for_vid.keys():
+                                    latent = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id_for_vid[index]))
+                                else:
+                                    latent = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index]))
+                            else:
+                                latent = torch.from_numpy(np.load(self.instance_right_latent_root_map_with_id[index])) # already expanded //// expand to deal it as single frame video of shape [seq_len, height, width , 3] of seq_len = 1
                         else:
                             latent = torch.from_numpy(self.instance_right_latent_root_map_with_id[index])
                         # latent = latent.unsqueeze(0)
@@ -1226,7 +1258,14 @@ class ImageDataset(Dataset):
                         # image = image.unsqueeze(0) # deal it as single-frame video
                         
                         if not self.load_to_ram:
-                            latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
+                            if self.image_man is True:
+                                if index in self.instance_left_latent_root_map_with_id_for_vid.keys():
+                                    print(index)
+                                    latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id_for_vid[index]))
+                                else:
+                                    latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
+                            else:
+                                latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id[index]))
                         else:
                             latent = torch.from_numpy(self.instance_left_latent_root_map_with_id[index])
                 # latent is preprocessed from cv2.imread, so convert BGR to RGB
@@ -2489,6 +2528,7 @@ def main(args):
                 add_new_split=args.add_new_split,
                 qk_replace=args.qk_replace,
                 qformer=args.qformer,
+                image_man=args.image_man,
             )
             video_dataset = VideoDataset(
                 video_instance_root=args.video_instance_root,
@@ -2995,6 +3035,17 @@ def main(args):
                     # Frame-wise weights (choose one of the above methods)
                     N = model_pred.shape[1]  # Number of frames
                     frame_weights = torch.linspace(1/N, 1, N).to(loss.device)  # Linear scaling
+
+                    # Expand frame_weights to match tensor dimensions
+                    while len(frame_weights.shape) < len(weights.shape):
+                        frame_weights = frame_weights.unsqueeze(-1)
+                    # Integrate both frame-wise and timestep-based weights
+                    weights = weights * frame_weights  
+                if args.frame_weighted_loss and args.image_man and model_pred.shape[1] > 1:
+                    print('debug - frame_weighted_loss applied for image manipulation')
+                    # Frame-wise weights (choose one of the above methods)
+                    N = model_pred.shape[1]  # Number of frames
+                    frame_weights = torch.linspace(1, 1/N, N).to(loss.device)  # Linear scaling
 
                     # Expand frame_weights to match tensor dimensions
                     while len(frame_weights.shape) < len(weights.shape):
