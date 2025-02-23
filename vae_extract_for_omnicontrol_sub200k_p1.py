@@ -123,7 +123,7 @@ if __name__ == "__main__":
         vae_model_path="THUDM/CogVideoX-5b",
         output_dir="/root/daneul/projects/refactored/CogVideo/temp_omini/left_stillvideo_latents_part1",
         height=480,
-        width=720,git add
+        width=720,
         max_frames=49,
         # fps=8,
     )
