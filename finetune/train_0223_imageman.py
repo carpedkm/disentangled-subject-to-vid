@@ -1247,7 +1247,7 @@ class ImageManDataset(Dataset):
                         
                         if not self.load_to_ram:
                                 latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id_for_vid[index]))
-
+                assert latent.shape[2] == 4
                 # latent is preprocessed from cv2.imread, so convert BGR to RGB
                 # latent = latent[...,::-1]
                     # latent = latent.unsqueeze(0)
@@ -1324,7 +1324,7 @@ class ImageDataset(Dataset):
         self.width = width
         self.add_new_split=add_new_split
         self.wo_shuffle=wo_shuffle
-        self.image_man=image_man
+        self.image_man=False
         if add_multiple_special:
             self.prefix = "<cls> <a> <b> <c> "
         else:
@@ -2927,10 +2927,14 @@ def main(args):
                 prompts = [example['instance_prompt'] for example in examples]
                 ref_images = [example['instance_ref_image'] for example in examples]
                 # if args.use_latent:
+                # print('all videos.shape')
+                # for i in videos:
+                #     print('shape of each video : ', i.shape)
                 videos = torch.cat(videos, dim=0)
                 ref_images = torch.cat(ref_images, dim=0).to(memory_format=torch.contiguous_format).float()
                 # else:
                 # videos = torch.stack(videos, dim=0)
+                
                 videos = videos.to(memory_format=torch.contiguous_format).float()
                 batch = {
                     "videos": videos,
@@ -3424,7 +3428,7 @@ def main(args):
                     print('debug - frame_weighted_loss applied for image manipulation')
                     # Frame-wise weights (choose one of the above methods)
                     N = model_pred.shape[1]  # Number of frames
-                    frame_weights = torch.linspace(1, 1/N, N).to(loss.device)  # Linear scaling
+                    frame_weights = torch.linspace(1, 1/N, N).to(model_pred.device)  # Linear scaling
 
                     # Expand frame_weights to match tensor dimensions
                     while len(frame_weights.shape) < len(weights.shape):
