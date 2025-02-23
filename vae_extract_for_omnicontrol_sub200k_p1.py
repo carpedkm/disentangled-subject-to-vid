@@ -113,7 +113,7 @@ if __name__ == "__main__":
     video_paths = sorted([os.path.join(video_dir1, f) for f in os.listdir(video_dir1) if f.endswith(".png")]) # single frame video (image)
     total_cnt = len(video_paths)
     # half of the videos
-    video_paths = video_paths[:total_cnt//2]
+    video_paths = video_paths[:total_cnt//4]
     print(f"Total video paths: {len(video_paths)}")
     # video_paths += [os.path.join(video_dir2, f) for f in os.listdir(video_dir2) if f.endswith(".png")] # single frame video (image)
 
@@ -121,7 +121,7 @@ if __name__ == "__main__":
     extract_vae_latents(
         video_paths,
         vae_model_path="THUDM/CogVideoX-5b",
-        output_dir="/root/daneul/projects/refactored/CogVideo/temp_omini/left_stillvideo_latents_part1",
+        output_dir="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/left_stillvideo_latents_part1",
         height=480,
         width=720,
         max_frames=49,
