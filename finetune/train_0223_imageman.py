@@ -709,6 +709,11 @@ def get_args():
         type=int,
         default=49,
     )
+    parser.add_argument(
+        '--image_man_with_i2v',
+        action='store_true',
+        help='Whether to use image manipulation with i2v or not'
+    )
     return parser.parse_args()
 
 
@@ -1692,7 +1697,7 @@ class CombinedDataset(Dataset):
 
 
 class CustomBatchSampler(Sampler):
-    def __init__(self, video_id_len, image_id_len, batch_size, p=0.5):
+    def __init__(self, video_id_len, image_id_len, batch_size, p=0.5, image_man_with_i2v=False):
         """
         Custom batch sampler to ensure each batch contains samples from only one dataset (video or image).
         
@@ -1716,6 +1721,9 @@ class CustomBatchSampler(Sampler):
         
         self.video_batch_size = 1
         self.image_batch_size = batch_size
+        self.image_man_with_i2v = image_man_with_i2v
+        # if image_man_with_i2v:
+        self.image_batch_size = self.image_batch_size
 
     def __iter__(self):
         while True:
@@ -2902,6 +2910,38 @@ def main(args):
                     joint_train=args.joint_train,
                     image_dataset_len=len(image_dataset),
                 )
+            elif args.image_man and args.image_man_with_i2v:
+                image_dataset = ImageManDataset(
+                                    instance_data_root=args.instance_data_root,
+                                    dataset_name=args.dataset_name,
+                                    anno_path=args.anno_root,
+                                    cache_dir=args.cache_dir,
+                                    id_token=args.id_token,
+                                    subset_cnt=args.subset_cnt,
+                                    use_latent=args.use_latent,
+                                    vae_add=args.vae_add,
+                                    cross_attend=args.cross_attend,
+                                    cross_attend_text=args.cross_attend_text,
+                                    seen_validation=args.seen_validation,
+                                    add_special=args.add_special,
+                                    add_multiple_special=args.add_multiple_special,
+                                    add_specific_loc=args.add_specific_loc,
+                                    wo_shuffle=args.wo_shuffle,
+                                    add_new_split=args.add_new_split,
+                                    qk_replace=args.qk_replace,
+                                    qformer=args.qformer,
+                                    image_man=args.image_man,
+                )
+                video_dataset = VideoDataset(
+                    video_instance_root=args.video_instance_root,
+                    video_anno=args.video_anno,
+                    video_ref_root = args.video_ref_root,
+                    height=args.height,
+                    width=args.width,
+                    seen_validation=args.seen_validation,
+                    joint_train=args.joint_train,
+                    image_dataset_len=len(image_dataset),
+                )
             else:
                 video_dataset = ImageManDataset(
                                     instance_data_root=args.instance_data_root,
@@ -2951,7 +2991,7 @@ def main(args):
                 seed = torch.initial_seed() % 2**32
                 np.random.seed(seed)
                 random.seed(seed)
-            sampler = CustomBatchSampler(len(video_dataset), len(image_dataset), batch_size=args.train_batch_size, p=args.prob_sample_video)
+            sampler = CustomBatchSampler(len(video_dataset), len(image_dataset), batch_size=args.train_batch_size, p=args.prob_sample_video, image_man_with_i2v=args.image_man_with_i2v)
             train_dataloader = DataLoader(
                 train_dataset,
                 shuffle=False,
@@ -3429,7 +3469,7 @@ def main(args):
                         frame_weights = frame_weights.unsqueeze(-1)
                     # Integrate both frame-wise and timestep-based weights
                     weights = weights * frame_weights  
-                if args.frame_weighted_loss and args.image_man and model_pred.shape[1] > 1:
+                if args.frame_weighted_loss and args.image_man and model_pred.shape[1] == 4:
                     # print('debug - frame_weighted_loss applied for image manipulation')
                     # Frame-wise weights (choose one of the above methods)
                     N = model_pred.shape[1]  # Number of frames
