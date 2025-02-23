@@ -3,14 +3,15 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250221/joint_finetune_randomdrop_full_40_16_dropprob_0.9_8fps"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250220/joint_finetune_full_drop_as_t2v_prob01_40_16"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=2
+export CUDA_VISIBLE_DEVICES=3
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
-accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml  \
+
+accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   ../train_0219_randomdrop.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
@@ -59,16 +60,16 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml  \
   --layernorm_fix \
   --joint_train \
   --random_drop_full \
-  --random_drop_prob 0.9 \
-  --prob_sample_video 0.2 \
+  --random_drop_prob 1.0 \
+  --prob_sample_video 0.1 \
   --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
-  --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps \
-  --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_rand \
+  --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels \
+  --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_first \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
   --inference \
-  --inference_num_frames 37 \
-  --resume_from_checkpoint checkpoint-12000
+  --resume_from_checkpoint checkpoint-12000 \
+  --inference_num_frames 49
   # --inference 채
   # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 

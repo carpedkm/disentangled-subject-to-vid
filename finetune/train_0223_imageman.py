@@ -704,6 +704,11 @@ def get_args():
         action='store_true',
         help='Whether to use image manipulation or not'
     )
+    parser.add_argument(
+        '--inference_num_frames',
+        type=int,
+        default=49,
+    )
     return parser.parse_args()
 
 
@@ -1943,7 +1948,7 @@ def log_validation(
                 'use_dynamic_cfg': args.use_dynamic_cfg,
                 'height': args.height_val,
                 'width': args.width_val,
-                'num_frames': 41, #args.max_num_frames,
+                'num_frames': args.inference_num_frames, #args.max_num_frames,
                 'eval': True
             }
             current_pipeline_args.update(inference_args)
@@ -3428,7 +3433,9 @@ def main(args):
                     # print('debug - frame_weighted_loss applied for image manipulation')
                     # Frame-wise weights (choose one of the above methods)
                     N = model_pred.shape[1]  # Number of frames
-                    frame_weights = torch.linspace(1, 1/N, N).to(model_pred.device)  # Linear scaling
+                    # frame_weights = torch.linspace(1, 1/N, N).to(model_pred.device)  # Linear scaling
+                    # torch.tensor([1 / (N ** (i / (N - 1))) for i in range(N)], device=model_pred.device)
+                    frame_weights = torch.logspace(0, -torch.log10(torch.tensor(N, dtype=torch.float32)), N, base=10).to(model_pred.device)
 
                     # Expand frame_weights to match tensor dimensions
                     while len(frame_weights.shape) < len(weights.shape):
