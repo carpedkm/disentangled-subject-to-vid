@@ -3475,7 +3475,8 @@ def main(args):
                     N = model_pred.shape[1]  # Number of frames
                     # frame_weights = torch.linspace(1, 1/N, N).to(model_pred.device)  # Linear scaling
                     # torch.tensor([1 / (N ** (i / (N - 1))) for i in range(N)], device=model_pred.device)
-                    frame_weights = torch.logspace(0, -torch.log10(torch.tensor(N, dtype=torch.float32)), N, base=10).to(model_pred.device)
+                    # frame_weights = torch.logspace(0, -torch.log10(torch.tensor(N, dtype=torch.float32)), N, base=10).to(model_pred.device)
+                    frame_weights = torch.tensor([1., 0., 0., 0.]).to(model_pred.device)  # Linear scaling
                     frame_weights = frame_weights.view(1, N, 1, 1, 1)  # Reshape to [1, N, 1, 1, 1] for broadcasting
                     # Expand frame_weights to match tensor dimensions
                     while len(frame_weights.shape) < len(weights.shape):
