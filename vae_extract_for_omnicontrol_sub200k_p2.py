@@ -32,7 +32,7 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             frames = cv2.cvtColor(frames, cv2.COLOR_BGR2RGB)
             frames = cv2.resize(frames, (width, height), interpolation=cv2.INTER_LINEAR)
             frames = np.expand_dims(frames, axis=0)  # Add frame dimension# single frame so open with cv2
-            frames = np.stack([frames] * max_frames, axis=0)  # Ensure we have max_frames
+            frames = np.concatenate([frames] * max_frames, axis=0)  # Ensure we have max_frames
             # frames = np.array([cv2.resize(frames, (width, height), interpolation=cv2.INTER_LINEAR)])
             frames = np.array(frames)
             # Convert to torch tensor and preprocess
@@ -106,22 +106,24 @@ def extract_vae_latents(
     for process in processes:
         process.join()
         
-video_dir1 = "/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/left_images_updated"
-# video_dir2 = "output/right_images"
-video_paths = sorted([os.path.join(video_dir1, f) for f in os.listdir(video_dir1) if f.endswith(".png")]) # single frame video (image)
-total_cnt = len(video_paths)
-# half of the videos
-video_paths = video_paths[total_cnt//2:]
-print(f"Total video paths: {len(video_paths)}")
-# video_paths += [os.path.join(video_dir2, f) for f in os.listdir(video_dir2) if f.endswith(".png")] # single frame video (image)
+if __name__ == "__main__":
+    multiprocessing.set_start_method("spawn")
+    video_dir1 = "/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/left_images_updated"
+    # video_dir2 = "output/right_images"
+    video_paths = sorted([os.path.join(video_dir1, f) for f in os.listdir(video_dir1) if f.endswith(".png")]) # single frame video (image)
+    total_cnt = len(video_paths)
+    # half of the videos
+    video_paths = video_paths[total_cnt//2:]
+    print(f"Total video paths: {len(video_paths)}")
+    # video_paths += [os.path.join(video_dir2, f) for f in os.listdir(video_dir2) if f.endswith(".png")] # single frame video (image)
 
-# Extract VAE latents
-extract_vae_latents(
-    video_paths,
-    vae_model_path="THUDM/CogVideoX-5b",
-    output_dir="./left_latents_fixed_updated_rgb",
-    height=480,
-    width=720,
-    max_frames=12,
-    # fps=8,
-)
+    # Extract VAE latents
+    extract_vae_latents(
+        video_paths,
+        vae_model_path="THUDM/CogVideoX-5b",
+        output_dir="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/left_stillvideo_latents_part2",
+        height=480,
+        width=720,
+        max_frames=49,
+        # fps=8,
+    )
