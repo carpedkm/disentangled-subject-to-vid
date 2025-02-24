@@ -1164,7 +1164,7 @@ class ImageManDataset(Dataset):
                 #         self.instance_right_latent_root_map_with_id_for_vid[id] = os.path.join(self.instance_right_latent_root_as_video, f'right_{id}_vae_latents.npy')
         # MAP for image_man
         if self.image_man:
-            if len(self.instance_left_latent_root_as_video) != 1:
+            if len(self.instance_left_latent_root_as_video) == 2:
                 list_of_paths_left_id_vid = os.listdir(self.instance_left_latent_root_as_video[0])
                 list_of_paths_right_id_vid = os.listdir(self.instance_right_latent_root_as_video[0])
                 for vid_stuffs in list_of_paths_left_id_vid:
