@@ -584,6 +584,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         random_drop_prob: float = 0.5,
         random_pad_zero: bool = False,
         frame_weighted_loss: bool = False,
+        i2v_drop_scheduled: bool = False,
         # qk_replace: bool = False,
     ):  
         i2v_set = False # default
@@ -593,7 +594,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
             self.second_stage = False
         if joint_train is True:
             self.second_stage = False
-            if random_drop_full is True and hidden_states.shape[1] != 1 and eval is False: 
+            if (random_drop_full is True and hidden_states.shape[1] != 1 and eval is False: 
                 i2v_set = True
                 # for video training part in joint train, directly concat text with video noisy latent
                 p_drop = random.random() 
