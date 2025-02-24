@@ -120,7 +120,7 @@ if __name__ == "__main__":
     # half of the videos
     video_paths = video_paths[52300:total_cnt//4]
     # reverse sort 
-    # video_paths = sorted(video_paths, reverse=True)
+    video_paths = sorted(video_paths, reverse=True)
     # print(f"Total video paths: {len(video_paths)}")
     # video_paths += [os.path.join(video_dir2, f) for f in os.listdir(video_dir2) if f.endswith(".png")] # single frame video (image)
 
