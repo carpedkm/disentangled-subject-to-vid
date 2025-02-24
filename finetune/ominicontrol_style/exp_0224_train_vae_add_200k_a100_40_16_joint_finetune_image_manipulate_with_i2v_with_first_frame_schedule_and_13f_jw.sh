@@ -43,7 +43,7 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --max_num_frames 49 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 2 \
+  --train_batch_size 1 \
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
@@ -77,7 +77,7 @@ accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_
   --i2v_drop_scheduled \
   --video_anno /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
   --video_instance_root /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train_pexels_8fps/second_stage_video_train_pexels_8fps \
-  --video_ref_root /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train_pexels_8fps_first/second_stage_video_train_pexels_8fps_first \
+  --video_ref_root /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train_pexels_first/second_stage_video_train_pexels_first \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
   # --inference 채
