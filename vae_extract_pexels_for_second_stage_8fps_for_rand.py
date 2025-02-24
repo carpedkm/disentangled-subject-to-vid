@@ -48,8 +48,9 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             # # sample the number from 0 to 48 list
             # fr_idx_to_sample = np.random.choice(np.arange(60, 80), size=1, replace=False)[0]
             fr_idx_to_samples = [0, 9, 18, 27, 36, 45]
-            print('FR IDX TO SAMPLE ', fr_idx_to_sample)
+            
             for fr_idx_to_sample in fr_idx_to_samples:
+                print('FR IDX TO SAMPLE ', fr_idx_to_sample)
                 frames = frames_src[fr_idx_to_sample,...]
                 frames = np.expand_dims(frames, axis=0)
                 max_frames = 1
