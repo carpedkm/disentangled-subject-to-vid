@@ -3449,8 +3449,8 @@ def main(args):
                             ref_image_rotary_emb = image_rotary_emb
                 # Scheduled random_drop_prob update based on steps
                 if args.i2v_drop_scheduled:
-                    if args.joint_train and args.random_drop_full and step >= 1:
-                        args.random_drop_prob = (step / 100) + 0.1
+                    if args.joint_train and args.random_drop_full and step >= 1000:
+                        args.random_drop_prob = (step / 10000) + 0.2
                         print('Scheduled random_drop_prob update: ', args.random_drop_prob)
                 model_output = transformer(
                     hidden_states=noisy_model_input,
