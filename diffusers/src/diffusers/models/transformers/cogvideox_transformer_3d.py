@@ -584,6 +584,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         random_drop_prob: float = 0.5,
         random_pad_zero: bool = False,
         frame_weighted_loss: bool = False,
+        i2v_drop_scheduled: bool = False, 
         # qk_replace: bool = False,
     ):  
         i2v_set = False # default
