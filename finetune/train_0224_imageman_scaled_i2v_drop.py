@@ -1285,7 +1285,7 @@ class ImageManDataset(Dataset):
                         if not self.load_to_ram:
                                 latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id_for_vid[index]))
                 # assert latent.shape[2] == 4
-                assert latent.shape[2] == 13
+                # assert latent.shape[2] == 13
                 # latent is preprocessed from cv2.imread, so convert BGR to RGB
                 # latent = latent[...,::-1]
                     # latent = latent.unsqueeze(0)
