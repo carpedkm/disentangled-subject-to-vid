@@ -43,7 +43,7 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             # Extract frames
             # frames = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
             frames_src = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
-            print('FRAMES SHAPE ', frames.shape)
+            print('FRAMES SHAPE ', frames_src.shape)
             # # FIXME
             # # sample the number from 0 to 48 list
             # fr_idx_to_sample = np.random.choice(np.arange(60, 80), size=1, replace=False)[0]
