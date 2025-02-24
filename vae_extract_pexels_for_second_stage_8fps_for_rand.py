@@ -42,44 +42,46 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             # max_frames = 49
             # Extract frames
             # frames = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
-            frames = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
+            frames_src = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
             print('FRAMES SHAPE ', frames.shape)
             # # FIXME
             # # sample the number from 0 to 48 list
-            fr_idx_to_sample = np.random.choice(np.arange(60, 80), size=1, replace=False)[0]
+            # fr_idx_to_sample = np.random.choice(np.arange(60, 80), size=1, replace=False)[0]
+            fr_idx_to_samples = [0, 9, 18, 27, 36, 45]
             print('FR IDX TO SAMPLE ', fr_idx_to_sample)
-            frames = frames[fr_idx_to_sample,...]
-            frames = np.expand_dims(frames, axis=0)
-            max_frames = 1
-            print('AFTER FRAMES SHAPE ', frames.shape)
-            # Ensure exact number of frames
-            if frames.shape[0] < max_frames:
-                pad_frames = max_frames - frames.shape[0]
-                print('>> shorter than max_frames : doing padding')
-                frames = np.pad(frames, ((0, pad_frames), (0, 0), (0, 0), (0, 0)), mode="constant")
-            elif frames.shape[0] > max_frames:
-                frames = frames[:max_frames]
-            else:
-                print('FRAME COUNT MATCHED')
-            # Resize frames using OpenCV
-            frames = np.array([cv2.resize(frame, (width, height), interpolation=cv2.INTER_LINEAR) for frame in frames])
+            for fr_idx_to_sample in fr_idx_to_samples:
+                frames = frames_src[fr_idx_to_sample,...]
+                frames = np.expand_dims(frames, axis=0)
+                max_frames = 1
+                print('AFTER FRAMES SHAPE ', frames.shape)
+                # Ensure exact number of frames
+                if frames.shape[0] < max_frames:
+                    pad_frames = max_frames - frames.shape[0]
+                    print('>> shorter than max_frames : doing padding')
+                    frames = np.pad(frames, ((0, pad_frames), (0, 0), (0, 0), (0, 0)), mode="constant")
+                elif frames.shape[0] > max_frames:
+                    frames = frames[:max_frames]
+                else:
+                    print('FRAME COUNT MATCHED')
+                # Resize frames using OpenCV
+                frames = np.array([cv2.resize(frame, (width, height), interpolation=cv2.INTER_LINEAR) for frame in frames])
 
-            # Convert to torch tensor and preprocess
-            frames = torch.from_numpy(frames).float() / 255.0 * 2.0 - 1.0  # Normalize [-1, 1]
-            frames = frames.permute(0, 3, 1, 2)  # [F, H, W, C] -> [F, C, H, W]
-            
-            # Add batch dimension and permute for VAE
-            frames = frames.unsqueeze(0).permute(0, 2, 1, 3, 4).to(device)  # [B, C, F, H, W]
+                # Convert to torch tensor and preprocess
+                frames = torch.from_numpy(frames).float() / 255.0 * 2.0 - 1.0  # Normalize [-1, 1]
+                frames = frames.permute(0, 3, 1, 2)  # [F, H, W, C] -> [F, C, H, W]
+                
+                # Add batch dimension and permute for VAE
+                frames = frames.unsqueeze(0).permute(0, 2, 1, 3, 4).to(device)  # [B, C, F, H, W]
 
-            # Encode video to latent space
-            with torch.no_grad():
-                latent_dist = vae.encode(frames).latent_dist
-                latents = latent_dist.sample() * vae.config.scaling_factor
+                # Encode video to latent space
+                with torch.no_grad():
+                    latent_dist = vae.encode(frames).latent_dist
+                    latents = latent_dist.sample() * vae.config.scaling_factor
 
-            # Save latents
-            print(latents.shape)
-            output_path = os.path.join(output_dir, Path(video_path).stem + "_vae_latents.npy")
-            np.save(output_path, latents.cpu().numpy())
+                # Save latents
+                print(latents.shape)
+                output_path = os.path.join(output_dir, Path(video_path).stem + f"_fr{fr_idx_to_sample}_vae_latents.npy")
+                np.save(output_path, latents.cpu().numpy())
 
         except Exception as e:
             print(f"Error processing video {video_path}: {e}")
@@ -162,7 +164,7 @@ if __name__ == "__main__":
         
     video_dir = '/mnt/video_data/'
     vae_model_path = "THUDM/CogVideoX-5b"
-    output_dir = "/mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_rand_extended"
+    output_dir = "/mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_rand_multi"
     video_paths = [str(Path(video_dir) / f"{video_key}.mp4") for video_key in video_keys]
     extract_vae_latents(
             video_dir,
