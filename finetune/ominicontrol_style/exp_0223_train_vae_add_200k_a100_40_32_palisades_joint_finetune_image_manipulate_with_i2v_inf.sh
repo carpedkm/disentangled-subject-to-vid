@@ -73,6 +73,6 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --report_to wandb \
   --inference \
   --resume_from_checkpoint checkpoint-2200 \
-  --inference_num_frames 13
+  --inference_num_frames 49
   # --inference 채
   # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
