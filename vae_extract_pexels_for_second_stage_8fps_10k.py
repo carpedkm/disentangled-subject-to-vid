@@ -46,12 +46,12 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             print('FRAMES SHAPE ', frames.shape)
             # # FIXME
             # # sample the number from 0 to 48 list
-            fr_idx_to_sample = np.random.choice(np.arange(60, 80), size=1, replace=False)[0]
-            print('FR IDX TO SAMPLE ', fr_idx_to_sample)
-            frames = frames[fr_idx_to_sample,...]
-            frames = np.expand_dims(frames, axis=0)
-            max_frames = 1
-            print('AFTER FRAMES SHAPE ', frames.shape)
+            # fr_idx_to_sample = np.random.choice(np.arange(0, 81), size=1, replace=False)[0]
+            # print('FR IDX TO SAMPLE ', fr_idx_to_sample)
+            # frames = frames[fr_idx_to_sample,...]
+            # frames = np.expand_dims(frames, axis=0)
+            # max_frames = 1
+            # print('AFTER FRAMES SHAPE ', frames.shape)
             # Ensure exact number of frames
             if frames.shape[0] < max_frames:
                 pad_frames = max_frames - frames.shape[0]
@@ -143,8 +143,8 @@ def extract_vae_latents(
 if __name__ == "__main__":
     import multiprocessing
     multiprocessing.set_start_method('spawn', True)
-    new_path = '/mnt/carpedkm_data/image_gen_ds/second_stage_video_train'
-    json_dir = os.path.join(new_path, 'second_stage_video_filtered_data_dict.json')
+    new_path = '/mnt/carpedkm_data/image_gen_ds/second_stage_video_train_10k'
+    json_dir = os.path.join(new_path, 'second_stage_video_filtered_data_dict_10k.json')
 
     with open(json_dir, "r") as f:
         video_dict = json.load(f)
@@ -154,15 +154,15 @@ if __name__ == "__main__":
     # Random sample 4K videos
     import random
     random.seed(42)
-    video_keys = random.sample(video_keys, 4000)
+    video_keys = random.sample(video_keys, 10000)
     
     # save the sampled video json file
-    with open(os.path.join(new_path, 'second_stage_video_filtered_data_dict_sampled_4k.json'), 'w') as f:
+    with open(os.path.join(new_path, 'second_stage_video_filtered_data_dict_sampled_10k.json'), 'w') as f:
         json.dump({k: video_dict[k] for k in video_keys}, f)
         
     video_dir = '/mnt/video_data/'
     vae_model_path = "THUDM/CogVideoX-5b"
-    output_dir = "/mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_rand_extended"
+    output_dir = "/mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_10k"
     video_paths = [str(Path(video_dir) / f"{video_key}.mp4") for video_key in video_keys]
     extract_vae_latents(
             video_dir,
@@ -171,7 +171,7 @@ if __name__ == "__main__":
             output_dir,
             height=480,
             width=720,
-            max_frames=81,
+            max_frames=49,
             fps=8,
             video_dict=video_dict,
         )
