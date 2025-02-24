@@ -714,6 +714,11 @@ def get_args():
         action='store_true',
         help='Whether to use image manipulation with i2v or not'
     )
+    parser.add_argument(
+        '--i2v_drop_scheduled',
+        action='store_true',
+        help='Whether to use i2v drop scheduled or not'
+    )
     return parser.parse_args()
 
 
@@ -1130,8 +1135,12 @@ class ImageManDataset(Dataset):
         self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_rgb_full')
         
         if self.image_man is True:
-            self.instance_left_latent_root_as_video = os.path.join(self.instance_data_root, 'left_latents_fixed_updated_rgb_13')
-            self.instance_right_latent_root_as_video = os.path.join(self.instance_data_root, 'right_latents_fixed_updated_rgb_13')
+            # self.instance_left_latent_root_as_video = os.path.join(self.instance_data_root, 'left_latents_fixed_updated_rgb_13')
+            self.instance_left_latent_root_as_video = [os.path.join(self.instance_data_root, 'left_stillvideo_latents_part1'),
+                                                      os.path.join(self.instance_data_root, 'left_stillvideo_latents_part2')]
+            # self.instance_right_latent_root_as_video = os.path.join(self.instance_data_root, 'right_latents_fixed_updated_rgb_13')
+            self.instance_right_latent_root_as_video = [os.path.join(self.instance_data_root, 'right_stillvideo_latents_part1'),
+                                                        os.path.join(self.instance_data_root, 'right_stillvideo_latents_part2')]
         
         if self.add_new_split is True:
             self.instance_left_latent_root_additional = os.path.join(self.additional_instance_root, 'left_latents')
@@ -1155,14 +1164,32 @@ class ImageManDataset(Dataset):
                 #         self.instance_right_latent_root_map_with_id_for_vid[id] = os.path.join(self.instance_right_latent_root_as_video, f'right_{id}_vae_latents.npy')
         # MAP for image_man
         if self.image_man:
-            list_of_paths_left_id_vid = os.listdir(self.instance_left_latent_root_as_video)
-            list_of_paths_right_id_vid = os.listdir(self.instance_right_latent_root_as_video)
-            for vid_stuffs in list_of_paths_left_id_vid:
-                id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
-                self.instance_left_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_left_latent_root_as_video, f'left_{id_vid}_vae_latents.npy')
-            for vid_stuffs in list_of_paths_right_id_vid:
-                id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
-                self.instance_right_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_right_latent_root_as_video, f'right_{id_vid}_vae_latents.npy')
+            if len(self.instance_left_latent_root_as_video) != 1:
+                list_of_paths_left_id_vid = os.listdir(self.instance_left_latent_root_as_video[0])
+                list_of_paths_right_id_vid = os.listdir(self.instance_right_latent_root_as_video[0])
+                for vid_stuffs in list_of_paths_left_id_vid:
+                    id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
+                    self.instance_left_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_left_latent_root_as_video[0], f'left_{id_vid}_vae_latents.npy')
+                for vid_stuffs in list_of_paths_right_id_vid:
+                    id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
+                    self.instance_right_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_right_latent_root_as_video[0], f'right_{id_vid}_vae_latents.npy')
+                list_of_paths_left_id_vid = os.listdir(self.instance_left_latent_root_as_video[1])
+                list_of_paths_right_id_vid = os.listdir(self.instance_right_latent_root_as_video[1])
+                for vid_stuffs in list_of_paths_left_id_vid:
+                    id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
+                    self.instance_left_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_left_latent_root_as_video[1], f'left_{id_vid}_vae_latents.npy')
+                for vid_stuffs in list_of_paths_right_id_vid:
+                    id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
+                    self.instance_right_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_right_latent_root_as_video[1], f'right_{id_vid}_vae_latents.npy')
+            else:
+                list_of_paths_left_id_vid = os.listdir(self.instance_left_latent_root_as_video)
+                list_of_paths_right_id_vid = os.listdir(self.instance_right_latent_root_as_video)
+                for vid_stuffs in list_of_paths_left_id_vid:
+                    id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
+                    self.instance_left_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_left_latent_root_as_video, f'left_{id_vid}_vae_latents.npy')
+                for vid_stuffs in list_of_paths_right_id_vid:
+                    id_vid = int(vid_stuffs.split('.')[0].split('_')[1])
+                    self.instance_right_latent_root_map_with_id_for_vid[id_vid] = os.path.join(self.instance_right_latent_root_as_video, f'right_{id_vid}_vae_latents.npy')
         
         # Update ids
         self.ids = list(self.instance_left_latent_root_map_with_id.keys())
@@ -1257,7 +1284,8 @@ class ImageManDataset(Dataset):
                         
                         if not self.load_to_ram:
                                 latent = torch.from_numpy(np.load(self.instance_left_latent_root_map_with_id_for_vid[index]))
-                assert latent.shape[2] == 4
+                # assert latent.shape[2] == 4
+                assert latent.shape[2] == 13
                 # latent is preprocessed from cv2.imread, so convert BGR to RGB
                 # latent = latent[...,::-1]
                     # latent = latent.unsqueeze(0)
@@ -3419,6 +3447,11 @@ def main(args):
                             ref_image_rotary_emb = ref_image_rotary_emb
                         else:
                             ref_image_rotary_emb = image_rotary_emb
+                # Scheduled random_drop_prob update based on steps
+                if args.i2v_drop_scheduled:
+                    if args.joint_train and args.random_drop_full and step >= 1:
+                        args.random_drop_prob = (step / 100) + 0.1
+                        print('Scheduled random_drop_prob update: ', args.random_drop_prob)
                 model_output = transformer(
                     hidden_states=noisy_model_input,
                     ref_img_states=noisy_image_input if args.input_noise_fix else image_input,
@@ -3446,6 +3479,7 @@ def main(args):
                     random_drop_prob=args.random_drop_prob,
                     random_pad_zero=args.random_pad_zero,
                     frame_weighted_loss=args.frame_weighted_loss,
+                    i2v_drop_scheduled=args.i2v_drop_scheduled,
                 )
                 if args.frame_weighted_loss:
                     model_output, i2v_set = model_output
