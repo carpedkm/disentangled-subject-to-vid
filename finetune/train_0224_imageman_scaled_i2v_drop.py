@@ -1135,12 +1135,12 @@ class ImageManDataset(Dataset):
         self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_rgb_full')
         
         if self.image_man is True:
-            # self.instance_left_latent_root_as_video = os.path.join(self.instance_data_root, 'left_latents_fixed_updated_rgb_13')
-            self.instance_left_latent_root_as_video = [os.path.join(self.instance_data_root, 'left_stillvideo_latents_part1'),
-                                                      os.path.join(self.instance_data_root, 'left_stillvideo_latents_part2')]
-            # self.instance_right_latent_root_as_video = os.path.join(self.instance_data_root, 'right_latents_fixed_updated_rgb_13')
-            self.instance_right_latent_root_as_video = [os.path.join(self.instance_data_root, 'right_stillvideo_latents_part1'),
-                                                        os.path.join(self.instance_data_root, 'right_stillvideo_latents_part2')]
+            self.instance_left_latent_root_as_video = os.path.join(self.instance_data_root, 'left_latents_fixed_updated_rgb_13')
+            # self.instance_left_latent_root_as_video = [os.path.join(self.instance_data_root, 'left_stillvideo_latents_part1'),
+            #                                           os.path.join(self.instance_data_root, 'left_stillvideo_latents_part2')]
+            self.instance_right_latent_root_as_video = os.path.join(self.instance_data_root, 'right_latents_fixed_updated_rgb_13')
+            # self.instance_right_latent_root_as_video = [os.path.join(self.instance_data_root, 'right_stillvideo_latents_part1'),
+                                                        # os.path.join(self.instance_data_root, 'right_stillvideo_latents_part2')]
         
         if self.add_new_split is True:
             self.instance_left_latent_root_additional = os.path.join(self.additional_instance_root, 'left_latents')
