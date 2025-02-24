@@ -39,7 +39,7 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             original_fps = float(original_fps)
             frame_interval = int(original_fps / fps)
             
-            # max_frames = 49
+            max_frames = 49
             # Extract frames
             # frames = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
             frames_src = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
