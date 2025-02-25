@@ -26,7 +26,11 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
         video_path = queue.get()
         if video_path is None:  # End signal
             break
-
+        # check whether video_path with latent exist or not
+        if os.path.exists(os.path.join(output_dir, Path(video_path).stem + "_vae_latents.npy")):
+            print(f"Latent already exists for {video_path}, skipping...")
+            progress_queue.put(1)
+            continue
         try:
             frames = cv2.imread(video_path) 
             frames = cv2.cvtColor(frames, cv2.COLOR_BGR2RGB)
