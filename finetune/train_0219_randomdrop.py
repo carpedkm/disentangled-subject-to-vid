@@ -846,6 +846,8 @@ class VideoDataset(Dataset):
     ) -> None:
         if 'multi' in video_ref_root:
             self.ref_random = True
+        else:
+            self.ref_random = False
             
         self.seen_validation = seen_validation
         self.id_token = id_token or ""
