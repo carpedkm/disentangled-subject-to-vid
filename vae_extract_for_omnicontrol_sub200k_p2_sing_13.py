@@ -26,12 +26,14 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
         video_path = queue.get()
         if video_path is None:  # End signal
             break
-        # check whether video_path with latent exist or not
-        if os.path.exists(os.path.join(output_dir, Path(video_path).stem + "_vae_latents.npy")):
-            print(f"Latent already exists for {video_path}, skipping...")
-            progress_queue.put(1)
-            continue
+
         try:
+            # Save latents
+            output_path = os.path.join(output_dir, Path(video_path).stem + "_vae_latents.npy")
+            if os.path.exists(output_path):
+                print(f"Latents already exist for {video_path}, skipping...")
+                progress_queue.put(1)
+                continue
             frames = cv2.imread(video_path) 
             frames = cv2.cvtColor(frames, cv2.COLOR_BGR2RGB)
             frames = cv2.resize(frames, (width, height), interpolation=cv2.INTER_LINEAR)
@@ -51,8 +53,7 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
                 latent_dist = vae.encode(frames).latent_dist
                 latents = latent_dist.sample()
 
-            # Save latents
-            output_path = os.path.join(output_dir, Path(video_path).stem + "_vae_latents.npy")
+            
             np.save(output_path, latents.cpu().numpy())
             # shape of latent : # (1, 4, 49, 32, 32)
  
@@ -116,10 +117,7 @@ if __name__ == "__main__":
     # video_dir2 = "output/right_images"
     video_paths = sorted([os.path.join(video_dir1, f) for f in os.listdir(video_dir1) if f.endswith(".png")]) # single frame video (image)
     total_cnt = len(video_paths)
-    # half of the videos
-    # video_paths = video_paths[total_cnt//2:]
-    # reverse sort
-    video_paths = sorted(video_paths, reverse=True)
+
     print(f"Total video paths: {len(video_paths)}")
     # video_paths += [os.path.join(video_dir2, f) for f in os.listdir(video_dir2) if f.endswith(".png")] # single frame video (image)
 
@@ -127,9 +125,9 @@ if __name__ == "__main__":
     extract_vae_latents(
         video_paths,
         vae_model_path="THUDM/CogVideoX-5b",
-        output_dir="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/right_stillvideo_latents_part2_fix",
+        output_dir="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/right_stillvideo_latents_full_13",
         height=480,
         width=720,
-        max_frames=49,
+        max_frames=13,
         # fps=8,
     )
