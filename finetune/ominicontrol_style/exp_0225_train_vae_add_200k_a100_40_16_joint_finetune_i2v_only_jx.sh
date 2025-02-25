@@ -3,7 +3,7 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250225/debug"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250225/joint_finetune_i2v_only_40G16"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
@@ -13,7 +13,6 @@ export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 export NCCL_IB_DISABLE=0
 export NCCL_IB_PCI_RELAXED_ORDERING=1
 export NCCL_SOCKET_IFNAME=eth0
-
 export NCCL_NET_GDR_LEVEL=5
 export NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml
 export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
