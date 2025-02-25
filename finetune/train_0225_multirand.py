@@ -844,9 +844,6 @@ class VideoDataset(Dataset):
         joint_train: bool = False,
         image_dataset_len: int = 0,
     ) -> None:
-        if 'multi' in video_ref_root:
-            self.ref_random = True
-            
         self.seen_validation = seen_validation
         self.id_token = id_token or ""
         self.joint_train = joint_train
@@ -861,17 +858,9 @@ class VideoDataset(Dataset):
         self.video_path_dict = {}
         for id_ in list(id_mapper.keys()):
             self.video_path_dict[id_] = os.path.join(video_instance_root, id_ + '_vae_latents.npy')
-        if not self.ref_random:
-            self.video_ref_path_dict = {}
-            for id_ in list(id_mapper.keys()):
-                self.video_ref_path_dict[id_] = os.path.join(video_ref_root, id_ + '_vae_latents.npy')
-        else: # if random reference image is true and as we do this dynamically
-            self.video_ref_path_dict = {}
-            for id_ in list(id_mapper.keys()):
-                self.video_ref_path_dict[id_] = [
-                    os.path.join(video_ref_root, id_ + f'_fr{cnt_f}_vae_latents.npy')
-                    for cnt_f in list(range(0, 46, 9))
-                ]
+        self.video_ref_path_dict = {}
+        for id_ in list(id_mapper.keys()):
+            self.video_ref_path_dict[id_] = os.path.join(video_ref_root, id_ + '_vae_latents.npy')
         self.prompt_dict = {}
         for id_ in list(id_mapper.keys()):
             self.prompt_dict[id_] = self.id_token + id_mapper[id_]['text']
@@ -917,12 +906,7 @@ class VideoDataset(Dataset):
                 prompt_loaded = self.prompt_dict[id_key]
                 
                 np_loaded = torch.from_numpy(np.load(video_path_to_load))
-                if self.ref_random:
-                    rand_idx = random.randint(0, 6)
-                    print('RANDOM IDX for reference image:', rand_idx)
-                    ref_loaded = torch.from_numpy(np.load(self.video_ref_path_dict[id_key][rand_idx]))
-                else:
-                    ref_loaded = torch.from_numpy(np.load(self.video_ref_path_dict[id_key]))
+                ref_loaded = torch.from_numpy(np.load(self.video_ref_path_dict[id_key]))
                 # what is the shape of np_loaded?
                 
                 
