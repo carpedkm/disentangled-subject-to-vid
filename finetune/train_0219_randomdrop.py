@@ -699,6 +699,11 @@ def get_args():
         action='store_true',
         help='Whether to use image manipulation or not'
     )
+    parser.add_argument(
+        '--phase_name',
+        type=str,
+        default='validation',
+    )
     return parser.parse_args()
 
 
@@ -1004,16 +1009,36 @@ class ImageDataset(Dataset):
                                             
                                             #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
                                             }
+        # self.val_instance_prompt_dict = {
+        #                             'oranges_omini':"A close up view. A bowl of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+        #                             'clock_omini':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+        #                             'rc_car_omini': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+        #                             'shirt_omini': "On the beach, a lady sits under a beach umbrella. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+        #                             'cat' : "cat is rollerblading in the park",
+        #                             'dog' : 'dog is flying in the sky',
+        #                             'red_toy' : 'red toy is dancing in the room',
+        #                             'dog_toy' : 'dog toy is walking around the grass',
+        #                         }
+        # self.val_instance_prompt_dict = {
+        #                     'oranges_omini_test':"A close up view. A bowl of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+        #                     'clock_omini_test':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+        #                     'rc_car_omini_test': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+        #                     'shirt_omini_test': "On the beach, a lady sits under a beach umbrella. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+        #                     'cat_test' : "cat is rollerblading in the park",
+        #                     'dog_test' : 'dog is flying in the sky',
+        #                     'red_toy_test' : 'red toy is dancing in the room',
+        #                     'dog_toy_test' : 'dog toy is walking around the grass',
+        #                 }
         self.val_instance_prompt_dict = {
-                                    'oranges_omini':"A close up view. A bowl of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
-                                    'clock_omini':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
-                                    'rc_car_omini': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
-                                    'shirt_omini': "On the beach, a lady sits under a beach umbrella. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
-                                    'cat' : "cat is rollerblading in the park",
-                                    'dog' : 'dog is flying in the sky',
-                                    'red_toy' : 'red toy is dancing in the room',
-                                    'dog_toy' : 'dog toy is walking around the grass',
-                                }
+                            'dog_toy_processed' : 'dog toy is walking around the grass',
+                            'oranges_omini_processed':"A close up view. A bowl of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+                            'clock_omini_processed':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+                            'rc_car_omini_processed': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+                            'shirt_omini_processed': "On the beach, a lady sits under a beach umbrella. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                            'cat_processed' : "cat is rollerblading in the park",
+                            'dog_processed' : 'dog is flying in the sky',
+                            'red_toy_processed' : 'red toy is dancing in the room',
+                        }
         
         if self.seen_validation is True:
             self.val_instance_prompt_dict = {}
@@ -1446,6 +1471,7 @@ def log_validation(
     epoch,
     ckpt_step: int = 0,
     is_final_validation: bool = False,
+    phase_name: str = "validation",
     # prompt: dict = None,
 ):
     logger.info(
@@ -1514,19 +1540,18 @@ def log_validation(
                         logger.info(f"Successfully processed reference image with shape: {pixel_values.shape}")
                     else:
                         # Resize and crop to the target resolution
-                        ref_image = ref_image.resize((720, 720)) 
-                        width, height = 720, 720
-                        target_width, target_height = args.width_val, args.height_val
+                        # ref_image = ref_image.resize((720, 720)) 
+                        # width, height = 720, 720
+                        # target_width, target_height = args.width_val, args.height_val
 
-                        # Calculate coordinates for center crop
-                        left = (width - target_width) // 2
-                        top = (height - target_height) // 2
-                        right = left + target_width
-                        bottom = top + target_height
+                        # # Calculate coordinates for center crop
+                        # left = (width - target_width) // 2
+                        # top = (height - target_height) // 2
+                        # right = left + target_width
+                        # bottom = top + target_height
 
-                        # Perform cropping
-                        ref_image = ref_image.crop((left, top, right, bottom))
-                        # ref_image = cv2.cvtColor(np.array(ref_image), cv2.COLOR_RGB2BGR)
+                        # # Perform cropping
+                        # ref_image = ref_image.crop((left, top, right, bottom))
                         ref_image = np.array(ref_image)
                         ref_image = np.expand_dims(ref_image, axis=0)  # Add frame dimension
                         
@@ -1586,7 +1611,7 @@ def log_validation(
 
     # Log to wandb if enabled
     for tracker in accelerator.trackers:
-        phase_name = "test" if is_final_validation else "validation"
+        # phase_name = "test" if is_final_validation else "validation"
         if tracker.name == "wandb":
             video_filenames = []
             for i, video in enumerate(videos):
@@ -1598,7 +1623,7 @@ def log_validation(
                     .replace("/", "_")
                 )
                 max_num_frames = current_pipeline_args['num_frames']
-                filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
+                filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
                 export_to_video(video, filename, fps=args.fps)
                 video_filenames.append(filename)
 
@@ -3129,6 +3154,7 @@ def main(args):
                         pipeline_args=pipeline_args,
                         epoch=epoch,
                         ckpt_step=ckpt_step,
+                        phase_name=args.phase_name,
                     )
         if args.inference: # do inference_only, so no training
             break
