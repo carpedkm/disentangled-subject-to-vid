@@ -3,9 +3,9 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result0225/two_stage_id_and_i2v/"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250225/two_stage_id_and_i2v/"
 
-export VALIDATION_REF_PATH="../val_samples_im/"
+export VALIDATION_REF_PATH="../dreambooth_test_white/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
@@ -59,12 +59,12 @@ accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --
   --non_shared_pos_embed \
   --add_special \
   --layernorm_fix \
-  --second_stage \
-  --second_stage_ref_image \
   --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
   --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps \
   --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_rand_multi \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
-  --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
+  --inference \
+  --resume_from_checkpoint checkpoint-1000 \
+  --phase_name test
