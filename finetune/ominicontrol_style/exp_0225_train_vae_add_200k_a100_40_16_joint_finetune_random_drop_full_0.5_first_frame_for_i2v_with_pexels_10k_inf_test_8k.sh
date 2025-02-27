@@ -3,7 +3,7 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250225/joint_finetune_i2v_only_40G16"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250225/joint_finetune_random_drop_full_05_first_frame_for_i2v_with_pexels_10k_40G16"
 export VALIDATION_REF_PATH="../dreambooth_test_white/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=1
@@ -60,14 +60,15 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --layernorm_fix \
   --joint_train \
   --prob_sample_video 0.2 \
-  --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
-  --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps \
-  --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_rand_multi \
+  --random_drop_full \
+  --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_10k/second_stage_video_filtered_data_dict_sampled_10k.json \
+  --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_10k \
+  --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_10k_first \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
   --inference \
-  --resume_from_checkpoint checkpoint-10000 \
-  --phase_name test
+  --resume_from_checkpoint checkpoint-8000 \
+  --phase_name test \
   # --inference 
-  # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
+  # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_lajyernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
