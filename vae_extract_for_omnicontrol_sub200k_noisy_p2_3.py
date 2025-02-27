@@ -46,7 +46,6 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             image_noise_sigma = torch.normal(mean=-3.0, std=0.5, size=(1,), device=frames.device)
             image_noise_sigma = torch.exp(image_noise_sigma).to(dtype=frames.dtype)
             frames = frames + torch.randn_like(frames) * image_noise_sigma[:, None, None, None, None]
-            
             # Encode video to latent space
             with torch.no_grad():
                 latent_dist = vae.encode(frames).latent_dist
@@ -113,12 +112,12 @@ def extract_vae_latents(
         
 if __name__ == "__main__":
     multiprocessing.set_start_method("spawn")
-    video_dir1 = "/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/left_images_updated"
+    video_dir1 = "/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/right_images_updated"
     # video_dir2 = "output/right_images"
     video_paths = sorted([os.path.join(video_dir1, f) for f in os.listdir(video_dir1) if f.endswith(".png")]) # single frame video (image)
     total_cnt = len(video_paths)
     # half of the videos
-    video_paths = video_paths[:(total_cnt // 2)]
+    video_paths = video_paths[((total_cnt // 4 ) * 3):]
     print(f"Total video paths: {len(video_paths)}")
     # video_paths += [os.path.join(video_dir2, f) for f in os.listdir(video_dir2) if f.endswith(".png")] # single frame video (image)
 
@@ -126,7 +125,7 @@ if __name__ == "__main__":
     extract_vae_latents(
         video_paths,
         vae_model_path="THUDM/CogVideoX-5b",
-        output_dir="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/left_latents_rgb_full_noisy",
+        output_dir="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full/right_latents_rgb_full_noisy",
         height=480,
         width=720,
         max_frames=1,

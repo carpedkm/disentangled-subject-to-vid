@@ -41,7 +41,11 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             
             # Add batch dimension and permute for VAE
             frames = frames.unsqueeze(0).permute(0, 2, 1, 3, 4).to(device)  # [B, C, F, H, W]
-
+            
+            print('noise added')
+            image_noise_sigma = torch.normal(mean=-3.0, std=0.5, size=(1,), device=frames.device)
+            image_noise_sigma = torch.exp(image_noise_sigma).to(dtype=frames.dtype)
+            frames = frames + torch.randn_like(frames) * image_noise_sigma[:, None, None, None, None]
             # Encode video to latent space
             with torch.no_grad():
                 latent_dist = vae.encode(frames).latent_dist
@@ -113,7 +117,7 @@ if __name__ == "__main__":
     video_paths = sorted([os.path.join(video_dir1, f) for f in os.listdir(video_dir1) if f.endswith(".png")]) # single frame video (image)
     total_cnt = len(video_paths)
     # half of the videos
-    video_paths = video_paths[:((total_cnt // 4 ) * 3)]
+    video_paths = video_paths[:(total_cnt // 2)]
     print(f"Total video paths: {len(video_paths)}")
     # video_paths += [os.path.join(video_dir2, f) for f in os.listdir(video_dir2) if f.endswith(".png")] # single frame video (image)
 
