@@ -3,7 +3,7 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/daneul/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/daneul/image_gen_ds/omini200k_720p_full/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250224/image_man_40_16_prob02_with_i2v_schedule_check"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250225/joint_finetune_t2v_only_40G16"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
@@ -20,7 +20,7 @@ export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
 RANDOM_PORT=$((49152 + RANDOM % 16384))
 
 accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
-  ../train_0224_imageman_scaled_i2v_drop.py\
+  ../train_0219_randomdrop.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
   --cache_dir $CACHE_PATH \
@@ -28,7 +28,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --enable_slicing \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
-  --validation_epochs 1 \
+  --validation_epochs 100 \
   --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
@@ -42,7 +42,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --max_num_frames 49 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 1 \
+  --train_batch_size 8 \
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
@@ -66,12 +66,17 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --non_shared_pos_embed \
   --add_special \
   --layernorm_fix \
+  --joint_train \
+  --prob_sample_video 0.2 \
+  --random_drop_full \
+  --random_drop_prob 1.0 \
   --video_anno /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
   --video_instance_root /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train_pexels_8fps/second_stage_video_train_pexels_8fps \
   --video_ref_root /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train_pexels_8fps_rand/second_stage_video_train_pexels_8fps_rand \
+  --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
   --inference \
-  --resume_from_checkpoint checkpoint-3900
-  # --inference 채
+  --resume_from_checkpoint checkpoint-4000
+  # --inference 
   # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
