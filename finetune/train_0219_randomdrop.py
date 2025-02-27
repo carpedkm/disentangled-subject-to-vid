@@ -704,6 +704,11 @@ def get_args():
         type=str,
         default='validation',
     )
+    parser.add_argument(
+        '--noise_mix',
+        action='store_true',
+        help='Whether to use noise mix or not'
+    )
     return parser.parse_args()
 
 
@@ -971,6 +976,7 @@ class ImageDataset(Dataset):
         add_new_split: bool = False,
         qk_replace: bool = False,
         qformer: bool = False,
+        noise_mix: bool = False,
     ) -> None:
         super().__init__()
         print('Data loader init')
@@ -1055,7 +1061,7 @@ class ImageDataset(Dataset):
         
         self.instance_prompts = []
         self.id_token = id_token or ""
-
+        
         self.instance_left_pixel_root = os.path.join(str(self.instance_data_root), 'left_images_updated')
         self.instance_right_pixel_root = os.path.join(str(self.instance_data_root), 'right_images_updated')
         
@@ -1150,10 +1156,13 @@ class ImageDataset(Dataset):
                 self.instance_left_pixel_root_map_with_id[id] = os.path.join(self.instance_left_pixel_root, f'left_{id}.png')
                 self.instance_right_pixel_root_map_with_id[id] = os.path.join(self.instance_right_pixel_root, f'right_{id}.png')
         
-
-        
-        self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_rgb_full')
-        self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_rgb_full')
+        if not noise_mix:
+            self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_rgb_full')
+            self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_rgb_full')
+        else:
+            print('>> Using NOISE MIXED LATENTS')
+            self.instance_left_latent_root = os.path.join(str(self.instance_data_root), 'left_latents_rgb_full_noisy')
+            self.instance_right_latent_root = os.path.join(str(self.instance_data_root), 'right_latents_rgb_full_noisy')
         
         if self.add_new_split is True:
             self.instance_left_latent_root_additional = os.path.join(self.additional_instance_root, 'left_latents')
@@ -2533,6 +2542,7 @@ def main(args):
                 add_new_split=args.add_new_split,
                 qk_replace=args.qk_replace,
                 qformer=args.qformer,
+                noise_mix=args.noise_mix,
             )
             video_dataset = VideoDataset(
                 video_instance_root=args.video_instance_root,
@@ -2623,6 +2633,7 @@ def main(args):
                 add_new_split=args.add_new_split,
                 qk_replace=args.qk_replace,
                 qformer=args.qformer,
+                noise_mix=args.noise_mix,
             )
             def collate_fn(examples):
                 videos = [example["instance_video"] for example in examples]
