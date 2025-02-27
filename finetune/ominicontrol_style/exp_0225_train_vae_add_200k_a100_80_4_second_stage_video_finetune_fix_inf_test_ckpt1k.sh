@@ -7,12 +7,12 @@ export OUTPUT_PATH="/mnt/carpedkm_data/result250225/two_stage_id_and_i2v/"
 
 export VALIDATION_REF_PATH="../dreambooth_test_white/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=0
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
 
-accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --multi_gpu \
+accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   ../train_0219_randomdrop.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
