@@ -585,11 +585,13 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         random_pad_zero: bool = False,
         frame_weighted_loss: bool = False,
         i2v_drop_scheduled: bool = False, 
+        # add_noise_mix: bool = False,
         # qk_replace: bool = False,
     ):  
         i2v_set = False # default
         qk_replace = self.qk_replace
         qformer = self.qformer
+        # add_noise_mix = self.add_noise_mix
         if eval:
             self.second_stage = False
         if joint_train is True:
