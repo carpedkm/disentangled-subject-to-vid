@@ -43,18 +43,18 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
             # Extract frames
             # frames = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
             frames_src = vr.get_batch(range(0, min(len(vr), max_frames * frame_interval), frame_interval)).asnumpy()
-            print('FRAMES SHAPE ', frames_src.shape)
+            # print('FRAMES SHAPE ', frames_src.shape)
             # # FIXME
             # # sample the number from 0 to 48 list
             # fr_idx_to_sample = np.random.choice(np.arange(60, 80), size=1, replace=False)[0]
             fr_idx_to_samples = [0, 9, 18, 27, 36, 45]
-            print('FR IDX TO SAMPLE ', fr_idx_to_samples)
+            # print('FR IDX TO SAMPLE ', fr_idx_to_samples)
             for fr_idx_to_sample in fr_idx_to_samples:
                 
                 frames = frames_src[fr_idx_to_sample,...]
                 frames = np.expand_dims(frames, axis=0)
                 max_frames = 1
-                print('AFTER FRAMES SHAPE ', frames.shape)
+                # print('AFTER FRAMES SHAPE ', frames.shape)
                 # Ensure exact number of frames
                 if frames.shape[0] < max_frames:
                     pad_frames = max_frames - frames.shape[0]
@@ -63,7 +63,8 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
                 elif frames.shape[0] > max_frames:
                     frames = frames[:max_frames]
                 else:
-                    print('FRAME COUNT MATCHED')
+                    # print('FRAME COUNT MATCHED')
+                    pass
                 # Resize frames using OpenCV
                 frames = np.array([cv2.resize(frame, (width, height), interpolation=cv2.INTER_LINEAR) for frame in frames])
 
@@ -74,7 +75,7 @@ def process_video(queue, progress_queue, vae_model_path, max_frames, width, heig
                 # Add batch dimension and permute for VAE
                 frames = frames.unsqueeze(0).permute(0, 2, 1, 3, 4).to(device)  # [B, C, F, H, W]
                 
-                
+                print('noise added')
                 image_noise_sigma = torch.normal(mean=-3.0, std=0.5, size=(1,), device=frames.device)
                 image_noise_sigma = torch.exp(image_noise_sigma).to(dtype=frames.dtype)
                 frames = frames + torch.randn_like(frames) * image_noise_sigma[:, None, None, None, None]
@@ -153,21 +154,26 @@ if __name__ == "__main__":
     import multiprocessing
     multiprocessing.set_start_method('spawn', True)
     new_path = '/mnt/carpedkm_data/image_gen_ds/second_stage_video_train'
-    json_dir = os.path.join(new_path, 'second_stage_video_filtered_data_dict.json')
+    # json_dir = os.path.join(new_path, 'second_stage_video_filtered_data_dict.json')
 
-    with open(json_dir, "r") as f:
-        video_dict = json.load(f)
+    # with open(json_dir, "r") as f:
+    #     video_dict = json.load(f)
 
-    video_keys = list(video_dict.keys())
+    # video_keys = list(video_dict.keys())
 
-    # Random sample 4K videos
-    import random
-    random.seed(42)
-    video_keys = random.sample(video_keys, 4000)
+    # # Random sample 4K videos
+    # import random
+    # random.seed(42)
+    # video_keys = random.sample(video_keys, 4000)
     
     # save the sampled video json file
-    with open(os.path.join(new_path, 'second_stage_video_filtered_data_dict_sampled_4k.json'), 'w') as f:
-        json.dump({k: video_dict[k] for k in video_keys}, f)
+    # with open(os.path.join(new_path, 'second_stage_video_filtered_data_dict_sampled_4k.json'), 'w') as f:
+    #     json.dump({k: video_dict[k] for k in video_keys}, f)
+    with open(os.path.join(new_path, 'second_stage_video_filtered_data_dict_sampled_4k.json'), 'r') as f:
+        video_dict = json.load(f)
+    
+    video_keys = sorted(list(video_dict.keys()))
+    video_keys = video_keys[len(video_keys) // 2:]
         
     video_dir = '/mnt/video_data/'
     vae_model_path = "THUDM/CogVideoX-5b"
