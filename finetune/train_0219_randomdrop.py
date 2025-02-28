@@ -1015,7 +1015,7 @@ class ImageDataset(Dataset):
                                             
                                             #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
                                             }
-        # self.val_instance_prompt_dict = {
+        # self.val_instance_prompt_dict = { # FIXME _ TEST PHASE
         #                             'oranges_omini':"A close up view. A bowl of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
         #                             'clock_omini':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
         #                             'rc_car_omini': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
@@ -1041,6 +1041,7 @@ class ImageDataset(Dataset):
                             'clock_omini_processed':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
                             'rc_car_omini_processed': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
                             'shirt_omini_processed': "On the beach, a lady sits under a beach umbrella. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                            # 'shirt_omini_processed': "On the beach, a lady is surfing at the beach. She's wearing hawaiian shirt and has a big smile on her face, with a big blue wave behind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
                             'cat_processed' : "cat is rollerblading in the park",
                             'dog_processed' : 'dog is flying in the sky',
                             'red_toy_processed' : 'red toy is dancing in the room',
@@ -1559,7 +1560,7 @@ def log_validation(
                         # right = left + target_width
                         # bottom = top + target_height
 
-                        # # Perform cropping
+                        # Perform cropping
                         # ref_image = ref_image.crop((left, top, right, bottom))
                         ref_image = np.array(ref_image)
                         ref_image = np.expand_dims(ref_image, axis=0)  # Add frame dimension
@@ -1632,8 +1633,8 @@ def log_validation(
                     .replace("/", "_")
                 )
                 max_num_frames = current_pipeline_args['num_frames']
-                filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_grey_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
-                output_frames_dir = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_grey_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}")
+                filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
+                output_frames_dir = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_bg_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}")
                 # export_to_video(video, filename, fps=args.fps)
                 export_to_video_with_frames(
                     video_frames=video,
