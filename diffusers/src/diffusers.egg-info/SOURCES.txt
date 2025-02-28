@@ -501,5 +501,6 @@ src/diffusers/utils/outputs.py
 src/diffusers/utils/peft_utils.py
 src/diffusers/utils/pil_utils.py
 src/diffusers/utils/state_dict_utils.py
+src/diffusers/utils/testing_utils.py
 src/diffusers/utils/torch_utils.py
 src/diffusers/utils/versions.py

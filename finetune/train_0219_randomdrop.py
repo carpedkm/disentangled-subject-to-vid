@@ -61,7 +61,7 @@ from diffusers.training_utils import (
     cast_training_params,
     free_memory,
 )
-from diffusers.utils import check_min_version, convert_unet_state_dict_to_peft, export_to_video, is_wandb_available
+from diffusers.utils import check_min_version, convert_unet_state_dict_to_peft, export_to_video, export_to_video_with_frames, is_wandb_available
 from diffusers.utils.hub_utils import load_or_create_model_card, populate_model_card
 from diffusers.utils.torch_utils import is_compiled_module
 
@@ -1633,7 +1633,14 @@ def log_validation(
                 )
                 max_num_frames = current_pipeline_args['num_frames']
                 filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
-                export_to_video(video, filename, fps=args.fps)
+                output_frames_dir = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}")
+                # export_to_video(video, filename, fps=args.fps)
+                export_to_video_with_frames(
+                    video_frames=video,
+                    output_video_path=filename,
+                    output_frames_dir=output_frames_dir,
+                    fps=args.fps,
+                )
                 video_filenames.append(filename)
 
             tracker.log(
