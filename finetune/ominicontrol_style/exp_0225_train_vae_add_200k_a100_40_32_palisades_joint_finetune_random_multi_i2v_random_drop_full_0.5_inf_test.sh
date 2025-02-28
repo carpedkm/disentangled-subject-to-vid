@@ -4,7 +4,7 @@ export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
 export OUTPUT_PATH="/mnt/carpedkm_data/result250225/joint_finetune_random_frame_select_8fps_prob01_dropfull_prob05_palisades_40G32"
-export VALIDATION_REF_PATH="../dreambooth_test_white/"
+export VALIDATION_REF_PATH="../single_test/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=1
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
@@ -68,7 +68,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
   --inference \
-  --resume_from_checkpoint checkpoint-4000 \
+  --resume_from_checkpoint checkpoint-6000 \
   --phase_name test
   # --inference 
   # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
