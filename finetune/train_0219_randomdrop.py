@@ -1632,8 +1632,8 @@ def log_validation(
                     .replace("/", "_")
                 )
                 max_num_frames = current_pipeline_args['num_frames']
-                filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
-                output_frames_dir = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}")
+                filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_grey_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
+                output_frames_dir = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_grey_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}")
                 # export_to_video(video, filename, fps=args.fps)
                 export_to_video_with_frames(
                     video_frames=video,

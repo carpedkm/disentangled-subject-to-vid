@@ -1,23 +1,14 @@
 
 export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
-export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
-export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250227/joint_finetune_random_frame_select_8fps_prob02_dropfull_prob05_palisades_40G16-fully_noisy_input"
-export VALIDATION_REF_PATH="../dreambooth_test/"
+export DATASET_PATH="/mnt/carpedkm_data/daneul/image_gen_ds/omini200k_720p_full"
+export ANNO_PATH="/mnt/carpedkm_data/daneul/image_gen_ds/omini200k_720p_full/metadata_omini200k_update_refined.json"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250227/joint_finetune_random_frame_select_8fps_prob02_dropfull_prob05_palisades_40G16_with_noise"
+export VALIDATION_REF_PATH="../dreambooth_test_white/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+export CUDA_VISIBLE_DEVICES=0
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
-
-export NCCL_IB_DISABLE=0
-export NCCL_IB_PCI_RELAXED_ORDERING=1
-export NCCL_SOCKET_IFNAME=eth0
-export NCCL_NET_GDR_LEVEL=5
-export NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml
-export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
-
-RANDOM_PORT=$((49152 + RANDOM % 16384))
 
 accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   ../train_0219_randomdrop.py \
@@ -69,15 +60,14 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --joint_train \
   --prob_sample_video 0.2 \
   --random_drop_full \
-  --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
-  --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps \
-  --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_rand_multi_with_noise \
+  --video_anno /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
+  --video_instance_root /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train_pexels_8fps/second_stage_video_train_pexels_8fps \
+  --video_ref_root /mnt/carpedkm_data/daneul/image_gen_ds/second_stage_video_train_pexels_8fps_rand_multi_with_noise/second_stage_video_train_pexels_8fps_rand_multi_with_noise \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
-  --noise_mix \
   --inference \
   --resume_from_checkpoint checkpoint-4000 \
-  --phase_name test
+  --phase_name test 
   # --inference 
   # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
