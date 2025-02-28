@@ -7,6 +7,8 @@ from typing import List, Union
 
 import numpy as np
 import PIL.Image
+from PIL import Image
+import imageio
 import PIL.ImageOps
 
 from .import_utils import BACKENDS_MAPPING, is_imageio_available, is_opencv_available
@@ -177,6 +179,48 @@ def export_to_video(
     elif isinstance(video_frames[0], PIL.Image.Image):
         video_frames = [np.array(frame) for frame in video_frames]
 
+    with imageio.get_writer(output_video_path, fps=fps) as writer:
+        for frame in video_frames:
+            writer.append_data(frame)
+
+    return output_video_path
+
+def export_to_video_with_frames(
+    video_frames: Union[List[np.ndarray], List[Image.Image]],
+    output_video_path: str,
+    output_frames_dir: str,
+    fps: int = 10
+) -> str:
+    """
+    Saves video frames as both an MP4 video and individual PNG images.
+
+    Args:
+        video_frames: List of frames (numpy arrays or PIL images).
+        output_video_path: Path to save the MP4 video.
+        output_frames_dir: Directory to save individual frame images.
+        fps: Frames per second for the output video.
+
+    Returns:
+        Path to the saved video.
+    """
+    # Ensure output frame directory exists
+
+    # output_frames_dir = os.path.splitext(output_video_path)[0]
+    import os
+    os.makedirs(output_frames_dir, exist_ok=True)
+
+    # Convert frames to numpy arrays if needed
+    if isinstance(video_frames[0], Image.Image):
+        video_frames = [np.array(frame) for frame in video_frames]
+    else:
+        video_frames = [(frame * 255).astype(np.uint8) for frame in video_frames]
+
+    # Save frames as PNG images
+    for idx, frame in enumerate(video_frames):
+        frame_path = os.path.join(output_frames_dir, f"frame_{idx:05d}.png")
+        imageio.imwrite(frame_path, frame)
+
+    # Write frames to video
     with imageio.get_writer(output_video_path, fps=fps) as writer:
         for frame in video_frames:
             writer.append_data(frame)
