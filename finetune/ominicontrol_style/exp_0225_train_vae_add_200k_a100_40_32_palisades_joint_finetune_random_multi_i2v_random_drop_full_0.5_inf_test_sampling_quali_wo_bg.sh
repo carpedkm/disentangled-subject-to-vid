@@ -5,6 +5,7 @@ export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
 export OUTPUT_PATH="/mnt/carpedkm_data/result250225/joint_finetune_random_frame_select_8fps_prob01_dropfull_prob05_palisades_40G32"
 export VALIDATION_REF_PATH="../zs_samples/"
+export TEST_PROMPT_PATH="../zs_prompts.json"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
@@ -71,7 +72,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --resume_from_checkpoint checkpoint-4000 \
   --phase_name test \
   --test \
-  --test_prompt_path ../zs_prompts.json \
+  --test_prompt_path $TEST_PROMPT_PATH\
   --sampling_for_quali \
   --num_of_prompts 4 \
   --wo_background_in_inf_sampling 
