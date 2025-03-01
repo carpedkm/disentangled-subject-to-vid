@@ -21,7 +21,7 @@ export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
 RANDOM_PORT=$((49152 + RANDOM % 16384))
 
 accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
-  ../train_0219_randomdrop.py \
+  ../train_0301_evalcodeupd.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
   --cache_dir $CACHE_PATH \
