@@ -78,7 +78,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --report_to wandb \
   --noise_mix \
   --inference \
-  --resume_from_checkpoint checkpoint-3000 \
+  --resume_from_checkpoint checkpoint-5000 \
   --phase_name test \
   --test_prompt_path $TEST_PROMPT_PATH\
   --sampling_for_quali \
