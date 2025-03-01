@@ -1057,8 +1057,9 @@ class ImageDataset(Dataset):
             if add_special:
                 self.val_instance_prompt_dict = {
                     k: [self.prefix + v[i] for i in range(len(v))] for k, v in self.val_instance_prompt_dict.items()}
-        if add_special:
-            self.val_instance_prompt_dict = {k: self.prefix + v for k, v in self.val_instance_prompt_dict.items()}
+        else:
+            if add_special:
+                self.val_instance_prompt_dict = {k: self.prefix + v for k, v in self.val_instance_prompt_dict.items()}
         
         self.instance_prompts = []
         self.id_token = id_token or ""
@@ -1483,6 +1484,7 @@ def log_validation(
     is_final_validation: bool = False,
     phase_name: str = "validation",
     resizing: bool = True,
+    vid_id: str = None,
     # prompt: dict = None,
 ):
     logger.info(
@@ -1637,11 +1639,11 @@ def log_validation(
                 )
                 max_num_frames = current_pipeline_args['num_frames']
                 if args.wo_background_in_inf_sampling:
-                    filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
-                    output_frames_dir = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}")
+                    filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_id_{vid_id}_{prompt}.mp4")
+                    output_frames_dir = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_id_{vid_id}_{prompt}")
                 else:
-                    filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_with_bg_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
-                    output_frames_dir = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_with_bg_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}")
+                    filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_with_bg_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{vid_id}_{prompt}.mp4")
+                    output_frames_dir = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_with_bg_{phase_name}_video_{i}_max_n_f_{max_num_frames}_id_{vid_id}_{prompt}")
                 # export_to_video(video, filename, fps=args.fps)
                 export_to_video_with_frames(
                     video_frames=video,
@@ -3194,6 +3196,7 @@ def main(args):
                                 ckpt_step=ckpt_step,
                                 phase_name=args.phase_name,
                                 resizing=resizing,
+                                vid_id=vid_id,
                             )
                 else:
                     for i in range(val_len):
