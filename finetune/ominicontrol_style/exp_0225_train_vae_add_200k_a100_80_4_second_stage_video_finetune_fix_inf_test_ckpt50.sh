@@ -3,9 +3,9 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250225/joint_finetune_random_frame_select_8fps_prob01_dropfull_prob05_palisades_40G32"
-export VALIDATION_REF_PATH="../zs_samples/"
-export TEST_PROMPT_PATH="../zs_prompts.json"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250225/two_stage_id_and_i2v/"
+
+export VALIDATION_REF_PATH="../dreambooth_test_white/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
@@ -13,7 +13,7 @@ export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
 
 accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
-  ../train_0301_evalcodeupd.py \
+  ../train_0219_randomdrop.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
   --cache_dir $CACHE_PATH \
@@ -21,8 +21,8 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --enable_slicing \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
-  --validation_epochs 100 \
-  --num_validation_videos 4 \
+  --validation_epochs 1 \
+  --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
   --rank 128 \
@@ -35,7 +35,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --max_num_frames 49 \
   --skip_frames_start 0 \
   --skip_frames_end 0 \
-  --train_batch_size 8 \
+  --train_batch_size 1 \
   --num_train_epochs 30 \
   --checkpointing_steps 50 \
   --gradient_accumulation_steps 1 \
@@ -59,9 +59,6 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --non_shared_pos_embed \
   --add_special \
   --layernorm_fix \
-  --joint_train \
-  --prob_sample_video 0.2 \
-  --random_drop_full \
   --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
   --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps \
   --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_rand_multi \
@@ -69,9 +66,5 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
   --inference \
-  --resume_from_checkpoint checkpoint-4000 \
-  --phase_name test \
-  --test_prompt_path $TEST_PROMPT_PATH \
-  --sampling_for_quali \
-  --num_of_prompts 4 \
-  --wo_background_in_inf_sampling 
+  --resume_from_checkpoint checkpoint-50 \
+  --phase_name test
