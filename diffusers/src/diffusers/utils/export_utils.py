@@ -189,7 +189,8 @@ def export_to_video_with_frames(
     video_frames: Union[List[np.ndarray], List[Image.Image]],
     output_video_path: str,
     output_frames_dir: str,
-    fps: int = 10
+    fps: int = 10,
+    eval_mode: bool = False,
 ) -> str:
     """
     Saves video frames as both an MP4 video and individual PNG images.
@@ -216,9 +217,14 @@ def export_to_video_with_frames(
         video_frames = [(frame * 255).astype(np.uint8) for frame in video_frames]
 
     # Save frames as PNG images
-    for idx, frame in enumerate(video_frames):
-        frame_path = os.path.join(output_frames_dir, f"frame_{idx:05d}.png")
-        imageio.imwrite(frame_path, frame)
+    if eval_mode:
+        for idx, frame in enumerate(video_frames):
+            frame_path = os.path.join(output_frames_dir, f"{idx:05d}.png")
+            imageio.imwrite(frame_path, frame)
+    else:
+        for idx, frame in enumerate(video_frames):
+            frame_path = os.path.join(output_frames_dir, f"frame_{idx:05d}.png")
+            imageio.imwrite(frame_path, frame)
 
     # Write frames to video
     with imageio.get_writer(output_video_path, fps=fps) as writer:
