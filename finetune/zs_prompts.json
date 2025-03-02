@@ -62,7 +62,7 @@
     "custom_cup": [
         "A cup sits on a wooden cafe's table, steam rising from the hot coffee inside as raindrops patter against the window.",
         "A cup rests on a desk next to an open book, with a lamp casting a warm glow over the scene.",
-        "A cup falls off a kitchen counter, frozen mid-air as tea spills out in slow motion.",
+        "A cup is brought by a man at hand over to the kitchen.",
         "A cup sits on a picnic blanket in a green meadow, surrounded by fresh pastries and wildflowers.",
         "A cup spins on a potter's wheel as an artisan shapes it carefully with wet clay-covered hands.",
         "A cup is placed on a snowy windowsill, steam swirling in the cold air as snowflakes gently fall outside.",
@@ -70,14 +70,14 @@
         "A cup rests on a cafe's counter, with a barista carefully pouring intricate latte art into the frothy surface."
     ],
     "custom_dice": [
-        "A gambler watches closely as dice roll across the casino table, bouncing unpredictably before coming to a stop.",
-        "Dice tumble through the air, caught in slow motion before they land on a velvet tabletop.",
-        "A group of friends laugh as dice decide their fate in a thrilling board game session.",
-        "Under dim candlelight, an old fortune teller rolls dice onto a worn-out wooden table, revealing mysterious numbers.",
-        "A pirate tosses dice onto a treasure map, making a risky bet under the glow of a lantern.",
-        "Dice float weightlessly inside a space station, slowly spinning in zero gravity as astronauts place their bets.",
-        "A magician flicks their wrist, making dice disappear in a puff of smoke before reappearing in the audience's hands.",
-        "In an ancient temple, dust-covered dice rest on a stone pedestal, untouched for centuries."
+        "A girl throws the dice plush onto the floor, playing with her friend.",
+        "Dice plush tumble through the air, caught in slow motion before they land on a velvet tabletop.",
+        "A group of friends laugh as dice plush decide their fate in a thrilling board game session.",
+        "Under dim candlelight, an old fortune teller rolls dice plush onto a worn-out wooden table, revealing mysterious numbers.",
+        "A pirate tosses dice plushonto a treasure map, making a risky bet under the glow of a lantern.",
+        "Dice plush float weightlessly inside a space station, slowly spinning in zero gravity as astronauts place their bets.",
+        "A magician flicks their wrist, making dice plush disappear in a puff of smoke before reappearing in the audience's hands.",
+        "In an ancient temple, dust-covered dice plush rest on a stone pedestal, untouched for centuries."
     ],
     "custom_doll": [
         "A teddy bear is running on a country road.",
@@ -143,17 +143,17 @@
         "A vase sits on a windowsill, filled with freshly picked wildflowers swaying gently in the breeze.",
         "In the center of the dining table, a vase holds a bouquet of roses, setting a warm and elegant mood.",
         "Beside an open book, a vase rests on a nightstand, holding a single dried flower as sunlight filters through the curtains.",
-        "A vase shatters on the marble floor, water spilling across the tiles as petals scatter.",
+        "A man has the vase in his hand, walking over to the window at the livingroom.",
         "Under soft candlelight, a vase stands on a fireplace mantel, casting a delicate shadow on the wall.",
         "A vase lies forgotten in the attic, covered in dust and surrounded by old letters and trinkets.",
         "Carefully balanced on a narrow shelf, a vase teeters as a curious cat nudges it.",
         "In a bustling flower shop, a vase overflows with bright tulips, catching the attention of passersby."
     ],
     "dr_backpack": [
-        "A backpack rests on the beach with waves lapping at its base, as a child builds a sandcastle nearby.",
+        "A man holds the backpack at his hand at metro, while he sits on the metro's seat.",
         "A backpack leaned against the chair at park with the Eiffel tower in the background, lights glowing.",
         "A backpack sits on a train seat, waiting as its owner gazes out the window at the passing landscape.",
-        "Left behind on the beach, a backpack collects grains of sand as the waves roll in nearby.",
+        "A man is wearing backpack at his back and walking down the street.",
         "A backpack lies open on a dorm room floor, clothes and gadgets spilling out after unpacking.",
         "In the crowded airport terminal, a backpack sits on top of a suitcase, ready for the next adventure.",
         "A backpack bounces slightly with each step as a student walks through a rainy city street.",
@@ -173,9 +173,9 @@
         "A clock sits on a glass table beside a vase of fresh flowers, as sunlight filters through the blinds, casting soft shadows.",
         "On a quiet nightstand, a clock ticks steadily, glowing faintly in the dark room.",
         "A clock rests on a wooden shelf, surrounded by vintage books and framed photographs.",
-        "In a bustling cafe's, a clock hangs on the wall, its hands moving slowly as customers sip their coffee.",
-        "A clock falls from a desk in slow motion, its hands spinning wildly before hitting the ground.",
-        "Inside a train station, a large clock towers above travelers rushing to their destinations.",
+        "In a bustling cafe's, a clock sits on the cafe table, its hands moving slowly as customers sip their coffee.",
+        "A clock's hand is spinning wildly, while it is in the dark room with moonlight glitering.",
+        "Beside the bed, on the brown table, clock sits on it.",
         "A clock floats in zero gravity aboard a space station, its hands still moving despite the weightlessness.",
         "At the center of a grand library, a clock chimes, echoing through rows of ancient books."
     ],
@@ -231,9 +231,9 @@
     ],
     "dr_shirts": [
         "On the beach, a lady sits under a beach umbrella, wearing a Hawaiian shirt and smiling brightly. Behind her, a surfboard leans against the sand as the sun sets, casting a beautiful orange and purple glow across the sky.",
-        "A man wearing a Hawaiian shirt walks barefoot along the shoreline, the ocean waves gently washing over his feet as he gazes at the horizon.",
+        "A woman wearing a Hawaiian shirt walks barefoot along the shoreline, the ocean waves gently washing over his feet as he gazes at the horizon.",
         "At a tropical party, a group of friends wearing Hawaiian shirts laugh and dance under twinkling string lights, enjoying the island breeze.",
-        "A traveler wearing a Hawaiian shirt steps off a boat, greeted by the scent of tropical flowers and the sound of distant drums.",
+        "A woman wearing a Hawaiian shirt steps off a boat, greeted by the scent of tropical flowers and the sound of distant drums.",
         "A street musician, wearing a Hawaiian shirt, strums a ukulele on a busy boardwalk, filling the air with cheerful island tunes.",
         "Under the neon glow of a tiki bar, a bartender in a Hawaiian shirt serves colorful cocktails to lively guests.",
         "A couple, both wearing Hawaiian shirts, ride bicycles down a scenic coastal road, the wind playfully lifting the fabric as they enjoy the view.",
@@ -250,14 +250,14 @@
         "A toy car floats weightlessly inside a zero-gravity chamber, slowly tumbling as astronauts watch in amusement."
     ],
     "stmv_hedgehog": [
-        "A hedgehog swinging on a tire swing in the backyard.",
-        "A hedgehog skiing down a slope of snow with trees at the side.",
-        "A hedgehog rolls into a tiny ball, spinning slightly as it lands on a soft pile of autumn leaves.",
-        "In a cozy living room, a hedgehog stretches after waking up from a nap, its quills gently rustling.",
-        "A hedgehog curiously nudges a fallen apple, pushing it across the ground with its tiny nose.",
-        "On a rainy afternoon, a hedgehog shakes off tiny droplets of water before scurrying under a leaf for shelter.",
-        "A hedgehog cautiously steps onto a wooden bridge, peering down at its reflection in the calm river below.",
-        "Inside a futuristic space station, a hedgehog floats weightlessly in zero gravity, spinning slowly as it drifts."
+        "A white hedgehog swinging on a tire swing in the backyard.",
+        "A white hedgehog skiing down a slope of snow with trees at the side.",
+        "A white hedgehog rolls into a tiny ball, spinning slightly as it lands on a soft pile of autumn leaves.",
+        "In a cozy living room, a white hedgehog stretches after waking up from a nap, its quills gently rustling.",
+        "A white hedgehog curiously nudges a fallen apple, pushing it across the ground with its tiny nose.",
+        "On a rainy afternoon, a white hedgehog shakes off tiny droplets of water before scurrying under a leaf for shelter.",
+        "A white hedgehog cautiously steps onto a wooden bridge, peering down at its reflection in the calm river below.",
+        "Inside a futuristic space station, a white hedgehog floats weightlessly in zero gravity, spinning slowly as it drifts."
     ],
     "stmv_pig": [
         "A pig surfing on a wave.",
@@ -291,12 +291,12 @@
     ],
     "stmv_whitedog": [
         "A white dog toy dashes across a snowy field, leaving tiny paw prints in the fresh powder.",
-        "Under the golden sunset, a white dog toy playfully chases its tail, spinning in joyful circles.",
-        "A white dog toy leaps onto a cozy couch, curling up into a fluffy ball as it settles in for a nap.",
-        "At the park, a white dog toy sprints toward a frisbee, jumping into the air with perfect timing.",
         "A white dog toy shakes off water after a playful swim, sending droplets flying in all directions.",
         "With ears perked up, a white dog toy trots through a busy street, weaving between pedestrians.",
         "A white dog toy bounces excitedly at the door, wagging its tail as its owner arrives home.",
         "Floating in zero gravity inside a spaceship, a white dog toy paddles its paws, trying to chase a floating toy."
+        "Under the golden sunset, a white dog toy playfully chases its tail, spinning in joyful circles.",
+        "A white dog toy leaps onto a cozy couch, curling up into a fluffy ball as it settles in for a nap.",
+        "At the park, a white dog toy sprints toward a frisbee, jumping into the air with perfect timing.",
     ]
 }
