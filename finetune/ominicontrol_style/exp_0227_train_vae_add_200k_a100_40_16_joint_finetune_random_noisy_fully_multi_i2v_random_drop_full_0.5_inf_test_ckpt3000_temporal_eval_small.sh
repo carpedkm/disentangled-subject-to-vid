@@ -16,7 +16,7 @@ export TEMPORAL_EVAL_FIRST_FRAME="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_
 export TEMPORAL_EVAL_SAVE_DIR="/mnt/carpedkm_data/temporal_eval_result/Pexels_evaluation-100K_100_0227-noisemix-vid_prob0.2-drop_prob_0.5"
 
 accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
-  ../train_0301_evalcodeupd.py \
+  ../train_0302_temporaleval.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
   --cache_dir $CACHE_PATH \
