@@ -25,7 +25,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
   --validation_epochs 100 \
-  --num_validation_videos 4 \
+  --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
   --rank 128 \
@@ -80,7 +80,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --wo_background_in_inf_sampling \
   --temporal_eval \
   --temporal_eval_prompt_path $TEMPORAL_EVAL_PROMPT_PATH \
-  --temporal_eval_first_frame $$FIRST_FRAME \
+  --temporal_eval_first_frame $TEMPORAL_EVAL_FIRST_FRAME \
   --temporal_eval_save_dir $TEMPORAL_EVAL_SAVE_DIR \
   --temporal_eval_use_amount 100 \
   --temporal_eval_type medium
