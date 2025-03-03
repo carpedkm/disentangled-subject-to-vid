@@ -1,0 +1,16 @@
+kornia
+accelerate
+scikit-image
+einops
+opencv-python
+gdown
+einops
+decord
+omegaconf
+safetensors
+gradio
+wandb
+triton
+termcolor
+pyav
+matplotlib

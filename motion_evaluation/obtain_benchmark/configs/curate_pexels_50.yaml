@@ -1,0 +1,16 @@
+output_dir: "output/flow_curation_metadata/"
+
+data_kwargs:
+  root_path:       "/video_data/" 
+  metadata_path:   "/video_data/pexels/metadata/results_400k_train_rfcap_pexels_reformat_clean.csv"   # Pexels metadata
+  sample_fps: 8 # fps로 수정
+  sample_n_frames: 49 # 49 frame 수정
+  sample_size: [480, 720] # [480, 720] 으로 수정
+  exclude_list: "pexels_metadata/pexels_excluded_list.txt"
+  sample_num: 50
+
+segmentation_wrapper_kwargs:
+  sam_ckpt_path: /workspace/workspace/checkpoints/sam2/sam2.1_hiera_base_plus.pt  # SAM2 checkpoint
+
+num_workers: 8
+batch_size: 1
