@@ -764,6 +764,11 @@ def get_args():
         action='store_true',
         help='Whether to use id evaluation or not'
     )
+    parser.add_argument(
+        '--temporal_eval_shard',
+        type=int,
+        default=0,
+    )
     return parser.parse_args()
 
 
@@ -3223,8 +3228,10 @@ def main(args):
                         vid_id = str(meta['video_latent_path'].split('/')[-1].split('.')[0])
                         meta_dict[vid_id] = meta
                     input_image_path = args.temporal_eval_first_frame # prepend 'small', 'medium', 'large'
-                    input_image_list = os.listdir(input_image_path)
-                    for i in range(args.temporal_eval_use_amount):
+                    input_image_list = sorted(os.listdir(input_image_path))
+                    # for i in range(args.temporal_eval_use_amount):
+                    shard_amount = args.temporal_eval_use_amount // 4
+                    for i in range(args.temporal_eval_shard * shard_amount, (args.temporal_eval_shard + 1) * shard_amount):
                         input_image = os.path.join(input_image_path, input_image_list[i])
                         vid_id = str(input_image_list[i].split('.')[0])
                         if os.path.exists(os.path.join(args.output_dir, 'video_frames', vid_id)):
