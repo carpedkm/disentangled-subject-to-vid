@@ -25,7 +25,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
   --validation_epochs 100 \
-  --num_validation_videos 4 \
+  --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
   --rank 128 \
