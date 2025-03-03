@@ -7,7 +7,7 @@ export OUTPUT_PATH="/mnt/carpedkm_data/result250227/joint_finetune_random_frame_
 export VALIDATION_REF_PATH="../zs_samples"
 export TEST_PROMPT_PATH="../zs_prompts.json"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES2
+export CUDA_VISIBLE_DEVICES=2
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
