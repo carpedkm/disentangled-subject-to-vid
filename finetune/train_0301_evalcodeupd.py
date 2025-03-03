@@ -3157,7 +3157,9 @@ def main(args):
                         args.validation_reference_image = os.path.join(args.validation_reference_image, 'processed_bg_720x720')
                         resizing = True
                 val_len = len(os.listdir(args.validation_reference_image))
+                
                 if args.sampling_for_quali:
+                    args.output_dir = os.path.join(args.output_dir, f"seed_{args.seed}")
                     for i in range(val_len):
                         for cnt in range(args.num_of_prompts):
                             validation_ref_img = os.path.join(args.validation_reference_image, os.listdir(args.validation_reference_image)[i])
