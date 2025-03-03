@@ -3,7 +3,7 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250227/joint_finetune_random_frame_select_8fps_prob02_dropfull_prob05_palisades_40G16-fully_noisy_input_fix"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250227/joint_finetune_random_frame_select_8fps_prob02_dropfull_prob05_palisades_40G16-fully_noisy_input"
 export VALIDATION_REF_PATH="../zs_samples"
 export TEST_PROMPT_PATH="../zs_prompts.json"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
@@ -13,7 +13,7 @@ export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
 export TEMPORAL_EVAL_PROMPT_PATH="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/large/metadata.jsonl"
 export TEMPORAL_EVAL_FIRST_FRAME="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/large/first_frame"
-export TEMPORAL_EVAL_SAVE_DIR="/mnt/carpedkm_data/temporal_eval_result/Pexels_evaluation-100K_100_0227-noisemix-vid_prob0.2-drop_prob_0.5"
+export TEMPORAL_EVAL_SAVE_DIR="/mnt/carpedkm_data/temporal_eval_result/Pexels_evaluation-100K_100_0227-noisemix-vid_prob0.2-drop_prob_0.5_fix"
 
 accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   ../train_0302_temporaleval.py \
