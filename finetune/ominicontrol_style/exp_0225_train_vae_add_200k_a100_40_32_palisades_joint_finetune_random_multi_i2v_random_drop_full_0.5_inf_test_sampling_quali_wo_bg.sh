@@ -74,4 +74,5 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --test_prompt_path $TEST_PROMPT_PATH \
   --sampling_for_quali \
   --num_of_prompts 4 \
-  --wo_background_in_inf_sampling 
+  --wo_background_in_inf_sampling  \
+
