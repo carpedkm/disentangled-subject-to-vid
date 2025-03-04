@@ -63,7 +63,7 @@ for i in tqdm(range(shard*25, (shard+1)*25)):
         guidance_scale=6,
         generator=torch.Generator(device="cuda").manual_seed(42),
     ).frames[0]
-    save_path = os.path.join(video_save_path, f"{i}.mp4")
-    frames_save_path = os.path.join(video_save_path, type_to_eval, "video_frames")
+    save_path = os.path.join(video_save_path, f"{vid_id}.mp4")
+    frames_save_path = os.path.join(video_save_path, type_to_eval, "video_frames", vid_id)
     export_to_video_with_frames(video, save_path, frames_save_path, fps=8, eval_mode=True)
     
