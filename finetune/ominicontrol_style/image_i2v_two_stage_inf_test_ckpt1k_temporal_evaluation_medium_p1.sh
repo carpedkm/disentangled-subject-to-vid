@@ -11,8 +11,8 @@ export CUDA_VISIBLE_DEVICES=1
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
-export TEMPORAL_EVAL_PROMPT_PATH="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/large/metadata.jsonl"
-export TEMPORAL_EVAL_FIRST_FRAME="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/large/first_frame"
+export TEMPORAL_EVAL_PROMPT_PATH="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/medium/metadata.jsonl"
+export TEMPORAL_EVAL_FIRST_FRAME="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/medium/first_frame"
 export TEMPORAL_EVAL_SAVE_DIR="/mnt/carpedkm_data/temporal_eval_result/two_stage_ckpt1k"
 
 accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
@@ -77,6 +77,6 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --temporal_eval_prompt_path $TEMPORAL_EVAL_PROMPT_PATH \
   --temporal_eval_first_frame $TEMPORAL_EVAL_FIRST_FRAME \
   --temporal_eval_save_dir $TEMPORAL_EVAL_SAVE_DIR \
-  --temporal_eval_use_amount 100 \
-  --temporal_eval_type large \
+  --temporal_eval_use_amount 200 \
+  --temporal_eval_type medium \
   --temporal_eval_shard 1
