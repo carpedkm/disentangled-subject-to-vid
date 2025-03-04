@@ -116,6 +116,7 @@ class MotionSmoothness:
         elif os.path.isdir(video_path):
             frames = self.fp.get_frames_from_img_folder(video_path)
         else:
+            print(video_path)
             raise NotImplementedError
         frame_list = self.fp.extract_frame(frames, start_from=0)
         # print(f'Loading [images] from [{video_path}], the number of images = [{len(frame_list)}]')

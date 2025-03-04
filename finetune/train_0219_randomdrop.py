@@ -709,6 +709,11 @@ def get_args():
         action='store_true',
         help='Whether to use noise mix or not'
     )
+    parser.add_argument(
+        '--video_count',
+        type=int,
+        default=-1,
+    )
     return parser.parse_args()
 
 
@@ -853,6 +858,7 @@ class VideoDataset(Dataset):
         seen_validation: bool = False,
         joint_train: bool = False,
         image_dataset_len: int = 0,
+        video_count: int = -1,
     ) -> None:
         if 'multi' in video_ref_root:
             self.ref_random = True
@@ -863,13 +869,23 @@ class VideoDataset(Dataset):
         self.id_token = id_token or ""
         self.joint_train = joint_train
         self.image_dataset_len = image_dataset_len
+        self.video_count = video_count
         super().__init__()
         with open(video_anno, 'r') as f:
             self.video_dict = json.load(f)
         id_mapper = {}
-        for id_ in list(self.video_dict.keys()):
+        if self.video_count != -1:
+            # random select video key
+            video_keys = list(self.video_dict.keys())
+            # random select amount of self.video_count
+            selected_keys = random.sample(video_keys, self.video_count)
+        else:
+            selected_keys = list(self.video_dict.keys())
+            
+        for id_ in selected_keys:
             id_splitted = id_.split('/')[-1]
             id_mapper[id_splitted] = self.video_dict[id_]
+        
         self.video_path_dict = {}
         for id_ in list(id_mapper.keys()):
             self.video_path_dict[id_] = os.path.join(video_instance_root, id_ + '_vae_latents.npy')
@@ -2561,6 +2577,7 @@ def main(args):
                 seen_validation=args.seen_validation,
                 joint_train=args.joint_train,
                 image_dataset_len=len(image_dataset),
+                video_count=args.video_count,
             )
             # SHOULD ALSO UPDATE COMBINED_DATASET-> We do not need prob samp video iside the dataset, as we have it inside custom batch sampler
             train_dataset = CombinedDataset(video_dataset, image_dataset, args.prob_sample_video) #FIXME - add argument for prob_sample_video
