@@ -15,8 +15,8 @@ class Evaluator(object):
         os.makedirs(self.output_path, exist_ok=True)
 
     def build_full_dimension_list(self, ):
-        return ["motion_smoothness", "dynamic_degree","clip_text", "clip_image", "regional_clip_image", "dino_image", "regional_dino_image", "regional_clip_text"]
-        # return ["motion_smoothness", "dynamic_degree", "clip_text", "clip_image", "dino_image"]
+        # return ["motion_smoothness", "dynamic_degree","clip_text", "clip_image", "regional_clip_image", "dino_image", "regional_dino_image", "regional_clip_text"]
+        return ["motion_smoothness", "dynamic_degree", "clip_text", "clip_image", "dino_image"]
         # return ["clip_text", "clip_image", "dino_image"]
         # return ["regional_clip_image", "regional_clip_text", "regional_dino_image"]
 
