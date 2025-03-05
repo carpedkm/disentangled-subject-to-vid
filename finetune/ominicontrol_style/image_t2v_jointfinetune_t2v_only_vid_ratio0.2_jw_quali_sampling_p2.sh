@@ -12,7 +12,7 @@ export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
 
-accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
+accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --multi_gpu \
   ../train_0301_evalcodeupd.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
