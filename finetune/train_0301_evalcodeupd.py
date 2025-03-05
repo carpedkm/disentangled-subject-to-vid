@@ -3206,6 +3206,7 @@ def main(args):
                             )
                             if os.path.exists(os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{tmp_idx}_max_n_f_{max_num_frames}_id_{vid_id}_{prompt}.mp4")):
                                 print('>>> SKIPPING already existing', os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{tmp_idx}_max_n_f_{max_num_frames}_id_{vid_id}_{prompt}.mp4"))
+                                continue
                             validation_outputs = log_validation(
                                 pipe=pipe,
                                 args=args,
