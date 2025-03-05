@@ -10,7 +10,7 @@ Path_to_Synthesized_Video="/mnt/carpedkm_data/temporal_eval_result/original_0.2"
 Save_Path="I2V_baseline"
 
 # Loop through dataset sizes
-for TARGET in medium; do
+for TARGET in small; do
     video_path_GT="${Path_to_Benchmark}/${TARGET}/video_frames"  # Path to real video dataset
     video_path_pred="${Path_to_Synthesized_Video}/${TARGET}/video_frames"  # Path to generated samples
     save_path="./Results/${Save_Path}/${TARGET}/"  # Path to save results

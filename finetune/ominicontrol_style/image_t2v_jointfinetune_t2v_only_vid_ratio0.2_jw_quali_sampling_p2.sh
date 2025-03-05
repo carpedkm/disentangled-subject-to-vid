@@ -7,12 +7,12 @@ export OUTPUT_PATH="/mnt/carpedkm_data/result250225/joint_finetune_t2v_only_40G1
 export VALIDATION_REF_PATH="../zs_samples/"
 export TEST_PROMPT_PATH="../zs_prompts.json"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+export CUDA_VISIBLE_DEVICES=0
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
 
-accelerate launch --config_file ../accelerate_config_machine_single_4gpu.yaml --multi_gpu \
+accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   ../train_0301_evalcodeupd.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
