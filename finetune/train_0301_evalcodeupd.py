@@ -3193,7 +3193,19 @@ def main(args):
                                 'text_only_norm_final': args.text_only_norm_final,
                                 'non_shared_pos_embed': args.non_shared_pos_embed,
                             }
+                            tmp_idx = 0
                             ckpt_step = int(os.path.basename(args.resume_from_checkpoint).split('-')[1])
+                            max_num_frames = args.inference_num_frames
+                            phase_name = args.phase_name
+                            prompt = (
+                                pipeline_args["prompt"][:30]
+                                .replace(" ", "_")
+                                .replace("'", "_")
+                                .replace('"', "_")
+                                .replace("/", "_")
+                            )
+                            if os.path.exists(os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{tmp_idx}_max_n_f_{max_num_frames}_id_{vid_id}_{prompt}.mp4")):
+                                print('>>> SKIPPING already existing', os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{tmp_idx}_max_n_f_{max_num_frames}_id_{vid_id}_{prompt}.mp4"))
                             validation_outputs = log_validation(
                                 pipe=pipe,
                                 args=args,
