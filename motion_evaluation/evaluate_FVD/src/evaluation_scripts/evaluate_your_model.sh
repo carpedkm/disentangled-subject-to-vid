@@ -4,13 +4,13 @@
 Path_to_Benchmark="/root/daneul/projects/refactored/CogVideo/Pexels_subset_100K_fps8_flow-25-50_sample500"
 # Path_to_Synthesized_Video="/root/daneul/projects/refactored/CogVideo/Pexels_evaluation_100K_200_0225_original"
 # Path_to_Synthesized_Video="/mnt/carpedkm_data/temporal_eval_result/I2V_baseline/Temporal_eval"
-# Path_to_Synthesized_Video="/mnt/carpedkm_data/temporal_eval_result/original_0.2"
+Path_to_Synthesized_Video="/mnt/carpedkm_data/temporal_eval_result/original_0.2"
 # Path_to_Synthesized_Video="/mnt/carpedkm_data/temporal_eval_result/only_image_training_ckpt3000"
-Path_to_Synthesized_Video="/mnt/carpedkm_data/temporal_eval_result/two_stage_ckpt1k"
+# Path_to_Synthesized_Video="/mnt/carpedkm_data/temporal_eval_result/two_stage_ckpt1k"
 Save_Path="I2V_baseline"
 
 # Loop through dataset sizes
-for TARGET in large; do
+for TARGET in medium; do
     video_path_GT="${Path_to_Benchmark}/${TARGET}/video_frames"  # Path to real video dataset
     video_path_pred="${Path_to_Synthesized_Video}/${TARGET}/video_frames"  # Path to generated samples
     save_path="./Results/${Save_Path}/${TARGET}/"  # Path to save results
