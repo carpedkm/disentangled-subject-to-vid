@@ -67,6 +67,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --inference \
   --resume_from_checkpoint checkpoint-1000 \
   --phase_name test \
+  --test_prompt_path $TEST_PROMPT_PATH \
   --sampling_for_quali \
   --num_of_prompts 4 \
   --wo_background_in_inf_sampling \
