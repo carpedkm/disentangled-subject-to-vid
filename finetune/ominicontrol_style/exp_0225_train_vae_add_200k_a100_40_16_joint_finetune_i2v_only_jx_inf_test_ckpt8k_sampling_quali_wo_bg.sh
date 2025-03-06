@@ -4,15 +4,16 @@ export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
 export OUTPUT_PATH="/mnt/carpedkm_data/result250225/joint_finetune_i2v_only_40G16"
-export VALIDATION_REF_PATH="../dreambooth_test_white/"
+export VALIDATION_REF_PATH="../zs_samples/"
+export TEST_PROMPT_PATH="../zs_prompts.json"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=2
+export CUDA_VISIBLE_DEVICES=3
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
 
 accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
-  ../train_0219_randomdrop.py \
+  ../train_0301_evalcodeupd.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
   --cache_dir $CACHE_PATH \
@@ -21,7 +22,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --instance_data_root $DATASET_PATH \
   --anno_root $ANNO_PATH \
   --validation_epochs 100 \
-  --num_validation_videos 1 \
+  --num_validation_videos 4 \
   --validation_reference_image $VALIDATION_REF_PATH \
   --seed 42 \
   --rank 128 \
@@ -68,6 +69,10 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --report_to wandb \
   --inference \
   --resume_from_checkpoint checkpoint-8000 \
-  --phase_name test
+  --phase_name test \
+  --test_prompt_path $TEST_PROMPT_PATH\
+  --sampling_for_quali \
+  --num_of_prompts 4 \
+  --wo_background_in_inf_sampling 
   # --inference 
   # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
