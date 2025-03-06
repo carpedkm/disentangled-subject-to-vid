@@ -7,10 +7,18 @@ export OUTPUT_PATH="/mnt/carpedkm_data/result250302/joint_finetune_random_frame_
 export VALIDATION_REF_PATH="../zs_samples/"
 export TEST_PROMPT_PATH="../zs_prompts.json"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+<<<<<<< HEAD
 export CUDA_VISIBLE_DEVICES=1
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
+=======
+export CUDA_VISIBLE_DEVICES=0
+export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
+export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
+
+export TEST_PROMPT_PATH="../zs_prompts.json"
+>>>>>>> 09aa221d4a6472a85f3f7d9a99d4cdf4c2716ad1
 
 accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   ../train_0301_evalcodeupd.py \
