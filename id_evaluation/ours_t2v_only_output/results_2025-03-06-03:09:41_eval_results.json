@@ -1,0 +1,2580 @@
+{
+    "motion_smoothness": [
+        0.9885521823921438,
+        [
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_is_brought_by_a_ma.mp4",
+                "video_results": 0.9917734728021866
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_A_group_of_friends_laugh.mp4",
+                "video_results": 0.9847791840340817
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_sits_on_a_wood.mp4",
+                "video_results": 0.9945170771176268
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_Under_the_dim_glow_of_fa.mp4",
+                "video_results": 0.996149886623245
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_Inside_a_teddy_bear_stor.mp4",
+                "video_results": 0.9862159269282559
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_races_through_the_.mp4",
+                "video_results": 0.9896645549970245
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_dancing_in_a_field.mp4",
+                "video_results": 0.9866913807189542
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_sits_on_a_.mp4",
+                "video_results": 0.9945020420108629
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_surfing_on_a_blue_.mp4",
+                "video_results": 0.9594930268725289
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_sits_on_a_bustling.mp4",
+                "video_results": 0.9933398793673849
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_sneaks_through_a_m.mp4",
+                "video_results": 0.9950320859053498
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_On_a_wooden_fence,_a_squ.mp4",
+                "video_results": 0.99429007712267
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_shakes_o.mp4",
+                "video_results": 0.9575296008835633
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_moves_gracef.mp4",
+                "video_results": 0.9668905807146676
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_stretches_on_a_sun.mp4",
+                "video_results": 0.9940724452879145
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_man_holds_the_backpack.mp4",
+                "video_results": 0.9778762730851086
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_man_is_wearing_backpac.mp4",
+                "video_results": 0.9852726970996732
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_happily_cuddled_in.mp4",
+                "video_results": 0.9975573854381002
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_guitar_is_played_by_a_.mp4",
+                "video_results": 0.9853675469834282
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_In_the_middle_of_the_roo.mp4",
+                "video_results": 0.9826714455425946
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_Under_dim_candlelight,_a.mp4",
+                "video_results": 0.980261194890765
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_rollerblading_in_a.mp4",
+                "video_results": 0.9927148330332647
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_rolls_acr.mp4",
+                "video_results": 0.9900564574949065
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_In_the_middle_of_a_bustl.mp4",
+                "video_results": 0.9919523390535483
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_climbs.mp4",
+                "video_results": 0.9809638168346042
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_A_woman_wearing_a_Hawaii.mp4",
+                "video_results": 0.990480303901396
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_On_the_beach,_a_lady_sit.mp4",
+                "video_results": 0.9963058986486827
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_sits_on_a_picnic_b.mp4",
+                "video_results": 0.9934165479945836
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_In_the_middle_of_the_par.mp4",
+                "video_results": 0.9821474447835976
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_A_vase_sits_on_a_windows.mp4",
+                "video_results": 0.9922984084387355
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_Under_the_open_sky,_a_ma.mp4",
+                "video_results": 0.9886874245100561
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_At_a_cozy_fireplace,_a_c.mp4",
+                "video_results": 0.9874247114676632
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_sits_on_a_wooden_c.mp4",
+                "video_results": 0.9943710168416646
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_Dice_plush_tumble_throug.mp4",
+                "video_results": 0.9792129418446905
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_cautiously_s.mp4",
+                "video_results": 0.9885976228390019
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_is_sitting_in_a_ca.mp4",
+                "video_results": 0.9957925345646232
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_toy_car_skids_around_a.mp4",
+                "video_results": 0.9812720788386085
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_curls_up_next_to_a.mp4",
+                "video_results": 0.9886484757965687
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_swings_from_a_trav.mp4",
+                "video_results": 0.9770625151295086
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_eagerly_chases_a_b.mp4",
+                "video_results": 0.9763501209415093
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_cautiously_steps_t.mp4",
+                "video_results": 0.993165379870441
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_floats_in_a_b.mp4",
+                "video_results": 0.9895916433735275
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_A_corgi_runs_along_the_b.mp4",
+                "video_results": 0.9903326479350743
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_sits_on_a_chi.mp4",
+                "video_results": 0.9932928901080751
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_stands_on_.mp4",
+                "video_results": 0.9972952867167958
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_In_a_playful_moment,_a_p.mp4",
+                "video_results": 0.9892227300063544
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_A_red_toy_sits_quietly_o.mp4",
+                "video_results": 0.997431209118807
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_floats_in_a.mp4",
+                "video_results": 0.9886249648554123
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_stands_on.mp4",
+                "video_results": 0.9975919139710926
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_On_a_snowy_windowsill,_a.mp4",
+                "video_results": 0.997624552261105
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_skilled_musician_is_ma.mp4",
+                "video_results": 0.957087690001412
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_bounces_on_a_.mp4",
+                "video_results": 0.9708646782079602
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_rests_on_a_wooden_.mp4",
+                "video_results": 0.9974611215756879
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_glides_effortlessl.mp4",
+                "video_results": 0.9916775249258655
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_flies_through_the_.mp4",
+                "video_results": 0.9932300244782841
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_In_the_center_of_the_din.mp4",
+                "video_results": 0.9942706954341665
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_stands_on_a_.mp4",
+                "video_results": 0.9973540200995522
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_sits_on_a.mp4",
+                "video_results": 0.9971045942328836
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_Under_the_warm_afternoon.mp4",
+                "video_results": 0.9925679426831174
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_guitar_sits_in_the_cor.mp4",
+                "video_results": 0.9973452590108831
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_On_a_rainy_evening,_a_ca.mp4",
+                "video_results": 0.9971297315962135
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_A_girl_throws_the_dice_p.mp4",
+                "video_results": 0.9838153394620451
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_is_eat.mp4",
+                "video_results": 0.9813371902548313
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_close-up_view._A_bowl_.mp4",
+                "video_results": 0.9934074203305293
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_rolls_.mp4",
+                "video_results": 0.9732594044079823
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_dashes_across.mp4",
+                "video_results": 0.9898222047917675
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_A_man_has_the_vase_in_hi.mp4",
+                "video_results": 0.9967848886468168
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_is_running_.mp4",
+                "video_results": 0.9774868097476902
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_A_squirrel_leaps_between.mp4",
+                "video_results": 0.9867106301818567
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_With_ears_perked_up,_a_w.mp4",
+                "video_results": 0.9858208740254075
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_floats_in_.mp4",
+                "video_results": 0.986956049880729
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_toy_car_races_across_a.mp4",
+                "video_results": 0.9713353636818668
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_falls_onto_a_sandy.mp4",
+                "video_results": 0.9922686362450073
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_bowl_of_oranges_sits_o.mp4",
+                "video_results": 0.9970486320717845
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_bowl_of_oranges_rests_.mp4",
+                "video_results": 0.994411065438907
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_sprints_across_a_g.mp4",
+                "video_results": 0.9925193101385359
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_floats_we.mp4",
+                "video_results": 0.9942638330988259
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_On_a_busy_office_desk,_a.mp4",
+                "video_results": 0.9958380332521383
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_rolls_i.mp4",
+                "video_results": 0.9758175581414408
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_scurries_across_a_.mp4",
+                "video_results": 0.9888311567328835
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_dashes_throu.mp4",
+                "video_results": 0.9925452487354253
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_A_red_toy_dances_in_the_.mp4",
+                "video_results": 0.9904708173843096
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_is_placed_on_t.mp4",
+                "video_results": 0.9923353904737049
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_skiing_.mp4",
+                "video_results": 0.9868400208913297
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_bounces_.mp4",
+                "video_results": 0.9822549104711329
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_A_corgi_sits_on_the_porc.mp4",
+                "video_results": 0.988266069586914
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_dashes_a.mp4",
+                "video_results": 0.9871685873262628
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_is_tucked_ins.mp4",
+                "video_results": 0.9904791143437828
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_playfully_pounces_.mp4",
+                "video_results": 0.9815391184476621
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_lies_on_a_picn.mp4",
+                "video_results": 0.9936019501936577
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_is_sit.mp4",
+                "video_results": 0.99759570643458
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_backpack_leaned_agains.mp4",
+                "video_results": 0.9973260799947551
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_stands_on_a_rocky_.mp4",
+                "video_results": 0.9973689705756273
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_swingin.mp4",
+                "video_results": 0.9877665445904442
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_At_a_tropical_party,_a_g.mp4",
+                "video_results": 0.9808570352845356
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_A_squirrel_scurries_up_a.mp4",
+                "video_results": 0.993760470407942
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_Beside_an_open_book,_a_v.mp4",
+                "video_results": 0.9971297930598423
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_is_playing_.mp4",
+                "video_results": 0.9903127947102194
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_Oranges_tumble_out_of_a_.mp4",
+                "video_results": 0.9884176436231643
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_is_lying_on_a_fluf.mp4",
+                "video_results": 0.9923009626465041
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_film-style_shot._On_th.mp4",
+                "video_results": 0.9945028895785423
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_Music_plays_loudly_as_a_.mp4",
+                "video_results": 0.9810988103478273
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_dashes_through_a_d.mp4",
+                "video_results": 0.9908623230477891
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_Snow_falls_gently_as_a_f.mp4",
+                "video_results": 0.9836042185167534
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_rests_on_a_desk_ne.mp4",
+                "video_results": 0.9960427819951283
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_In_the_middle_of_a_park,.mp4",
+                "video_results": 0.9824053419142862
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_rolls_off_a_p.mp4",
+                "video_results": 0.9927433636616941
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_In_a_cozy_living_room,_a.mp4",
+                "video_results": 0.989331158308874
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_Under_the_glow_of_a_stre.mp4",
+                "video_results": 0.9964520656192003
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_On_a_rainy_afternoon,_a_.mp4",
+                "video_results": 0.997572927383402
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_backpack_sits_on_a_tra.mp4",
+                "video_results": 0.9766349775957194
+            }
+        ]
+    ],
+    "dynamic_degree": [
+        0.44144144144144143,
+        [
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_is_brought_by_a_ma.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_A_group_of_friends_laugh.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_sits_on_a_wood.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_Under_the_dim_glow_of_fa.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_Inside_a_teddy_bear_stor.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_races_through_the_.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_dancing_in_a_field.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_sits_on_a_.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_surfing_on_a_blue_.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_sits_on_a_bustling.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_sneaks_through_a_m.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_On_a_wooden_fence,_a_squ.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_shakes_o.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_moves_gracef.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_stretches_on_a_sun.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_man_holds_the_backpack.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_man_is_wearing_backpac.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_happily_cuddled_in.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_guitar_is_played_by_a_.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_In_the_middle_of_the_roo.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_Under_dim_candlelight,_a.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_rollerblading_in_a.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_rolls_acr.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_In_the_middle_of_a_bustl.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_climbs.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_A_woman_wearing_a_Hawaii.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_On_the_beach,_a_lady_sit.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_sits_on_a_picnic_b.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_In_the_middle_of_the_par.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_A_vase_sits_on_a_windows.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_Under_the_open_sky,_a_ma.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_At_a_cozy_fireplace,_a_c.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_sits_on_a_wooden_c.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_Dice_plush_tumble_throug.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_cautiously_s.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_is_sitting_in_a_ca.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_toy_car_skids_around_a.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_curls_up_next_to_a.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_swings_from_a_trav.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_eagerly_chases_a_b.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_cautiously_steps_t.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_floats_in_a_b.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_A_corgi_runs_along_the_b.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_sits_on_a_chi.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_stands_on_.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_In_a_playful_moment,_a_p.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_A_red_toy_sits_quietly_o.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_floats_in_a.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_stands_on.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_On_a_snowy_windowsill,_a.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_skilled_musician_is_ma.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_bounces_on_a_.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_rests_on_a_wooden_.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_glides_effortlessl.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_flies_through_the_.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_In_the_center_of_the_din.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_stands_on_a_.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_sits_on_a.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_Under_the_warm_afternoon.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_guitar_sits_in_the_cor.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_On_a_rainy_evening,_a_ca.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_A_girl_throws_the_dice_p.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_is_eat.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_close-up_view._A_bowl_.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_rolls_.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_dashes_across.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_A_man_has_the_vase_in_hi.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_is_running_.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_A_squirrel_leaps_between.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_With_ears_perked_up,_a_w.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_floats_in_.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_toy_car_races_across_a.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_falls_onto_a_sandy.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_bowl_of_oranges_sits_o.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_bowl_of_oranges_rests_.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_sprints_across_a_g.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_floats_we.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_On_a_busy_office_desk,_a.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_rolls_i.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_scurries_across_a_.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_dashes_throu.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_A_red_toy_dances_in_the_.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_is_placed_on_t.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_skiing_.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_bounces_.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_A_corgi_sits_on_the_porc.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_dashes_a.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_is_tucked_ins.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_playfully_pounces_.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_lies_on_a_picn.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_is_sit.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_backpack_leaned_agains.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_stands_on_a_rocky_.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_swingin.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_At_a_tropical_party,_a_g.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_A_squirrel_scurries_up_a.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_Beside_an_open_book,_a_v.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_is_playing_.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_Oranges_tumble_out_of_a_.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_is_lying_on_a_fluf.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_film-style_shot._On_th.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_Music_plays_loudly_as_a_.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_dashes_through_a_d.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_Snow_falls_gently_as_a_f.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_rests_on_a_desk_ne.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_In_the_middle_of_a_park,.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_rolls_off_a_p.mp4",
+                "video_results": true
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_In_a_cozy_living_room,_a.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_Under_the_glow_of_a_stre.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_On_a_rainy_afternoon,_a_.mp4",
+                "video_results": false
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_backpack_sits_on_a_tra.mp4",
+                "video_results": false
+            }
+        ]
+    ],
+    "clip_text": [
+        0.33413824439048767,
+        [
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_is_brought_by_a_ma.mp4",
+                "text": "A cup is brought by a man at hand over to the kitchen.",
+                "video_results": 0.2960996627807617
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_A_group_of_friends_laugh.mp4",
+                "text": "A group of friends laugh as dice plush decide their fate in a thrilling board game session.",
+                "video_results": 0.3448925018310547
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_sits_on_a_wood.mp4",
+                "text": "A tumbler sits on a wooden cafe's table, steam rising from the hot drink inside.",
+                "video_results": 0.33127695322036743
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_Under_the_dim_glow_of_fa.mp4",
+                "text": "Under the dim glow of fairy lights, a wolf toy sways gently on a wooden shelf as a breeze from the window rustles the curtains.",
+                "video_results": 0.3297203779220581
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_Inside_a_teddy_bear_stor.mp4",
+                "text": "Inside a teddy bear store, a teddy bear rests on a shelf, waiting to be picked up by excited hands.",
+                "video_results": 0.2891833484172821
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_races_through_the_.mp4",
+                "text": "A dog races through the waves on the beach, splashing water with every excited step.",
+                "video_results": 0.3301699757575989
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_dancing_in_a_field.mp4",
+                "text": "A pig dancing in a field of colorful flowers.",
+                "video_results": 0.3364051580429077
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_sits_on_a_.mp4",
+                "text": "A penguin toy sits on a child's bed, nestled between soft blankets and pillows.",
+                "video_results": 0.36802536249160767
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_surfing_on_a_blue_.mp4",
+                "text": "Floating in zero gravity inside a spaceship, a pig spins slowly, its legs kicking as it tries to move.",
+                "video_results": 0.2827654778957367
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_sits_on_a_bustling.mp4",
+                "text": "A bag sits on a bustling cafe's table, next to a steaming cup of coffee and an open book.",
+                "video_results": 0.31801098585128784
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_sneaks_through_a_m.mp4",
+                "text": "A fox sneaks through a moonlit meadow, its fur glowing under the soft silver light of the full moon.",
+                "video_results": 0.32971882820129395
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_On_a_wooden_fence,_a_squ.mp4",
+                "text": "On a wooden fence, a squirrel balances carefully, twitching its nose as it scans the area.",
+                "video_results": 0.35206469893455505
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_shakes_o.mp4",
+                "text": "A white dog toy shakes off water after a playful swim, sending droplets flying in all directions.",
+                "video_results": 0.3402136266231537
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_moves_gracef.mp4",
+                "text": "A white fox moves gracefully through a snowy forest, its fur blending into the frost-covered landscape.",
+                "video_results": 0.32216525077819824
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_stretches_on_a_sun.mp4",
+                "text": "A cat stretches on a sunlit windowsill, its tail curling as it wakes from a nap.",
+                "video_results": 0.28971144556999207
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_man_holds_the_backpack.mp4",
+                "text": "A man holds the backpack at his hand at metro, while he sits on the metro's seat.",
+                "video_results": 0.32684361934661865
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_man_is_wearing_backpac.mp4",
+                "text": "A man is wearing backpack at his back and walking down the street.",
+                "video_results": 0.31062597036361694
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_happily_cuddled_in.mp4",
+                "text": "A cat happily cuddled in a comfy blue blanket.",
+                "video_results": 0.30946001410484314
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_guitar_is_played_by_a_.mp4",
+                "text": "A guitar is played by a man on a stage under bright spotlights.",
+                "video_results": 0.3112182319164276
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_In_the_middle_of_the_roo.mp4",
+                "text": "In the middle of the room, a red toy twirls and sways, moving in sync with the flickering lights.",
+                "video_results": 0.2954697906970978
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_Under_dim_candlelight,_a.mp4",
+                "text": "Under dim candlelight, an old fortune teller rolls dice plush onto a worn-out wooden table, revealing mysterious numbers.",
+                "video_results": 0.3342529833316803
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_rollerblading_in_a.mp4",
+                "text": "A cat rollerblading in a green park.",
+                "video_results": 0.2957115173339844
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_rolls_acr.mp4",
+                "text": "A water bottle rolls across the floor of a moving train as passengers chat and gaze out the window.",
+                "video_results": 0.39258861541748047
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_In_the_middle_of_a_bustl.mp4",
+                "text": "In the middle of a bustling park, a dog leaps high to catch a frisbee, twisting mid-air before landing gracefully.",
+                "video_results": 0.3003503084182739
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_climbs.mp4",
+                "text": "A panda plush toy climbs a wooden structure at a wildlife sanctuary, looking curiously at the visitors.",
+                "video_results": 0.2890543043613434
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_A_woman_wearing_a_Hawaii.mp4",
+                "text": "A woman wearing a Hawaiian shirt walks barefoot along the shoreline, the ocean waves gently washing over his feet as he gazes at the horizon.",
+                "video_results": 0.32105353474617004
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_On_the_beach,_a_lady_sit.mp4",
+                "text": "On the beach, a lady sits under a beach umbrella, wearing a Hawaiian shirt and smiling brightly. Behind her, a surfboard leans against the sand as the sun sets, casting a beautiful orange and purple glow across the sky.",
+                "video_results": 0.34818217158317566
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_sits_on_a_picnic_b.mp4",
+                "text": "A cup sits on a picnic blanket in a green meadow, surrounded by fresh pastries and wildflowers.",
+                "video_results": 0.33712875843048096
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_In_the_middle_of_the_par.mp4",
+                "text": "In the middle of the park, a corgi leaps into the air, catching a frisbee with perfect timing.",
+                "video_results": 0.30774012207984924
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_A_vase_sits_on_a_windows.mp4",
+                "text": "A vase sits on a windowsill, filled with freshly picked wildflowers swaying gently in the breeze.",
+                "video_results": 0.30414286255836487
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_Under_the_open_sky,_a_ma.mp4",
+                "text": "Under the open sky, a man is passionately playing a guitar, his fingers dancing over the strings.",
+                "video_results": 0.28571969270706177
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_At_a_cozy_fireplace,_a_c.mp4",
+                "text": "At a cozy fireplace, a corgi curls up on a soft rug, enjoying the warmth of the flames.",
+                "video_results": 0.3558516204357147
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_sits_on_a_wooden_c.mp4",
+                "text": "A cup sits on a wooden cafe's table, steam rising from the hot coffee inside as raindrops patter against the window.",
+                "video_results": 0.30637091398239136
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_Dice_plush_tumble_throug.mp4",
+                "text": "Dice plush tumble through the air, caught in slow motion before they land on a velvet tabletop.",
+                "video_results": 0.33127522468566895
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_cautiously_s.mp4",
+                "text": "A white fox cautiously steps onto a frozen lake, its reflection shimmering in the ice.",
+                "video_results": 0.35983532667160034
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_is_sitting_in_a_ca.mp4",
+                "text": "A cat is sitting in a cardboard box. looking around.",
+                "video_results": 0.30535563826560974
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_toy_car_skids_around_a.mp4",
+                "text": "A toy car skids around a sharp turn on a miniature racetrack, kicking up tiny sparks as it drifts.",
+                "video_results": 0.32924699783325195
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_curls_up_next_to_a.mp4",
+                "text": "A cat curls up next to a flickering fireplace, its tail swinging lazily.",
+                "video_results": 0.3208429515361786
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_swings_from_a_trav.mp4",
+                "text": "A bag swings from a traveler's shoulder as they walk through a busy airport terminal.",
+                "video_results": 0.3061983585357666
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_eagerly_chases_a_b.mp4",
+                "text": "A pig eagerly chases a butterfly across a meadow, its ears flopping with each step.",
+                "video_results": 0.33055582642555237
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_cautiously_steps_t.mp4",
+                "text": "A cat cautiously steps through a rainy alleyway, its fur slightly damp as puddles reflect the city lights.",
+                "video_results": 0.35388532280921936
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_floats_in_a_b.mp4",
+                "text": "A pink toy floats in a bubble-filled bathtub, gently bobbing with the ripples of the water.",
+                "video_results": 0.3270481824874878
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_A_corgi_runs_along_the_b.mp4",
+                "text": "A corgi runs along the beach, leaving paw prints in the sand as waves crash nearby.",
+                "video_results": 0.3731797933578491
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_sits_on_a_chi.mp4",
+                "text": "A pink toy sits on a child's nightstand, illuminated by the soft glow of a bedside lamp.",
+                "video_results": 0.3466680347919464
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_stands_on_.mp4",
+                "text": "A penguin toy stands on a wooden shelf in a toy store, surrounded by stuffed animals of all kinds.",
+                "video_results": 0.3554694652557373
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_In_a_playful_moment,_a_p.mp4",
+                "text": "In a playful moment, a pig bounces on a haystack, tumbling down with a joyful squeal.",
+                "video_results": 0.31479090452194214
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_A_red_toy_sits_quietly_o.mp4",
+                "text": "A red toy sits quietly on a windowsill, watching as the rain taps against the glass.",
+                "video_results": 0.3760910928249359
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_floats_in_a.mp4",
+                "text": "A teddy bear floats in a bathtub, drifting with the ripples of the warm water.",
+                "video_results": 0.3701428472995758
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_stands_on.mp4",
+                "text": "A water bottle stands on a gym bench beside a towel and a pair of dumbbells, reflecting the bright overhead lights.",
+                "video_results": 0.3490816354751587
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_On_a_snowy_windowsill,_a.mp4",
+                "text": "On a snowy windowsill, a penguin toy rests as frost forms on the glass outside.",
+                "video_results": 0.35525208711624146
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_skilled_musician_is_ma.mp4",
+                "text": "A skilled musician is masterfully strumming the strings of a guitar, on the bustling city street.",
+                "video_results": 0.3157055377960205
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_bounces_on_a_.mp4",
+                "text": "A wolf toy bounces on a child's bed as they jump excitedly, making it tumble onto the pillows.",
+                "video_results": 0.3254343569278717
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_rests_on_a_wooden_.mp4",
+                "text": "A bag rests on a wooden bench in a quiet park, with autumn leaves scattered around.",
+                "video_results": 0.3177039325237274
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_glides_effortlessl.mp4",
+                "text": "A cat glides effortlessly on rollerblades through the park, weaving between trees and leaping over fallen leaves.",
+                "video_results": 0.3777569830417633
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_flies_through_the_.mp4",
+                "text": "A dog flies through the sky, soaring effortlessly among fluffy clouds, tail wagging as it enjoys the view below.",
+                "video_results": 0.339526891708374
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_In_the_center_of_the_din.mp4",
+                "text": "In the center of the dining table, a vase holds a bouquet of roses, setting a warm and elegant mood.",
+                "video_results": 0.3224608898162842
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_stands_on_a_.mp4",
+                "text": "A white fox stands on a rocky cliff under the northern lights, gazing at the glowing sky.",
+                "video_results": 0.37666022777557373
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_sits_on_a.mp4",
+                "text": "A water bottle sits on a wooden picnic table under the warm afternoon sun, surrounded by fresh fruits and snacks.",
+                "video_results": 0.33349907398223877
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_Under_the_warm_afternoon.mp4",
+                "text": "Under the warm afternoon sun, a cat lazily rolls onto its back, stretching and yawning.",
+                "video_results": 0.3101651072502136
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_guitar_sits_in_the_cor.mp4",
+                "text": "A guitar sits in the corner of a cozy cafe's, next to a steaming cup of coffee and an open notebook.",
+                "video_results": 0.33670493960380554
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_On_a_rainy_evening,_a_ca.mp4",
+                "text": "On a rainy evening, a cat sits by the window, watching raindrops slide down the glass.",
+                "video_results": 0.3371239900588989
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_A_girl_throws_the_dice_p.mp4",
+                "text": "A girl throws the dice plush onto the floor, playing with her friend.",
+                "video_results": 0.35531458258628845
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_is_eat.mp4",
+                "text": "A panda plush toy is eating bamboo",
+                "video_results": 0.3708485960960388
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_close-up_view._A_bowl_.mp4",
+                "text": "A close-up view. A bowl of oranges sits on a wooden table in a dimly lit room. The TV in the background flickers, playing a cooking show as faint voices fill the air.",
+                "video_results": 0.38548415899276733
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_rolls_.mp4",
+                "text": "A panda plush toy rolls down a grassy hill, playfully tumbling before coming to a stop.",
+                "video_results": 0.3652140200138092
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_dashes_across.mp4",
+                "text": "A wolf toy dashes across a vast grass field, its tiny legs moving playfully as the wind ruffles the blades of grass.",
+                "video_results": 0.30656924843788147
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_A_man_has_the_vase_in_hi.mp4",
+                "text": "A man has the vase in his hand, walking over to the window at the livingroom.",
+                "video_results": 0.34119912981987
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_is_running_.mp4",
+                "text": "A teddy bear is running on a country road.",
+                "video_results": 0.34634295105934143
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_A_squirrel_leaps_between.mp4",
+                "text": "A squirrel leaps between rooftops, its fluffy tail trailing behind as it moves effortlessly through the cityscape.",
+                "video_results": 0.3290063738822937
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_With_ears_perked_up,_a_w.mp4",
+                "text": "With ears perked up, a white dog toy trots through a busy street, weaving between pedestrians.",
+                "video_results": 0.32140451669692993
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_floats_in_.mp4",
+                "text": "A penguin toy floats in a bathtub, bobbing gently in the warm water.",
+                "video_results": 0.3847725987434387
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_toy_car_races_across_a.mp4",
+                "text": "A toy car races across a wooden floor, weaving between scattered blocks and stuffed animals.",
+                "video_results": 0.3291797339916229
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_falls_onto_a_sandy.mp4",
+                "text": "A bag falls onto a sandy beach as waves gently roll in, leaving a trail of foam near its straps.",
+                "video_results": 0.32036879658699036
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_bowl_of_oranges_sits_o.mp4",
+                "text": "A close-up view. A bowl of oranges sits on a wooden table in a dimly lit room. The TV in the background flickers, playing a cooking show as faint voices fill the air.",
+                "video_results": 0.2913364768028259
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_bowl_of_oranges_rests_.mp4",
+                "text": "A bowl of oranges rests on a kitchen counter as a hand reaches in to pick one up, peeling it slowly.",
+                "video_results": 0.3356817364692688
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_sprints_across_a_g.mp4",
+                "text": "A dog sprints across a grassy field, ears flopping and tongue hanging out as it chases a butterfly.",
+                "video_results": 0.33711618185043335
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_floats_we.mp4",
+                "text": "A water bottle floats weightlessly in a space station, spinning slowly as tiny water droplets escape into the air.",
+                "video_results": 0.35588598251342773
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_On_a_busy_office_desk,_a.mp4",
+                "text": "On a busy office desk, a tumbler rests beside a laptop and a stack of papers.",
+                "video_results": 0.30210447311401367
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_rolls_i.mp4",
+                "text": "A white hedgehog rolls into a tiny ball, spinning slightly as it lands on a soft pile of autumn leaves.",
+                "video_results": 0.3556442856788635
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_scurries_across_a_.mp4",
+                "text": "A cat scurries across a kitchen floor, sliding slightly as it tries to catch a moving shadow.",
+                "video_results": 0.30270349979400635
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_dashes_throu.mp4",
+                "text": "A white fox dashes through a bamboo forest, weaving between the tall green stalks as sunlight filters through.",
+                "video_results": 0.36177581548690796
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_A_red_toy_dances_in_the_.mp4",
+                "text": "A red toy dances in the room, with blue sofa s and a white wall in the background, creating a vibrant contrast.",
+                "video_results": 0.33613458275794983
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_is_placed_on_t.mp4",
+                "text": "A tumbler is placed on the passenger seat of a car, reflecting the morning sunlight through the windshield.",
+                "video_results": 0.3442070186138153
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_skiing_.mp4",
+                "text": "A white hedgehog skiing down a slope of snow with trees at the side.",
+                "video_results": 0.3461938798427582
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_bounces_.mp4",
+                "text": "A white dog toy bounces excitedly at the door, wagging its tail as its owner arrives home.",
+                "video_results": 0.333915114402771
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_A_corgi_sits_on_the_porc.mp4",
+                "text": "A corgi sits on the porch, wagging its tail as it watches the sunset.",
+                "video_results": 0.3671494126319885
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_dashes_a.mp4",
+                "text": "A white dog toy dashes across a snowy field, leaving tiny paw prints in the fresh powder.",
+                "video_results": 0.2891350984573364
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_is_tucked_ins.mp4",
+                "text": "A pink toy is tucked inside a backpack, peeking out as a child walks to school.",
+                "video_results": 0.34822195768356323
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_playfully_pounces_.mp4",
+                "text": "A cat playfully pounces on a rolling ball, its eyes locked onto the moving target.",
+                "video_results": 0.31334301829338074
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_lies_on_a_picn.mp4",
+                "text": "A tumbler lies on a picnic blanket in the park, surrounded by fresh fruits and sandwiches.",
+                "video_results": 0.39554956555366516
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_is_sit.mp4",
+                "text": "A panda plush toy is sitting on a window sill.",
+                "video_results": 0.3460575342178345
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_backpack_leaned_agains.mp4",
+                "text": "A backpack leaned against the chair at park with the Eiffel tower in the background, lights glowing.",
+                "video_results": 0.3869808316230774
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_stands_on_a_rocky_.mp4",
+                "text": "A fox stands on a rocky cliff, gazing over a vast valley as the sun sets behind distant mountains.",
+                "video_results": 0.3454873561859131
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_swingin.mp4",
+                "text": "A white hedgehog swinging on a tire swing in the backyard.",
+                "video_results": 0.36826860904693604
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_At_a_tropical_party,_a_g.mp4",
+                "text": "At a tropical party, a group of friends wearing Hawaiian shirts laugh and dance under twinkling string lights, enjoying the island breeze.",
+                "video_results": 0.3393059968948364
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_A_squirrel_scurries_up_a.mp4",
+                "text": "A squirrel scurries up a tree trunk, pausing briefly to look around before leaping onto a nearby branch.",
+                "video_results": 0.3212648034095764
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_Beside_an_open_book,_a_v.mp4",
+                "text": "Beside an open book, a vase rests on a nightstand, holding a single dried flower as sunlight filters through the curtains.",
+                "video_results": 0.32741761207580566
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_is_playing_.mp4",
+                "text": "A teddy bear is playing guitar on the wooden stage with curtains behind.",
+                "video_results": 0.35944223403930664
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_Oranges_tumble_out_of_a_.mp4",
+                "text": "Oranges tumble out of a bowl, rolling across the wooden table as a sudden movement shakes them loose.",
+                "video_results": 0.3225449323654175
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_is_lying_on_a_fluf.mp4",
+                "text": "A cat is lying on a fluffy rug, its tail curled neatly around its body.",
+                "video_results": 0.28593555092811584
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_film-style_shot._On_th.mp4",
+                "text": "A film-style shot. On the moon, a toy car rolls across the dusty lunar surface, leaving small tracks behind. In the background, Earth looms large, glowing against the blackness of space.",
+                "video_results": 0.3457091748714447
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_Music_plays_loudly_as_a_.mp4",
+                "text": "Music plays loudly as a red toy dances in the room, spinning and hopping across the floor.",
+                "video_results": 0.3085557222366333
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_dashes_through_a_d.mp4",
+                "text": "A fox dashes through a dense forest, weaving between trees as autumn leaves scatter in its wake.",
+                "video_results": 0.3231881856918335
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_Snow_falls_gently_as_a_f.mp4",
+                "text": "Snow falls gently as a fox cautiously steps across a frozen lake, its reflection shimmering on the ice.",
+                "video_results": 0.3617878556251526
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_rests_on_a_desk_ne.mp4",
+                "text": "A cup rests on a desk next to an open book, with a lamp casting a warm glow over the scene.",
+                "video_results": 0.31749266386032104
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_In_the_middle_of_a_park,.mp4",
+                "text": "In the middle of a park, a squirrel digs into the ground, burying an acorn before patting the dirt with its tiny paws.",
+                "video_results": 0.3179149329662323
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_rolls_off_a_p.mp4",
+                "text": "A wolf toy rolls off a park bench, landing softly on the grass as leaves drift in the wind.",
+                "video_results": 0.3318415880203247
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_In_a_cozy_living_room,_a.mp4",
+                "text": "In a cozy living room, a white hedgehog stretches after waking up from a nap, its quills gently rustling.",
+                "video_results": 0.3303462266921997
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_Under_the_glow_of_a_stre.mp4",
+                "text": "Under the glow of a streetlamp, a toy car zooms down a wet pavement, reflecting the flickering city lights.",
+                "video_results": 0.37031376361846924
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_On_a_rainy_afternoon,_a_.mp4",
+                "text": "On a rainy afternoon, a pink toy rests on a windowsill as raindrops slide down the glass.",
+                "video_results": 0.3718019127845764
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_backpack_sits_on_a_tra.mp4",
+                "text": "A backpack sits on a train seat, waiting as its owner gazes out the window at the passing landscape.",
+                "video_results": 0.3460298180580139
+            }
+        ]
+    ],
+    "clip_image": [
+        0.7270984053611755,
+        [
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_is_brought_by_a_ma.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cup.png",
+                "video_results": 0.6597474813461304
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_A_group_of_friends_laugh.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_dice.png",
+                "video_results": 0.4511917233467102
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_sits_on_a_wood.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_tumbler.png",
+                "video_results": 0.6797438859939575
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_Under_the_dim_glow_of_fa.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog_toy.png",
+                "video_results": 0.7074942588806152
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_Inside_a_teddy_bear_stor.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_doll.png",
+                "video_results": 0.7510324716567993
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_races_through_the_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog.png",
+                "video_results": 0.7287813425064087
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_dancing_in_a_field.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pig.png",
+                "video_results": 0.8741157650947571
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_sits_on_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_penguin.png",
+                "video_results": 0.8364911675453186
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_surfing_on_a_blue_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pig.png",
+                "video_results": 0.8522530794143677
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_sits_on_a_bustling.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_purplebag.png",
+                "video_results": 0.7592018842697144
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_sneaks_through_a_m.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_fox.png",
+                "video_results": 0.8277361989021301
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_On_a_wooden_fence,_a_squ.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_squirrel.png",
+                "video_results": 0.8217642307281494
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_shakes_o.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_whitedog.png",
+                "video_results": 0.7130721807479858
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_moves_gracef.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_whitefox.png",
+                "video_results": 0.7292800545692444
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_stretches_on_a_sun.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_cat.png",
+                "video_results": 0.8228574395179749
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_man_holds_the_backpack.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_backpack.png",
+                "video_results": 0.6452641487121582
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_man_is_wearing_backpac.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_backpack.png",
+                "video_results": 0.6829375624656677
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_happily_cuddled_in.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pinkcat.png",
+                "video_results": 0.7723371386528015
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_guitar_is_played_by_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_guitar.png",
+                "video_results": 0.5718343257904053
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_In_the_middle_of_the_roo.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_red_toy.png",
+                "video_results": 0.6570360660552979
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_Under_dim_candlelight,_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_dice.png",
+                "video_results": 0.6669886112213135
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_rollerblading_in_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pinkcat.png",
+                "video_results": 0.8100056648254395
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_rolls_acr.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_water_bottle.png",
+                "video_results": 0.7533634901046753
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_In_the_middle_of_a_bustl.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog.png",
+                "video_results": 0.817608118057251
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_climbs.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_panda.png",
+                "video_results": 0.7463557720184326
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_A_woman_wearing_a_Hawaii.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_shirts.png",
+                "video_results": 0.5318905711174011
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_On_the_beach,_a_lady_sit.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_shirts.png",
+                "video_results": 0.42396780848503113
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_sits_on_a_picnic_b.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cup.png",
+                "video_results": 0.6771948933601379
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_In_the_middle_of_the_par.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_corgi.png",
+                "video_results": 0.8425853252410889
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_A_vase_sits_on_a_windows.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_vase.png",
+                "video_results": 0.6436690092086792
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_Under_the_open_sky,_a_ma.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_guitar.png",
+                "video_results": 0.5503144264221191
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_At_a_cozy_fireplace,_a_c.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_corgi.png",
+                "video_results": 0.7492054104804993
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_sits_on_a_wooden_c.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cup.png",
+                "video_results": 0.7300019264221191
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_Dice_plush_tumble_throug.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_dice.png",
+                "video_results": 0.7001177668571472
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_cautiously_s.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_whitefox.png",
+                "video_results": 0.7041457295417786
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_is_sitting_in_a_ca.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cat.png",
+                "video_results": 0.8320145606994629
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_toy_car_skids_around_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_toycar.png",
+                "video_results": 0.7582308053970337
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_curls_up_next_to_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cat.png",
+                "video_results": 0.7894608378410339
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_swings_from_a_trav.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_purplebag.png",
+                "video_results": 0.5978355407714844
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_eagerly_chases_a_b.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pig.png",
+                "video_results": 0.8065169453620911
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_cautiously_steps_t.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cat.png",
+                "video_results": 0.7944291830062866
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_floats_in_a_b.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_pinkdoll.png",
+                "video_results": 0.7671269178390503
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_A_corgi_runs_along_the_b.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_corgi.png",
+                "video_results": 0.7582416534423828
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_sits_on_a_chi.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_pinkdoll.png",
+                "video_results": 0.7743404507637024
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_stands_on_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_penguin.png",
+                "video_results": 0.8275994062423706
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_In_a_playful_moment,_a_p.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pig.png",
+                "video_results": 0.8286819458007812
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_A_red_toy_sits_quietly_o.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_red_toy.png",
+                "video_results": 0.7493878602981567
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_floats_in_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_doll.png",
+                "video_results": 0.7737446427345276
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_stands_on.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_water_bottle.png",
+                "video_results": 0.691679060459137
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_On_a_snowy_windowsill,_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_penguin.png",
+                "video_results": 0.7658585906028748
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_skilled_musician_is_ma.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_guitar.png",
+                "video_results": 0.6399261951446533
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_bounces_on_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog_toy.png",
+                "video_results": 0.5353218913078308
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_rests_on_a_wooden_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_purplebag.png",
+                "video_results": 0.7804017066955566
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_glides_effortlessl.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_cat.png",
+                "video_results": 0.7272499203681946
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_flies_through_the_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog.png",
+                "video_results": 0.782114565372467
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_In_the_center_of_the_din.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_vase.png",
+                "video_results": 0.5720394253730774
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_stands_on_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_whitefox.png",
+                "video_results": 0.7426778078079224
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_sits_on_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_water_bottle.png",
+                "video_results": 0.7680849432945251
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_Under_the_warm_afternoon.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pinkcat.png",
+                "video_results": 0.7434727549552917
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_guitar_sits_in_the_cor.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_guitar.png",
+                "video_results": 0.6152415871620178
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_On_a_rainy_evening,_a_ca.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_cat.png",
+                "video_results": 0.6937701106071472
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_A_girl_throws_the_dice_p.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_dice.png",
+                "video_results": 0.5983612537384033
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_is_eat.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_panda.png",
+                "video_results": 0.8257761597633362
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_close-up_view._A_bowl_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_orange.png",
+                "video_results": 0.7126443982124329
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_rolls_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_panda.png",
+                "video_results": 0.8194709420204163
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_dashes_across.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog_toy.png",
+                "video_results": 0.6345083713531494
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_A_man_has_the_vase_in_hi.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_vase.png",
+                "video_results": 0.5167346596717834
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_is_running_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_doll.png",
+                "video_results": 0.6999255418777466
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_A_squirrel_leaps_between.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_squirrel.png",
+                "video_results": 0.7588631510734558
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_With_ears_perked_up,_a_w.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_whitedog.png",
+                "video_results": 0.6775612235069275
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_floats_in_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_penguin.png",
+                "video_results": 0.8052899837493896
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_toy_car_races_across_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_toycar.png",
+                "video_results": 0.7955966591835022
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_falls_onto_a_sandy.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_purplebag.png",
+                "video_results": 0.673417866230011
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_bowl_of_oranges_sits_o.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_orange.png",
+                "video_results": 0.7986961603164673
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_bowl_of_oranges_rests_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_orange.png",
+                "video_results": 0.7290157675743103
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_sprints_across_a_g.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog.png",
+                "video_results": 0.8001121878623962
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_floats_we.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_water_bottle.png",
+                "video_results": 0.7752820253372192
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_On_a_busy_office_desk,_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_tumbler.png",
+                "video_results": 0.748961329460144
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_rolls_i.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_hedgehog.png",
+                "video_results": 0.774823784828186
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_scurries_across_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pinkcat.png",
+                "video_results": 0.7715824246406555
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_dashes_throu.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_whitefox.png",
+                "video_results": 0.7117582559585571
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_A_red_toy_dances_in_the_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_red_toy.png",
+                "video_results": 0.8236693143844604
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_is_placed_on_t.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_tumbler.png",
+                "video_results": 0.6939364075660706
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_skiing_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_hedgehog.png",
+                "video_results": 0.6990891695022583
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_bounces_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_whitedog.png",
+                "video_results": 0.6734944581985474
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_A_corgi_sits_on_the_porc.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_corgi.png",
+                "video_results": 0.8201448321342468
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_dashes_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_whitedog.png",
+                "video_results": 0.6730233430862427
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_is_tucked_ins.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_pinkdoll.png",
+                "video_results": 0.8136547803878784
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_playfully_pounces_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_cat.png",
+                "video_results": 0.7350471019744873
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_lies_on_a_picn.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_tumbler.png",
+                "video_results": 0.703076958656311
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_is_sit.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_panda.png",
+                "video_results": 0.8198246955871582
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_backpack_leaned_agains.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_backpack.png",
+                "video_results": 0.660611629486084
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_stands_on_a_rocky_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_fox.png",
+                "video_results": 0.8509538173675537
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_swingin.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_hedgehog.png",
+                "video_results": 0.8042399287223816
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_At_a_tropical_party,_a_g.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_shirts.png",
+                "video_results": 0.4755527377128601
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_A_squirrel_scurries_up_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_squirrel.png",
+                "video_results": 0.7780885100364685
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_Beside_an_open_book,_a_v.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_vase.png",
+                "video_results": 0.613785982131958
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_is_playing_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_doll.png",
+                "video_results": 0.7339734435081482
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_Oranges_tumble_out_of_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_orange.png",
+                "video_results": 0.785291850566864
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_is_lying_on_a_fluf.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cat.png",
+                "video_results": 0.8580483198165894
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_film-style_shot._On_th.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_toycar.png",
+                "video_results": 0.6136879920959473
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_Music_plays_loudly_as_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_red_toy.png",
+                "video_results": 0.8132283091545105
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_dashes_through_a_d.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_fox.png",
+                "video_results": 0.8206428289413452
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_Snow_falls_gently_as_a_f.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_fox.png",
+                "video_results": 0.7710681557655334
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_rests_on_a_desk_ne.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cup.png",
+                "video_results": 0.6935824155807495
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_In_the_middle_of_a_park,.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_squirrel.png",
+                "video_results": 0.8022368550300598
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_rolls_off_a_p.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog_toy.png",
+                "video_results": 0.6778689622879028
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_In_a_cozy_living_room,_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_hedgehog.png",
+                "video_results": 0.8424837589263916
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_Under_the_glow_of_a_stre.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_toycar.png",
+                "video_results": 0.6693755984306335
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_On_a_rainy_afternoon,_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_pinkdoll.png",
+                "video_results": 0.6895260810852051
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_backpack_sits_on_a_tra.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_backpack.png",
+                "video_results": 0.6632905006408691
+            }
+        ]
+    ],
+    "dino_image": [
+        0.4867643415927887,
+        [
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_is_brought_by_a_ma.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cup.png",
+                "video_results": 0.39516088366508484
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_A_group_of_friends_laugh.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_dice.png",
+                "video_results": 0.1448429673910141
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_sits_on_a_wood.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_tumbler.png",
+                "video_results": 0.5451433062553406
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_Under_the_dim_glow_of_fa.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog_toy.png",
+                "video_results": 0.23720216751098633
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_Inside_a_teddy_bear_stor.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_doll.png",
+                "video_results": 0.6982843279838562
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_races_through_the_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog.png",
+                "video_results": 0.29224562644958496
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_dancing_in_a_field.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pig.png",
+                "video_results": 0.7980855107307434
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_sits_on_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_penguin.png",
+                "video_results": 0.4061264991760254
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_surfing_on_a_blue_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pig.png",
+                "video_results": 0.7758928537368774
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_sits_on_a_bustling.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_purplebag.png",
+                "video_results": 0.5682485103607178
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_sneaks_through_a_m.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_fox.png",
+                "video_results": 0.6808342933654785
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_On_a_wooden_fence,_a_squ.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_squirrel.png",
+                "video_results": 0.6329416036605835
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_shakes_o.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_whitedog.png",
+                "video_results": 0.4410800039768219
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_moves_gracef.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_whitefox.png",
+                "video_results": 0.47076526284217834
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_stretches_on_a_sun.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_cat.png",
+                "video_results": 0.6807460784912109
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_man_holds_the_backpack.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_backpack.png",
+                "video_results": 0.3352208137512207
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_man_is_wearing_backpac.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_backpack.png",
+                "video_results": 0.5347170829772949
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_happily_cuddled_in.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pinkcat.png",
+                "video_results": 0.39329794049263
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_guitar_is_played_by_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_guitar.png",
+                "video_results": 0.4821012616157532
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_In_the_middle_of_the_roo.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_red_toy.png",
+                "video_results": 0.15274900197982788
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_Under_dim_candlelight,_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_dice.png",
+                "video_results": 0.35586297512054443
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_rollerblading_in_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pinkcat.png",
+                "video_results": 0.4713813364505768
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_rolls_acr.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_water_bottle.png",
+                "video_results": 0.5465238690376282
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_In_the_middle_of_a_bustl.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog.png",
+                "video_results": 0.4872432053089142
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_climbs.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_panda.png",
+                "video_results": 0.6419660449028015
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_A_woman_wearing_a_Hawaii.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_shirts.png",
+                "video_results": 0.2167544662952423
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_On_the_beach,_a_lady_sit.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_shirts.png",
+                "video_results": 0.2982260584831238
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_sits_on_a_picnic_b.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cup.png",
+                "video_results": 0.391582727432251
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_In_the_middle_of_the_par.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_corgi.png",
+                "video_results": 0.5815101861953735
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_A_vase_sits_on_a_windows.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_vase.png",
+                "video_results": 0.21049831807613373
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_Under_the_open_sky,_a_ma.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_guitar.png",
+                "video_results": 0.5445268154144287
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_At_a_cozy_fireplace,_a_c.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_corgi.png",
+                "video_results": 0.5452194809913635
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_sits_on_a_wooden_c.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cup.png",
+                "video_results": 0.5482158064842224
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_Dice_plush_tumble_throug.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_dice.png",
+                "video_results": 0.49973905086517334
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_cautiously_s.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_whitefox.png",
+                "video_results": 0.5301576852798462
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_is_sitting_in_a_ca.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cat.png",
+                "video_results": 0.7936075329780579
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_toy_car_skids_around_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_toycar.png",
+                "video_results": 0.5377678871154785
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_curls_up_next_to_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cat.png",
+                "video_results": 0.7065532207489014
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_swings_from_a_trav.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_purplebag.png",
+                "video_results": 0.38207772374153137
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_A_pig_eagerly_chases_a_b.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pig.png",
+                "video_results": 0.7192711234092712
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_cautiously_steps_t.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cat.png",
+                "video_results": 0.6904508471488953
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_floats_in_a_b.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_pinkdoll.png",
+                "video_results": 0.5655828714370728
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_A_corgi_runs_along_the_b.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_corgi.png",
+                "video_results": 0.4939770996570587
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_sits_on_a_chi.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_pinkdoll.png",
+                "video_results": 0.4538624882698059
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_stands_on_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_penguin.png",
+                "video_results": 0.40362411737442017
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pig_<cls>_In_a_playful_moment,_a_p.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pig.png",
+                "video_results": 0.6748648285865784
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_A_red_toy_sits_quietly_o.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_red_toy.png",
+                "video_results": 0.3884485960006714
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_floats_in_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_doll.png",
+                "video_results": 0.6109924912452698
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_stands_on.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_water_bottle.png",
+                "video_results": 0.4192110002040863
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_On_a_snowy_windowsill,_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_penguin.png",
+                "video_results": 0.3550223112106323
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_skilled_musician_is_ma.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_guitar.png",
+                "video_results": 0.5206332206726074
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_bounces_on_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog_toy.png",
+                "video_results": 0.17498080432415009
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_rests_on_a_wooden_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_purplebag.png",
+                "video_results": 0.600986659526825
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_glides_effortlessl.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_cat.png",
+                "video_results": 0.6323057413101196
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_flies_through_the_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog.png",
+                "video_results": 0.38563865423202515
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_In_the_center_of_the_din.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_vase.png",
+                "video_results": 0.2847403883934021
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_stands_on_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_whitefox.png",
+                "video_results": 0.6185656189918518
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_sits_on_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_water_bottle.png",
+                "video_results": 0.564978837966919
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_Under_the_warm_afternoon.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pinkcat.png",
+                "video_results": 0.36637061834335327
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_guitar_<cls>_A_guitar_sits_in_the_cor.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_guitar.png",
+                "video_results": 0.6433689594268799
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_On_a_rainy_evening,_a_ca.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_cat.png",
+                "video_results": 0.4796959161758423
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_dice_<cls>_A_girl_throws_the_dice_p.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_dice.png",
+                "video_results": 0.22387149930000305
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_is_eat.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_panda.png",
+                "video_results": 0.5673055648803711
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_close-up_view._A_bowl_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_orange.png",
+                "video_results": 0.5786726474761963
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_rolls_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_panda.png",
+                "video_results": 0.621640682220459
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_dashes_across.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog_toy.png",
+                "video_results": 0.3077493906021118
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_A_man_has_the_vase_in_hi.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_vase.png",
+                "video_results": 0.22895503044128418
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_is_running_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_doll.png",
+                "video_results": 0.5621680617332458
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_A_squirrel_leaps_between.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_squirrel.png",
+                "video_results": 0.5391998887062073
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_With_ears_perked_up,_a_w.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_whitedog.png",
+                "video_results": 0.4441371560096741
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_penguin_<cls>_A_penguin_toy_floats_in_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_penguin.png",
+                "video_results": 0.3601648807525635
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_toy_car_races_across_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_toycar.png",
+                "video_results": 0.633058488368988
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_purplebag_<cls>_A_bag_falls_onto_a_sandy.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_purplebag.png",
+                "video_results": 0.3559950590133667
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_bowl_of_oranges_sits_o.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_orange.png",
+                "video_results": 0.6854013800621033
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_A_bowl_of_oranges_rests_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_orange.png",
+                "video_results": 0.41435039043426514
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_<cls>_A_dog_sprints_across_a_g.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog.png",
+                "video_results": 0.4369005262851715
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_water_bottle_<cls>_A_water_bottle_floats_we.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_water_bottle.png",
+                "video_results": 0.6171346306800842
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_On_a_busy_office_desk,_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_tumbler.png",
+                "video_results": 0.5427364706993103
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_rolls_i.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_hedgehog.png",
+                "video_results": 0.3680095970630646
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_pinkcat_<cls>_A_cat_scurries_across_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_pinkcat.png",
+                "video_results": 0.38274645805358887
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_whitefox_<cls>_A_white_fox_dashes_throu.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_whitefox.png",
+                "video_results": 0.45111221075057983
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_A_red_toy_dances_in_the_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_red_toy.png",
+                "video_results": 0.4989938735961914
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_is_placed_on_t.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_tumbler.png",
+                "video_results": 0.6164522767066956
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_skiing_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_hedgehog.png",
+                "video_results": 0.42377734184265137
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_bounces_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_whitedog.png",
+                "video_results": 0.4576857388019562
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_corgi_<cls>_A_corgi_sits_on_the_porc.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_corgi.png",
+                "video_results": 0.5560264587402344
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_whitedog_<cls>_A_white_dog_toy_dashes_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_whitedog.png",
+                "video_results": 0.41886666417121887
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_A_pink_toy_is_tucked_ins.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_pinkdoll.png",
+                "video_results": 0.4770888686180115
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_cat_<cls>_A_cat_playfully_pounces_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_cat.png",
+                "video_results": 0.6854013800621033
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_tumbler_<cls>_A_tumbler_lies_on_a_picn.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_tumbler.png",
+                "video_results": 0.3112808167934418
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_panda_<cls>_A_panda_plush_toy_is_sit.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_panda.png",
+                "video_results": 0.5622427463531494
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_backpack_leaned_agains.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_backpack.png",
+                "video_results": 0.4154610335826874
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_stands_on_a_rocky_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_fox.png",
+                "video_results": 0.7490760684013367
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_A_white_hedgehog_swingin.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_hedgehog.png",
+                "video_results": 0.6012597680091858
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_shirts_<cls>_At_a_tropical_party,_a_g.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_shirts.png",
+                "video_results": 0.28825169801712036
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_A_squirrel_scurries_up_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_squirrel.png",
+                "video_results": 0.53012615442276
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_vase_<cls>_Beside_an_open_book,_a_v.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_vase.png",
+                "video_results": 0.23220960795879364
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_doll_<cls>_A_teddy_bear_is_playing_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_doll.png",
+                "video_results": 0.6044067740440369
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_orange_<cls>_Oranges_tumble_out_of_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_orange.png",
+                "video_results": 0.4931987226009369
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cat_<cls>_A_cat_is_lying_on_a_fluf.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cat.png",
+                "video_results": 0.7729482650756836
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_A_film-style_shot._On_th.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_toycar.png",
+                "video_results": 0.18434765934944153
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_red_toy_<cls>_Music_plays_loudly_as_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_red_toy.png",
+                "video_results": 0.43731215596199036
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_A_fox_dashes_through_a_d.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_fox.png",
+                "video_results": 0.6941421031951904
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_chosen_fox_<cls>_Snow_falls_gently_as_a_f.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/chosen_fox.png",
+                "video_results": 0.7127135396003723
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_cup_<cls>_A_cup_rests_on_a_desk_ne.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_cup.png",
+                "video_results": 0.3936863839626312
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_squirrel_<cls>_In_the_middle_of_a_park,.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_squirrel.png",
+                "video_results": 0.6293425559997559
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_dog_toy_<cls>_A_wolf_toy_rolls_off_a_p.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_dog_toy.png",
+                "video_results": 0.3350565433502197
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_stmv_hedgehog_<cls>_In_a_cozy_living_room,_a.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/stmv_hedgehog.png",
+                "video_results": 0.5453993082046509
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_toycar_<cls>_Under_the_glow_of_a_stre.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_toycar.png",
+                "video_results": 0.3215014934539795
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_custom_pinkdoll_<cls>_On_a_rainy_afternoon,_a_.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/custom_pinkdoll.png",
+                "video_results": 0.40459883213043213
+            },
+            {
+                "video_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/ours_t2v_only/ckpt_8000_white_test_video_0_max_n_f_49_id_dr_backpack_<cls>_A_backpack_sits_on_a_tra.mp4",
+                "image_path": "/root/daneul/projects/refactored/CogVideo/id_evaluation/processed_white_720x480/dr_backpack.png",
+                "video_results": 0.3540021777153015
+            }
+        ]
+    ]
+}

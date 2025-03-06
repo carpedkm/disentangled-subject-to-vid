@@ -74,7 +74,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --sampling_for_quali \
   --num_of_prompts 4 \
   --wo_background_in_inf_sampling \
-  --quali_shard 0 \
+  --quali_shard 4 \
   --quali_sep_count 6
   # --inference 
   # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 

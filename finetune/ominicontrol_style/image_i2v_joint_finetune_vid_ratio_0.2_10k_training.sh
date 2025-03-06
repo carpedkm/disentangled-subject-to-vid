@@ -3,7 +3,7 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250225/joint_finetune_random_drop_full_05_first_frame_for_i2v_with_pexels_10k_40G16"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250306/joint_finetune_random_drop_full_05_random_init_first_frame_for_i2v_with_pexels_10k_40G16"
 export VALIDATION_REF_PATH="../val_samples_im/"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
@@ -19,7 +19,7 @@ export NCCL_TIMEOUT=600  # Increase the timeout to 600 seconds
 
 RANDOM_PORT=$((49152 + RANDOM % 16384))
 
-accelerate launch --config_file ../accelerate_config_machine_multi.yaml --multi_gpu --machine_rank ${NODE_RANK} \
+accelerate launch --config_file ../accelerate_config_machine_multi_4nodes.yaml --multi_gpu --machine_rank ${NODE_RANK} \
   --main_process_port ${MASTER_PORT} \
   ../train_0219_randomdrop.py \
   --gradient_checkpointing \
