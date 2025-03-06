@@ -5,18 +5,15 @@ export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
 export OUTPUT_PATH="/mnt/carpedkm_data/result250225/joint_finetune_random_frame_select_8fps_prob01_dropfull_prob05_palisades_40G32"
 export VALIDATION_REF_PATH="../zs_samples/"
-export TEST_PROMPT_PATH="../zs_prompts.json"
+export TEST_PROMPT_PATH="../zs_prompts_new.json"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=3
+export CUDA_VISIBLE_DEVICES=2
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
-export TEMPORAL_EVAL_PROMPT_PATH="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/large/metadata.jsonl"
-export TEMPORAL_EVAL_FIRST_FRAME="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/large/first_frame"
-export TEMPORAL_EVAL_SAVE_DIR="/mnt/carpedkm_data/temporal_eval_result/original_0.2"
 
 accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
-  ../train_0302_temporaleval.py \
+  ../train_0301_evalcodeupd.py \
   --gradient_checkpointing \
   --pretrained_model_name_or_path $MODEL_PATH \
   --cache_dir $CACHE_PATH \
@@ -27,7 +24,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --validation_epochs 100 \
   --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
-  --seed 42 \
+  --seed 10 \
   --rank 128 \
   --lora_alpha 64 \
   --mixed_precision bf16 \
@@ -76,12 +73,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --phase_name test \
   --test_prompt_path $TEST_PROMPT_PATH \
   --sampling_for_quali \
-  --num_of_prompts 4 \
+  --num_of_prompts 8 \
   --wo_background_in_inf_sampling \
-  --temporal_eval \
-  --temporal_eval_prompt_path $TEMPORAL_EVAL_PROMPT_PATH \
-  --temporal_eval_first_frame $TEMPORAL_EVAL_FIRST_FRAME \
-  --temporal_eval_save_dir $TEMPORAL_EVAL_SAVE_DIR \
-  --temporal_eval_use_amount 300 \
-  --temporal_eval_type large \
-  --temporal_eval_shard 3 # based on 4 GPU server
+  --quali_shard 2 \
+  --quali_sep_count 3
