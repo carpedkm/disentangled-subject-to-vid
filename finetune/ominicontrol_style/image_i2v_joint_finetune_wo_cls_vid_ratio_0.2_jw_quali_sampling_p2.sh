@@ -7,7 +7,7 @@ export OUTPUT_PATH="/mnt/carpedkm_data/result250302/joint_finetune_random_frame_
 export VALIDATION_REF_PATH="../zs_samples/"
 export TEST_PROMPT_PATH="../zs_prompts.json"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=1
+export CUDA_VISIBLE_DEVICES=3
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
@@ -74,7 +74,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --sampling_for_quali \
   --num_of_prompts 4 \
   --wo_background_in_inf_sampling \
-  --quali_shard 0 \
+  --quali_shard 2 \
   --quali_sep_count 6
   # --inference 
   # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
