@@ -24,7 +24,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --validation_epochs 100 \
   --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
-  --seed 6052 \
+  --seed 7072 \
   --rank 128 \
   --lora_alpha 64 \
   --mixed_precision bf16 \
