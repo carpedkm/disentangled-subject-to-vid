@@ -82,6 +82,6 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --temporal_eval_prompt_path $TEMPORAL_EVAL_PROMPT_PATH \
   --temporal_eval_first_frame $TEMPORAL_EVAL_FIRST_FRAME \
   --temporal_eval_save_dir $TEMPORAL_EVAL_SAVE_DIR \
-  --temporal_eval_use_amount 200 \
+  --temporal_eval_use_amount 300 \
   --temporal_eval_type medium \
   --temporal_eval_shard 1 # based on 4 GPU server
