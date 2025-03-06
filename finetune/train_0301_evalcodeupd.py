@@ -734,8 +734,13 @@ def get_args():
         type=int,
         default=0,
     )
-    
+    parser.add_argument(
+        '--quali_sep_count',
+        type=int,
+        default=3,
+    )
     return parser.parse_args()
+
 
 
 
@@ -3162,7 +3167,7 @@ def main(args):
                         args.validation_reference_image = os.path.join(args.validation_reference_image, 'processed_bg_720x720')
                         resizing = True
                 val_len = len(os.listdir(args.validation_reference_image))
-                sep_val_len = val_len // 3
+                sep_val_len = val_len // args.quali_sep_count
                 if args.sampling_for_quali:
                     args.output_dir = os.path.join(args.output_dir, f"seed_{args.seed}")
                     for i in range(sep_val_len * args.quali_shard, sep_val_len * (args.quali_shard + 1)):
