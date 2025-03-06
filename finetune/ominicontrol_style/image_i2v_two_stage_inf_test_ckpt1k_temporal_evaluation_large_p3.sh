@@ -7,7 +7,7 @@ export OUTPUT_PATH="/mnt/carpedkm_data/result250225/two_stage_id_and_i2v/"
 
 export VALIDATION_REF_PATH="../zs_samples"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=3
+export CUDA_VISIBLE_DEVICES=1
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
