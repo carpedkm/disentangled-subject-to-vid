@@ -5,9 +5,9 @@ from diffusers.utils import export_to_video, export_to_video_with_frames
 import json
 
 save_dir = "/mnt/carpedkm_data/temporal_eval_result/t2v_vanilla_final"
-prompt_path="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/medium/metadata.jsonl"
-temporal_eval_first_frame="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/medium/first_frame"
-temporal_eval_type = "large"
+prompt_path="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/large/metadata.jsonl"
+temporal_eval_first_frame="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/large/first_frame"
+temporal_eval_type = "real_large"
 temporal_eval_use_amount = 300
 temporal_eval_shard = 3
 
