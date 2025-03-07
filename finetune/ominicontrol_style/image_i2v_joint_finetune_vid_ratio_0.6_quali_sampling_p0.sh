@@ -7,7 +7,7 @@ export OUTPUT_PATH="/mnt/carpedkm_data/result250227/joint_finetune_random_frame_
 export VALIDATION_REF_PATH="../zs_samples/"
 export TEST_PROMPT_PATH="../zs_prompts.json"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=2
+export CUDA_VISIBLE_DEVICES=3
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
@@ -69,7 +69,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
   --inference \
-  --resume_from_checkpoint checkpoint-4000 \
+  --resume_from_checkpoint checkpoint-7100 \
   --phase_name test \
   --test_prompt_path $TEST_PROMPT_PATH \
   --sampling_for_quali \
