@@ -3,11 +3,11 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250227/joint_finetune_random_frame_select_8fps_prob04_dropfull_prob05_palisades_40G32"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250225/joint_finetune_random_frame_select_8fps_prob01_dropfull_prob05_palisades_40G32"
 export VALIDATION_REF_PATH="../zs_samples/"
-export TEST_PROMPT_PATH="../zs_prompts.json"
+export TEST_PROMPT_PATH="../zs_prompts_new.json"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=2
+export CUDA_VISIBLE_DEVICES=0
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
@@ -24,7 +24,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --validation_epochs 100 \
   --num_validation_videos 1 \
   --validation_reference_image $VALIDATION_REF_PATH \
-  --seed 42 \
+  --seed 5052 \
   --rank 128 \
   --lora_alpha 64 \
   --mixed_precision bf16 \
@@ -60,7 +60,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --add_special \
   --layernorm_fix \
   --joint_train \
-  --prob_sample_video 0.4 \
+  --prob_sample_video 0.2 \
   --random_drop_full \
   --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
   --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps \
@@ -73,9 +73,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --phase_name test \
   --test_prompt_path $TEST_PROMPT_PATH \
   --sampling_for_quali \
-  --num_of_prompts 4 \
+  --num_of_prompts 8 \
   --wo_background_in_inf_sampling \
-  --quali_shard 2 \
-  --quali_sep_count 3
-  # --inference 
-  # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
+  --quali_shard 3 \
+  --quali_sep_count 6

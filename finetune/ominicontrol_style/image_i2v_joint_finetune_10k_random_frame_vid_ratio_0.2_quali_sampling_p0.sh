@@ -3,14 +3,14 @@ export MODEL_PATH="THUDM/CogVideoX-5b"
 export CACHE_PATH="~/.cache"
 export DATASET_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k_720p_full"
 export ANNO_PATH="/mnt/carpedkm_data/image_gen_ds/omini200k/metadata_omini200k_update_refined.json"
-export OUTPUT_PATH="/mnt/carpedkm_data/result250227/joint_finetune_random_frame_select_8fps_prob04_dropfull_prob05_palisades_40G32"
-export VALIDATION_REF_PATH="../zs_samples/"
-export TEST_PROMPT_PATH="../zs_prompts.json"
+export OUTPUT_PATH="/mnt/carpedkm_data/result250225/joint_finetune_random_drop_full_05_first_frame_for_i2v_with_pexels_10k_40G16"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export CUDA_VISIBLE_DEVICES=2
+export CUDA_VISIBLE_DEVICES=3
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
+export VALIDATION_REF_PATH="../zs_samples"
+export TEST_PROMPT_PATH="../zs_prompts.json"
 
 accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   ../train_0301_evalcodeupd.py \
@@ -60,11 +60,11 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --add_special \
   --layernorm_fix \
   --joint_train \
-  --prob_sample_video 0.4 \
+  --prob_sample_video 0.2 \
   --random_drop_full \
-  --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train/second_stage_video_filtered_data_dict_sampled_4k.json \
-  --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps \
-  --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_rand_multi \
+  --video_anno /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_10k/second_stage_video_filtered_data_dict_sampled_10k.json \
+  --video_instance_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_10k \
+  --video_ref_root /mnt/carpedkm_data/image_gen_ds/second_stage_video_train_pexels_8fps_10k_first \
   --load_to_ram \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
@@ -75,7 +75,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --sampling_for_quali \
   --num_of_prompts 4 \
   --wo_background_in_inf_sampling \
-  --quali_shard 2 \
-  --quali_sep_count 3
+  --quali_shard 0 \
+  --quali_sep_count 10
   # --inference 
-  # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
+  # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_lajyernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
