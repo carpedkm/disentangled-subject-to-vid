@@ -69,7 +69,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
   --inference \
-  --resume_from_checkpoint checkpoint-8000 \
+  --resume_from_checkpoint checkpoint-4000 \
   --phase_name test \
   --test_prompt_path $TEST_PROMPT_PATH \
   --sampling_for_quali \
