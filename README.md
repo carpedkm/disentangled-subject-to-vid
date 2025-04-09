@@ -1,4 +1,8 @@
 # [Official Implementation] Subject-driven Video Generation via Disentangled Identity and Motion
-Daneul Kim^{1,2} Jingxu Zhang^{2,3} Wonjoon Jin^{4} Sunghyun Cho^{4} Qi Dai^{2} Jaesik Park^{1} Chong Luo^{2}
-^1 Seoul National University ^2 Microsoft Research Asia ^3 USTC ^4 POSTECH
+**Daneul Kim<sup>1,2</sup>**, **Jingxu Zhang<sup>2,3</sup>**, **Wonjoon Jin<sup>4</sup>**, **Sunghyun Cho<sup>4</sup>**, **Qi Dai<sup>2</sup>**, **Jaesik Park<sup>1</sup>**, **Chong Luo<sup>2</sup>**
+
+<sup>1</sup> Seoul National University  
+<sup>2</sup> Microsoft Research Asia  
+<sup>3</sup> University of Science and Technology of China (USTC)  
+<sup>4</sup> POSTECH
 
