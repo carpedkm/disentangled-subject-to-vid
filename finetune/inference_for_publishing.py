@@ -710,199 +710,13 @@ def get_args():
         help='Whether to use noise mix or not'
     )
     parser.add_argument(
-        '--test_prompt_path',
-        type=str,
-        default=None,
-    )
-    parser.add_argument(
-        '--sampling_for_quali',
-        action='store_true',
-        help='Whether to use sampling for quality or not'
-    )
-    parser.add_argument(
-        '--num_of_prompts',
+        '--video_count',
         type=int,
-        default=1,
-    )
-    parser.add_argument(
-        '--wo_background_in_inf_sampling',
-        action='store_true',
-        help='Whether to use without background in inference sampling or not'
-    )
-    parser.add_argument(
-        '--temporal_eval',
-        action='store_true',
-        help='Whether to use temporal evaluation or not'
-    )
-    parser.add_argument(
-        '--temporal_eval_prompt_path',
-        type=str,
-        default=None,
-    )
-    parser.add_argument(
-        '--temporal_eval_first_frame',
-        type=str,
-        default=None,
-    )
-    parser.add_argument(
-        '--temporal_eval_save_dir',
-        type=str,
-        default=None,
-    )
-    parser.add_argument(
-        '--temporal_eval_type',
-        type=str,
-        default='small', # small, medium, large
-    )
-    parser.add_argument(
-        '--temporal_eval_use_amount',
-        type=int,
-        default=1,
-    )
-    parser.add_argument(
-        '--id_eval',
-        action='store_true',
-        help='Whether to use id evaluation or not'
-    )
-    parser.add_argument(
-        '--temporal_eval_shard',
-        type=int,
-        default=0,
-    )
-    parser.add_argument(
-        '--t2v_eval',
-        action='store_true',
-        help='Whether to use t2v evaluation or not'
+        default=-1,
     )
     return parser.parse_args()
 
 
-
-class ZeroConv1D(nn.Module):
-    def __init__(self, in_dim=512, out_dim=4096):
-        super(ZeroConv1D, self).__init__()
-        self.zero_conv = nn.Conv1d(in_channels=in_dim, out_channels=out_dim, kernel_size=1)
-        nn.init.zeros_(self.zero_conv.weight)
-        nn.init.zeros_(self.zero_conv.bias)
-    
-    def forward(self, x):
-        # x: [batch_size, in_dim, seq_len] -> [batch_size, out_dim, seq_len]
-        return self.zero_conv(x)
-
-class SequenceAligner(nn.Module):
-    def __init__(self, clip_seq_len=77, t5_seq_len=226):
-        super(SequenceAligner, self).__init__()
-        self.clip_seq_len = clip_seq_len
-        self.t5_seq_len = t5_seq_len
-
-    def forward(self, clip_features):
-        """
-        Align CLIP sequence length to match T5.
-        clip_features: [batch_size, 77, 512]
-        Returns: [batch_size, 226, 512]
-        """
-        batch_size, _, dim = clip_features.shape
-        # Interpolate to match T5 sequence length
-        clip_features = F.interpolate(clip_features.transpose(1, 2), size=self.t5_seq_len, mode='linear')
-        return clip_features.transpose(1, 2)  # Back to [batch_size, seq_len, dim]
-class SkipProjectionLayer(nn.Module):
-    def __init__(self, in_features, out_features):
-        super().__init__()
-        self.projection = nn.Linear(in_features, out_features)
-
-    def forward(self, x):
-        return x + self.projection(x)
-
-class ReduceProjectionLayer(nn.Module):
-    def __init__(self, in_features, out_features):
-        super().__init__()
-        self.projection = nn.Linear(in_features, out_features)
-    
-    def forward(self, x):
-        return self.projection(x)
-    
-class ProjectionLayer(nn.Module):
-    def __init__(self, in_features, out_features):
-        super().__init__()
-        self.projection = nn.Linear(in_features, out_features)
-
-    def forward(self, x):
-        return self.projection(x)
-
-class PerceiverCrossAttention(nn.Module):
-    def __init__(self, dim: int = 3072, dim_head: int = 128, heads: int = 16, kv_dim: int = 2048):
-        super().__init__()
-
-        self.scale = dim_head**-0.5
-        self.dim_head = dim_head
-        self.heads = heads
-        inner_dim = dim_head * heads
-
-        # Layer normalization to stabilize training
-        self.norm1 = nn.LayerNorm(dim if kv_dim is None else kv_dim)
-        self.norm2 = nn.LayerNorm(dim)
-
-        # Linear transformations to produce queries, keys, and values
-        self.to_q_= nn.Linear(dim, inner_dim, bias=False)
-        self.to_kv_ = nn.Linear(dim if kv_dim is None else kv_dim, inner_dim * 2, bias=False)
-        self.to_out_ = nn.Linear(inner_dim, dim, bias=False)
-
-    def forward(self, image_embeds: torch.Tensor, hidden_states: torch.Tensor) -> torch.Tensor:
-        # Apply layer normalization to the input image and latent features
-        image_embeds = self.norm1(image_embeds)
-        hidden_states = self.norm2(hidden_states)
-
-        batch_size, seq_len, _ = hidden_states.shape
-
-        # Compute queries, keys, and values
-        query = self.to_q_(hidden_states)
-        key, value = self.to_kv_(image_embeds).chunk(2, dim=-1)
-
-        # Reshape tensors to split into attention heads
-        query = query.reshape(query.size(0), -1, self.heads, self.dim_head).transpose(1, 2)
-        key = key.reshape(key.size(0), -1, self.heads, self.dim_head).transpose(1, 2)
-        value = value.reshape(value.size(0), -1, self.heads, self.dim_head).transpose(1, 2)
-
-        # Compute attention weights
-        scale = 1 / math.sqrt(math.sqrt(self.dim_head))
-        weight = (query * scale) @ (key * scale).transpose(-2, -1)  # More stable scaling than post-division
-        weight = torch.softmax(weight.float(), dim=-1).type(weight.dtype)
-
-        # Compute the output via weighted combination of values
-        out = weight @ value
-
-        # Reshape and permute to prepare for final linear transformation
-        out = out.permute(0, 2, 1, 3).reshape(batch_size, seq_len, -1)
-
-        return self.to_out_(out)   
-
-class QFormerAligner(nn.Module):
-    def __init__(self, model_name):
-        super().__init__()
-        model_name = "Salesforce/blip2-opt-2.7b"
-        self.processor = Blip2Processor.from_pretrained(model_name)
-        self.model = Blip2Model.from_pretrained(model_name)
-        self.qformer = self.model.qformer
-        self.fc = nn.Linear(768, 3072)
-        
-    def forward(self, image_feature):
-        pixel_values = self.processor.image_processor(image_feature.float(), return_tensors='pt')["pixel_values"]
-        device = next(self.model.parameters()).device
-        pixel_values = pixel_values.to(device)
-        with torch.no_grad():
-            vision_outputs = self.model.vision_model(pixel_values)
-            image_embeds = vision_outputs.last_hidden_state
-        
-        batch_size = image_embeds.shape[0]
-        query_tokens = self.model.query_tokens.expand(batch_size, -1, -1)
-        
-        qformer_outputs = self.qformer(query_embeds=query_tokens,
-                                       encoder_hidden_states=image_embeds,
-                                       )
-        qformer_features = qformer_outputs.last_hidden_state
-        qformer_features = self.fc(qformer_features)
-        # get it back to bfloat16
-        return qformer_features.bfloat16()
     
 class VideoDataset(Dataset):
     def __init__(
@@ -918,6 +732,7 @@ class VideoDataset(Dataset):
         seen_validation: bool = False,
         joint_train: bool = False,
         image_dataset_len: int = 0,
+        video_count: int = -1,
     ) -> None:
         if 'multi' in video_ref_root:
             self.ref_random = True
@@ -928,13 +743,23 @@ class VideoDataset(Dataset):
         self.id_token = id_token or ""
         self.joint_train = joint_train
         self.image_dataset_len = image_dataset_len
+        self.video_count = video_count
         super().__init__()
         with open(video_anno, 'r') as f:
             self.video_dict = json.load(f)
         id_mapper = {}
-        for id_ in list(self.video_dict.keys()):
+        if self.video_count != -1:
+            # random select video key
+            video_keys = list(self.video_dict.keys())
+            # random select amount of self.video_count
+            selected_keys = random.sample(video_keys, self.video_count)
+        else:
+            selected_keys = list(self.video_dict.keys())
+            
+        for id_ in selected_keys:
             id_splitted = id_.split('/')[-1]
             id_mapper[id_splitted] = self.video_dict[id_]
+        
         self.video_path_dict = {}
         for id_ in list(id_mapper.keys()):
             self.video_path_dict[id_] = os.path.join(video_instance_root, id_ + '_vae_latents.npy')
@@ -1042,7 +867,6 @@ class ImageDataset(Dataset):
         qk_replace: bool = False,
         qformer: bool = False,
         noise_mix: bool = False,
-        test_prompt_path: str = None,
     ) -> None:
         super().__init__()
         print('Data loader init')
@@ -1081,11 +905,37 @@ class ImageDataset(Dataset):
                                             
                                             #  "bag_omini": "A boy is wearing this item inside a beautiful park, walking along the lake."}
                                             }
-        if test_prompt_path is not None:
-            with open(test_prompt_path, 'r') as f:
-                self.test_prompt_dict = json.load(f)
-            self.val_instance_prompt_dict = self.test_prompt_dict # if test_prompt is not None, we apply like this 
-        
+        # self.val_instance_prompt_dict = { # FIXME _ TEST PHASE
+        #                             'oranges_omini':"A close up view. A bowl of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+        #                             'clock_omini':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+        #                             'rc_car_omini': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+        #                             'shirt_omini': "On the beach, a lady sits under a beach umbrella. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+        #                             'cat' : "cat is rollerblading in the park",
+        #                             'dog' : 'dog is flying in the sky',
+        #                             'red_toy' : 'red toy is dancing in the room',
+        #                             'dog_toy' : 'dog toy is walking around the grass',
+        #                         }
+        # self.val_instance_prompt_dict = {
+        #                     'oranges_omini_test':"A close up view. A bowl of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+        #                     'clock_omini_test':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+        #                     'rc_car_omini_test': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+        #                     'shirt_omini_test': "On the beach, a lady sits under a beach umbrella. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+        #                     'cat_test' : "cat is rollerblading in the park",
+        #                     'dog_test' : 'dog is flying in the sky',
+        #                     'red_toy_test' : 'red toy is dancing in the room',
+        #                     'dog_toy_test' : 'dog toy is walking around the grass',
+        #                 }
+        self.val_instance_prompt_dict = {
+                            'dog_toy_processed' : 'dog toy is walking around the grass',
+                            'oranges_omini_processed':"A close up view. A bowl of oranges are placed on a wooden table. The background is a dark room, the TV is on, and the screen is showing a cooking show. ", 
+                            'clock_omini_processed':"In a Bauhaus style room, the clock is placed on a shiny glass table, with a vase of flowers next to it. In the afternoon sun, the shadows of the blinds are cast on the wall.",
+                            'rc_car_omini_processed': "A film style shot. On the moon, toy car goes across the moon surface. The background is that Earth looms large in the foreground.",
+                            'shirt_omini_processed': "On the beach, a lady sits under a beach umbrella. She's wearing hawaiian shirt and has a big smile on her face, with her surfboard hehind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                            # 'shirt_omini_processed': "On the beach, a lady is surfing at the beach. She's wearing hawaiian shirt and has a big smile on her face, with a big blue wave behind her. The sun is setting in the background. The sky is a beautiful shade of orange and purple.",
+                            'cat_processed' : "cat is rollerblading in the park",
+                            'dog_processed' : 'dog is flying in the sky',
+                            'red_toy_processed' : 'red toy is dancing in the room',
+                        }
         
         if self.seen_validation is True:
             self.val_instance_prompt_dict = {}
@@ -1097,13 +947,8 @@ class ImageDataset(Dataset):
                 # id_  = file.split('.')[0]
                 tmp_desc = meta_seen['description_0']
                 self.val_instance_prompt_dict[id_] = tmp_desc
-        if test_prompt_path is not None:
-            if add_special:
-                self.val_instance_prompt_dict = {
-                    k: [self.prefix + v[i] for i in range(len(v))] for k, v in self.val_instance_prompt_dict.items()}
-        else:
-            if add_special:
-                self.val_instance_prompt_dict = {k: self.prefix + v for k, v in self.val_instance_prompt_dict.items()}
+        if add_special:
+            self.val_instance_prompt_dict = {k: self.prefix + v for k, v in self.val_instance_prompt_dict.items()}
         
         self.instance_prompts = []
         self.id_token = id_token or ""
@@ -1412,7 +1257,7 @@ class CustomBatchSampler(Sampler):
         self.video_flag = 0
         self.image_flag = 0
         
-        self.video_batch_size = 1
+        self.video_batch_size = 6
         self.image_batch_size = batch_size
 
     def __iter__(self):
@@ -1527,9 +1372,6 @@ def log_validation(
     ckpt_step: int = 0,
     is_final_validation: bool = False,
     phase_name: str = "validation",
-    resizing: bool = True,
-    vid_id: str = None,
-    t2v_eval: bool = False,
     # prompt: dict = None,
 ):
     logger.info(
@@ -1550,15 +1392,14 @@ def log_validation(
         clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
 
     # Set deterministic generation
-    generator = torch.Generator(device=accelerator.device)
-    if args.seed is not None:
-        generator.manual_seed(args.seed) # init seed
+    # generator = torch.Generator(device=accelerator.device)
+    # if args.seed is not None:
+    #     generator.manual_seed(args.seed)
 
     videos = []
     for _ in range(args.num_validation_videos): 
         current_pipeline_args = pipeline_args.copy()
-        # seed update
-        generator.manual_seed(generator.initial_seed() + 10)
+
         if args.dataset_name == 'customization':
             if 'validation_reference_image' in pipeline_args:
                 try:
@@ -1599,19 +1440,18 @@ def log_validation(
                         logger.info(f"Successfully processed reference image with shape: {pixel_values.shape}")
                     else:
                         # Resize and crop to the target resolution
-                        if resizing is True:
-                            ref_image = ref_image.resize((720, 720)) 
-                            width, height = 720, 720
-                            target_width, target_height = args.width_val, args.height_val
+                        # ref_image = ref_image.resize((720, 720)) 
+                        # width, height = 720, 720
+                        # target_width, target_height = args.width_val, args.height_val
 
-                            # Calculate coordinates for center crop
-                            left = (width - target_width) // 2
-                            top = (height - target_height) // 2
-                            right = left + target_width
-                            bottom = top + target_height
+                        # # Calculate coordinates for center crop
+                        # left = (width - target_width) // 2
+                        # top = (height - target_height) // 2
+                        # right = left + target_width
+                        # bottom = top + target_height
 
-                            # Perform cropping
-                            ref_image = ref_image.crop((left, top, right, bottom))
+                        # Perform cropping
+                        # ref_image = ref_image.crop((left, top, right, bottom))
                         ref_image = np.array(ref_image)
                         ref_image = np.expand_dims(ref_image, axis=0)  # Add frame dimension
                         
@@ -1652,8 +1492,7 @@ def log_validation(
                 'height': args.height_val,
                 'width': args.width_val,
                 'num_frames': args.inference_num_frames, #args.max_num_frames,
-                'eval': True,
-                't2v_eval'
+                'eval': True
             }
             current_pipeline_args.update(inference_args)
             
@@ -1669,59 +1508,41 @@ def log_validation(
             logger.error(f"Error during video generation: {str(e)}")
             logger.error(f"Pipeline arguments: {current_pipeline_args}")
             raise
-    if not args.temporal_eval or not args.temporal_eval:
-        # Log to wandb if enabled
-        for tracker in accelerator.trackers:
-            # phase_name = "test" if is_final_validation else "validation"
-            if tracker.name == "wandb":
-                video_filenames = []
-                for i, video in enumerate(videos):
-                    prompt = (
-                        pipeline_args["prompt"][:30]
-                        .replace(" ", "_")
-                        .replace("'", "_")
-                        .replace('"', "_")
-                        .replace("/", "_")
-                    )
-                    max_num_frames = current_pipeline_args['num_frames']
-                    if args.wo_background_in_inf_sampling:
-                        filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_id_{vid_id}_{prompt}.mp4")
-                        output_frames_dir = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_id_{vid_id}_{prompt}")
-                    else:
-                        filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_with_bg_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{vid_id}_{prompt}.mp4")
-                        output_frames_dir = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_with_bg_{phase_name}_video_{i}_max_n_f_{max_num_frames}_id_{vid_id}_{prompt}")
-                    # export_to_video(video, filename, fps=args.fps)
-                    export_to_video_with_frames(
-                        video_frames=video,
-                        output_video_path=filename,
-                        output_frames_dir=output_frames_dir,
-                        fps=args.fps,
-                    )
-                    video_filenames.append(filename)
 
-                tracker.log(
-                    {
-                        phase_name: [
-                            wandb.Video(filename, caption=f"{i}: {pipeline_args['prompt']}")
-                            for i, filename in enumerate(video_filenames)
-                        ],
-                        f"{phase_name}_epoch": epoch,
-                    }
+    # Log to wandb if enabled
+    for tracker in accelerator.trackers:
+        # phase_name = "test" if is_final_validation else "validation"
+        if tracker.name == "wandb":
+            video_filenames = []
+            for i, video in enumerate(videos):
+                prompt = (
+                    pipeline_args["prompt"][:25]
+                    .replace(" ", "_")
+                    .replace("'", "_")
+                    .replace('"', "_")
+                    .replace("/", "_")
                 )
-    else:
-        vid_save_dir = os.path.join(args.output_dir, 'videos')
-        frames_save_dir = os.path.join(args.output_dir, 'video_frames', vid_id)
-        if not os.path.exists(vid_save_dir):
-            os.makedirs(vid_save_dir)
-        export_to_video_with_frames(
-            video_frames=videos[0],
-            output_video_path=os.path.join(vid_save_dir, f"{vid_id}.mp4"),
-            output_frames_dir=frames_save_dir,
-            fps=args.fps,
-            eval_mode=True,
-        )
-        
-            
+                max_num_frames = current_pipeline_args['num_frames']
+                filename = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}.mp4")
+                output_frames_dir = os.path.join(args.output_dir, f"ckpt_{ckpt_step}_white_{phase_name}_video_{i}_max_n_f_{max_num_frames}_{prompt}")
+                # export_to_video(video, filename, fps=args.fps)
+                export_to_video_with_frames(
+                    video_frames=video,
+                    output_video_path=filename,
+                    output_frames_dir=output_frames_dir,
+                    fps=args.fps,
+                )
+                video_filenames.append(filename)
+
+            tracker.log(
+                {
+                    phase_name: [
+                        wandb.Video(filename, caption=f"{i}: {pipeline_args['prompt']}")
+                        for i, filename in enumerate(video_filenames)
+                    ],
+                    f"{phase_name}_epoch": epoch,
+                }
+            )
 
     # Clean up
     free_memory()
@@ -1824,18 +1645,7 @@ def encode_prompt(
         dtype=dtype,
         text_input_ids=text_input_ids,
     )
-
-
-    clip_prompt_embeds = _get_clip_prompt_embeds(
-        clip_tokenizer,
-        clip_text_encoder,
-        prompt=prompt,
-        num_videos_per_prompt=num_videos_per_prompt,
-        max_sequence_length=max_sequence_length,
-        device=device,
-        dtype=dtype,
-        text_input_ids=text_input_ids,
-    )
+    clip_prompt_embeds = None
     # prompt_embeds = torch.cat([prompt_embeds, clip_prompt_embeds], dim=-1)
 
     return prompt_embeds, clip_prompt_embeds
@@ -1844,7 +1654,7 @@ def encode_prompt(
 def compute_prompt_embeddings(
     tokenizer, text_encoder, clip_tokenizer, clip_text_encoder, prompt, max_sequence_length, device, dtype, requires_grad: bool = False
 ):
-    if requires_grad:
+    with torch.no_grad():
         prompt_embeds, clip_prompt_embeds = encode_prompt(
             tokenizer,
             text_encoder,
@@ -1856,20 +1666,6 @@ def compute_prompt_embeddings(
             device=device,
             dtype=dtype,
         )
-        
-    else:
-        with torch.no_grad():
-            prompt_embeds, clip_prompt_embeds = encode_prompt(
-                tokenizer,
-                text_encoder,
-                clip_tokenizer,
-                clip_text_encoder,
-                prompt,
-                num_videos_per_prompt=1,
-                max_sequence_length=max_sequence_length,
-                device=device,
-                dtype=dtype,
-            )
 
     return prompt_embeds, clip_prompt_embeds
 
@@ -2066,10 +1862,7 @@ def main(args):
         args.pretrained_model_name_or_path, subfolder="tokenizer", revision=args.revision
     )
     if args.add_special:
-        if args.add_multiple_special:
-            special_token = {"additional_special_tokens": ["<cls>", "<a>", "<b>", "<c>"]}
-        else:
-            special_token = {"additional_special_tokens": ["<cls>"]}
+        special_token = {"additional_special_tokens": ["<cls>"]}
         tokenizer.add_special_tokens(special_token)
 
     text_encoder = T5EncoderModel.from_pretrained(
@@ -2078,29 +1871,6 @@ def main(args):
     if args.add_special:
         text_encoder.resize_token_embeddings(len(tokenizer))
     
-    # Prepare additional model and scheduler (CLIP) for prompt encoding in customization
-    clip_tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch16")  # You can change to another version if needed
-    clip_text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch16")
-    clip_text_encoder.to(accelerator.device, dtype=torch.float16)
-
-    # SHOULD BE MOVED TO THE COGVIDEOX MODEL PIPELINE FOR DEEPSPEED / ACCELERATOR PREPARE AT ONCE FOR FINETUNING VISION MODEL OF CLIP
-    clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
-    # clip_vision_model = CLIPVisionModelWithLoRA # CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
-    # clip_vision_base_model = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
-    # clip_vision_model = CLIPVisionModelWithLoRA(clip_vision_base_model.config)
-    # clip_vision_model.to("cuda")  # If GPU is available
-    ### SHOULD BE MOVED UP TO HERE FOR DEEPSPEED / ACCELERATOR PREPARE AT ONCE FOR FINETUNING CLIP VISION MODEL
-    
-    # SHOULD BE MOVED TO THE COGVIDEOX MODEL PIPELINE FOR DEEPSPEED / ACCELERATOR PREPARE AT ONCE FOR FINETUNING TEXT AND VISION PROJECTION LAYERS
-    # T5ProjectionLayer = ProjectionLayer(in_features=4096, out_features=4096).to(dtype=torch.bfloat16)
-    # CLIPTextProjectionLayer = ProjectionLayer(in_features=512, out_features=4096).to(dtype=torch.bfloat16)
-    # CLIPVisionProjectionLayer = ProjectionLayer(in_features=768, out_features=4096).to(dtype=torch.bfloat16)
-    
-    # T5ProjectionLayer.to("cuda")
-    # CLIPTextProjectionLayer.to("cuda")
-    # CLIPVisionProjectionLayer.to("cuda")
-    ### SHOULD BE MOVED UP TO HERE FOR DEEPSPEED / ACCELERATOR PREPARE AT ONCE FOR FINETUNING TEXT AND VISION PROJECTION LAYERS
-
     # CogVideoX-2b weights are stored in float16
     # CogVideoX-5b and CogVideoX-5b-I2V weights are stored in bfloat16
     print("Loading CogVideoX Transformer model")
@@ -2130,159 +1900,9 @@ def main(args):
     )
     print("Done - CogVideoX Transformer model loaded")
     # Initialize submodules
-    if args.second_stage:
-        pass
-    else:
-        if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
-            transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
-        if args.qformer is True:
-            transformer.QformerAligner = QFormerAligner(model_name="Salesforce/blip2-opt-2.7b")
-            transformer.QformerAligner.qformer.requires_grad_(True)
-            transformer.QformerAligner.fc.requires_grad_(True)
-        else:
-            if (args.vae_add or args.qk_replace) and (not args.cross_attend) and ( not args.cross_attend):
-                # transformer.CLIPTextProjectionLayer = None
-                # transformer.CLIPVisionProjectionLayer = None
-                # transformer.CLIPTextProjectionLayer2 = None
-                # transformer.CLIPVisionProjectionLayer2 = None
-                # transformer.T5ProjectionLayer = None
-                pass
-            elif (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace):
-                if args.zero_conv_add:
-                    transformer.text_sequence_aligner = SequenceAligner(77, 226)
-                    transformer.vision_sequence_aligner = SequenceAligner(197, 226)
-                    
-                    transformer.CLIPTextProjectionLayer = ZeroConv1D(in_dim=512, out_dim=4096)
-                    transformer.CLIPVisionProjectionLayer = ZeroConv1D(in_dim=768, out_dim=4096)
-                    transformer.CLIPTextProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
-                    transformer.CLIPVisionProjectionLayer2 = ZeroConv1D(in_dim=4096, out_dim=4096)
-                    transformer.T5ProjectionLayer = SkipProjectionLayer(4096, 4096)
-                    with torch.no_grad():
-                        transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
-                        if transformer.T5ProjectionLayer.projection.bias is not None:
-                            transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
-                    
-                    # Learnable single parameter
-                    # transformer.alpha = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
-                    # transformer.beta = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float16))
-                    
-                    # requries grad True
-                    transformer.CLIPTextProjectionLayer.requires_grad_(True)
-                    transformer.CLIPVisionProjectionLayer.requires_grad_(True)
-                    transformer.CLIPTextProjectionLayer2.requires_grad_(True)
-                    transformer.CLIPVisionProjectionLayer2.requires_grad_(True)
-                    transformer.reference_vision_encoder.requires_grad_(True)
-                    transformer.T5ProjectionLayer.requires_grad_(True)
-                    
-                    # transformer.alpha.requires_grad_(True)
-                    # transformer.beta.requires_grad_(True)
-                    
-                else:
-                    if args.add_token is True:
-                        transformer.T5ProjectionLayer = ProjectionLayer(in_features=4096, out_features=4096)
-                        with torch.no_grad():
-                            transformer.T5ProjectionLayer.projection.weight.fill_(1.0)
-                            if transformer.T5ProjectionLayer.projection.bias is not None:
-                                transformer.T5ProjectionLayer.projection.bias.fill_(1.0)
-                        transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=77, out_features=226)
-                        with torch.no_grad():
-                            transformer.CLIPTextProjectionLayer.projection.weight.fill_(0.0)
-                            if transformer.CLIPTextProjectionLayer.projection.bias is not None:
-                                transformer.CLIPTextProjectionLayer.projection.bias.fill_(0.0)
-                        transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=197, out_features=226)
-                        with torch.no_grad():
-                            transformer.CLIPVisionProjectionLayer.projection.weight.fill_(0.0)
-                            if transformer.CLIPVisionProjectionLayer.projection.bias is not None:
-                                transformer.CLIPVisionProjectionLayer.projection.bias.fill_(0.0)
-                        # Requires grad true
-                        transformer.reference_vision_encoder.requires_grad_(True)
-                        transformer.T5ProjectionLayer.requires_grad_(True)
-                        transformer.CLIPTextProjectionLayer.requires_grad_(True)
-                        transformer.CLIPVisionProjectionLayer.requires_grad_(True)
-                    else:    
-                        if reduce_token is not True:
-                            transformer.T5ProjectionLayer = SkipProjectionLayer(in_features=4096, out_features=4096)
-                            with torch.no_grad():
-                                transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
-                                if transformer.T5ProjectionLayer.projection.bias is not None:
-                                    transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
-                            # Requires grad true
-                            transformer.reference_vision_encoder.requires_grad_(True)
-                            transformer.T5ProjectionLayer.requires_grad_(True)
-                            
-                            # if concatenated_all:
-                            transformer.CLIPTextProjectionLayer = ProjectionLayer(in_features=512, out_features=4096)
-                            with torch.no_grad():
-                                transformer.CLIPTextProjectionLayer.projection.weight.fill_(0.0)
-                                if transformer.CLIPTextProjectionLayer.projection.bias is not None:
-                                    transformer.CLIPTextProjectionLayer.projection.bias.fill_(0.0)
-                            transformer.CLIPVisionProjectionLayer = ProjectionLayer(in_features=768, out_features=4096)
-                            with torch.no_grad():
-                                transformer.CLIPVisionProjectionLayer.projection.weight.fill_(0.0)
-                                if transformer.CLIPVisionProjectionLayer.projection.bias is not None:
-                                    transformer.CLIPVisionProjectionLayer.projection.bias.fill_(0.0)
-                            # Requires grad true
-                            transformer.CLIPTextProjectionLayer.requires_grad_(True)
-                            transformer.CLIPVisionProjectionLayer.requires_grad_(True)
-                        else:
-                            transformer.reference_vision_encoder = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch16")
-                            transformer.T5ProjectionLayer = ReduceProjectionLayer(in_features=500, out_features=226)
-                            with torch.no_grad():
-                                transformer.T5ProjectionLayer.projection.weight.fill_(0.0)
-                                if transformer.T5ProjectionLayer.projection.bias is not None:
-                                    transformer.T5ProjectionLayer.projection.bias.fill_(0.0)
-                            # Requires grad true
-                            transformer.reference_vision_encoder.requires_grad_(True)
-                            transformer.T5ProjectionLayer.requires_grad_(True)
-            elif args.cross_attend or args.cross_attend_text:
-                    if args.cross_attend:
-                        print('Loading PERCEIVER CROSS ATTENTION')
-                        perceiver_cross_attention = None
-                        local_reference_scale = args.local_reference_scale
-                        num_cross_attn = 42 // args.cross_attn_interval
-                        cross_inner_dim = 3072
-                        cross_attn_dim_head = args.cross_attn_dim_head
-                        cross_attn_num_head = args.cross_attn_num_head
-                        # cross_attn_kv_dim =  int(cross_inner_dim / 3 * 2)
-                        cross_attn_kv_dim = 3072
-                        transformer.perceiver_cross_attention = nn.ModuleList(
-                            [
-                                PerceiverCrossAttention(
-                                    dim=cross_inner_dim,
-                                    dim_head=cross_attn_dim_head,
-                                    heads=cross_attn_num_head,
-                                    kv_dim=cross_attn_kv_dim,
-                                ).to(dtype=torch.bfloat16)
-                                for _ in range(num_cross_attn)
-                            ]
-                        )
-                        transformer.perceiver_cross_attention.requires_grad_(True)
-                    if args.cross_attend_text:
-                        print('Loading PERCEIVER CROSS ATTENTION FOR TEXT')
-                        perceiver_cross_attention_text = None
-                        local_reference_scale = args.local_reference_scale
-                        num_cross_attn = 42 // args.cross_attn_interval
-                        cross_inner_dim = 3072
-                        cross_attn_dim_head = args.cross_attn_dim_head
-                        cross_attn_num_head = args.cross_attn_num_head
-                        cross_attn_kv_dim = 3072
-                        transformer.perceiver_cross_attention_text = nn.ModuleList(
-                            [
-                                PerceiverCrossAttention(
-                                    dim=cross_inner_dim,
-                                    dim_head=cross_attn_dim_head,
-                                    heads=cross_attn_num_head,
-                                    kv_dim=cross_attn_kv_dim,
-                                ).to(dtype=torch.bfloat16)
-                                for _ in range(num_cross_attn)
-                            ]
-                        )
-    # Print out parameter names to verify # FOR DEBUGGING
-    # for name, param in transformer.named_parameters():
-    #     if param.requires_grad:
-    #         print(f"{name}: {param.size()}")
 
-    ## ADCDITIONAL projection l
+
+    ## ADCDITIONAL projection
     if args.use_latent is True:
         print("Not loading CogVideoX VAE model --> using VAE Latents directly!..")
     else:
@@ -2304,14 +1924,6 @@ def main(args):
     # We only train the additional adapter LoRA layers
     text_encoder.requires_grad_(False)
     transformer.requires_grad_(False)
-    
-    # Do Not Train CLIP text encoder
-    clip_text_encoder.requires_grad_(False)
-    # Train CLIP image encoder
-    # SHOULD BE MOVED TO THE COGVIDEOX MODEL PIPELINE FOR DEEPSPEED / ACCELERATOR PREPARE AT ONCE FOR FINETUNING VISION MODEL OF CLIP
-    # clip_vision_model.requires_grad_(True)
-    ### SHOULD BE MOVED UP TO HERE FOR DEEPSPEED / ACCELERATOR PREPARE AT ONCE FOR FINETUNING VISION MODEL OF CLIP
-
 
     # For mixed precision training we cast all non-trainable weights (vae, text_encoder and transformer) to half-precision
     # as these weights are only used for inference, keeping weights in full precision is not required.
@@ -2349,12 +1961,6 @@ def main(args):
         transformer.enable_gradient_checkpointing()
 
     # now we will add new LoRA weights to the attention layers
-    # transformer_lora_config = LoraConfig(
-    #     r=args.rank,
-    #     lora_alpha=args.lora_alpha,
-    #     init_lora_weights=True,
-    #     target_modules=["to_k", "to_q", "to_v", "to_out.0"],
-    # )
     unfreeze_modules = ["perceiver_cross_attention", "perceiver_cross_attention_text", "QformerAligner.qformer", "QformerAligner.fc"]
     transformer_lora_config = LoraConfig(
         r=args.rank,
@@ -2388,26 +1994,6 @@ def main(args):
                 if isinstance(unwrapped_model, type(unwrap_model(transformer))):
                     transformer_lora_layers_to_save = get_peft_model_state_dict(model)
                     
-                    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
-                        # Save ProjectionLayer state_dicts
-                        projection_layers_state_dict = {
-                            "T5ProjectionLayer": unwrapped_model.T5ProjectionLayer.state_dict(),
-                            "CLIPTextProjectionLayer": unwrapped_model.CLIPTextProjectionLayer.state_dict(),
-                            "CLIPVisionProjectionLayer": unwrapped_model.CLIPVisionProjectionLayer.state_dict(),
-                        }
-                        if args.zero_conv_add:
-                            projection_layers_state_dict["CLIPTextProjectionLayer2"] = unwrapped_model.CLIPTextProjectionLayer2.state_dict()
-                            projection_layers_state_dict["CLIPVisionProjectionLayer2"] = unwrapped_model.CLIPVisionProjectionLayer2.state_dict()
-                        # Save CLIPVisionModel state_dict
-                        vision_model_state_dict = unwrapped_model.reference_vision_encoder.state_dict()
-                    elif args.qformer is True:
-                        qformer_state = unwrapped_model.QformerAligner.state_dict()
-                    if args.cross_attend or args.cross_attend_text:
-                        if args.cross_attend:
-                            cross_attention_layer_state_dict = unwrapped_model.perceiver_cross_attention.state_dict()
-                        if args.cross_attend_text:
-                            cross_attention_layer_state_dict_text = unwrapped_model.perceiver_cross_attention_text.state_dict()
-                
                 # Raise an error for unexpected models
                 else:
                     raise ValueError(f"Unexpected save model: {unwrapped_model.__class__}")
@@ -2415,14 +2001,6 @@ def main(args):
                 # Ensure to pop weight so that the corresponding model is not saved again
                 weights.pop()
 
-            # Save LoRA weights for CogVideoX
-            # if args.second_stage:
-            #     CogVideoXPipeline.save_lora_weights(
-            #         output_dir,
-            #         weight_name="pytorch_lora_weights_transformer_second_stage.safetensors",
-            #         transformer_lora_layers=transformer_lora_layers_to_save,
-            #     )
-            # else:
             if transformer_lora_layers_to_save:
                 CogVideoXPipeline.save_lora_weights(
                     output_dir,
@@ -2434,22 +2012,6 @@ def main(args):
                 for name, state_dict in projection_layers_state_dict.items():
                     save_path = os.path.join(output_dir, f"{name}.pth")
                     torch.save(state_dict, save_path)
-                
-                # Save CLIPVisionModel weights
-                if vision_model_state_dict is not None:
-                    save_path = os.path.join(output_dir, "pytorch_clip_vision_model.bin")
-                    torch.save(vision_model_state_dict, save_path)
-            elif args.qformer is True:
-                # Save QFormer weights
-                save_path = os.path.join(output_dir, "QformerAligner.pth")
-                torch.save(qformer_state, save_path)
-            if args.cross_attend or args.cross_attend_text:
-                if args.cross_attend:
-                    save_path = os.path.join(output_dir, "perceiver_cross_attention.pth")
-                    torch.save(cross_attention_layer_state_dict, save_path)
-                if args.cross_attend_text:
-                    save_path = os.path.join(output_dir, "perceiver_cross_attention_text.pth")
-                    torch.save(cross_attention_layer_state_dict_text, save_path)
 
 
     def load_model_hook(models, input_dir):
@@ -2482,26 +2044,6 @@ def main(args):
                 transformer_state_dict, 
                 adapter_name="default"
             )
-            if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
-                # Load ProjectionLayer weights
-                transformer_.T5ProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "T5ProjectionLayer.pth")))
-                transformer_.CLIPTextProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPTextProjectionLayer.pth")))
-                transformer_.CLIPVisionProjectionLayer.load_state_dict(torch.load(os.path.join(input_dir, "CLIPVisionProjectionLayer.pth")))
-                
-                # Load CLIPVisionModel weights
-                vision_model_state_dict = torch.load(os.path.join(input_dir, "pytorch_clip_vision_model.bin"))
-                transformer_.reference_vision_encoder.load_state_dict(vision_model_state_dict)
-            elif args.qformer:
-                # Load QFormer weights
-                qformer_state = torch.load(os.path.join(input_dir, "QformerAligner.pth"))
-                transformer.QformerAligner.load_state_dict(qformer_state)
-            if args.cross_attend or args.cross_attend_text:
-                if args.cross_attend:
-                    cross_attention_layer_state_dict = torch.load(os.path.join(input_dir, "perceiver_cross_attention.pth"))
-                    transformer_.perceiver_cross_attention.load_state_dict(cross_attention_layer_state_dict)
-                if args.cross_attend_text:
-                    cross_attention_layer_state_dict_text = torch.load(os.path.join(input_dir, "perceiver_cross_attention_text.pth"))
-                    transformer_.perceiver_cross_attention_text.load_state_dict(cross_attention_layer_state_dict_text)
             if incompatible_keys is not None:
                 # check only for unexpected keys
                 unexpected_keys = getattr(incompatible_keys, "unexpected_keys", None)
@@ -2533,54 +2075,7 @@ def main(args):
     transformer_lora_parameters = list(filter(lambda p: p.requires_grad, transformer.parameters()))
     transformer_parameters_with_lr = {"params": transformer_lora_parameters, "lr": args.learning_rate}
 
-    # Add the parameters of the projection layers with their learning rates
-    if (not args.vae_add) and (not args.cross_attend) and (not args.cross_attend_text) and (not args.qk_replace) and (not args.qformer):
-        if concatenated_all is True:
-            projection_parameters = [
-                {"params": transformer.T5ProjectionLayer.parameters(), "lr": args.learning_rate},
-            ]
-        else:
-            projection_parameters = [
-                {"params": transformer.T5ProjectionLayer.parameters(), "lr": args.learning_rate},
-                {"params": transformer.CLIPTextProjectionLayer.parameters(), "lr": args.learning_rate},
-                {"params": transformer.CLIPVisionProjectionLayer.parameters(), "lr": args.learning_rate}
-            ]
-        # Add the parameters of the CLIP Vision Model
-        clip_vision_parameters_with_lr = {
-            "params": transformer.reference_vision_encoder.parameters(),
-            "lr": args.learning_rate  # You might consider using a smaller LR here
-        }
-        
-        if args.zero_conv_add:
-            # learnable_weights = [transformer.alpha, transformer.beta]
-            learnable_weights = [
-                {"params": transformer.CLIPTextProjectionLayer2.parameters(), "lr": args.learning_rate},
-                {"params": transformer.CLIPVisionProjectionLayer2.parameters(), "lr": args.learning_rate},
-            ]
-
-        # Combine all parameters to optimize
-        params_to_optimize = [transformer_parameters_with_lr, clip_vision_parameters_with_lr] + projection_parameters
-        if args.zero_conv_add:
-            # params_to_optimize.append({"params": learnable_weights, "lr": args.learning_rate})
-            params_to_optimize = params_to_optimize + learnable_weights
-    elif args.cross_attend or args.cross_attend_text:
-        cross_attention_parameters = []
-        if args.cross_attend:
-            cross_attention_parameters += [
-                {"params": transformer.perceiver_cross_attention.parameters(), "lr": args.learning_rate},
-            ]
-        if args.cross_attend_text:
-            cross_attention_parameters += [
-                {"params": transformer.perceiver_cross_attention_text.parameters(), "lr": args.learning_rate},
-            ]
-        params_to_optimize = [transformer_parameters_with_lr] + cross_attention_parameters
-    elif args.qformer :
-        qformer_parameters = [
-            {"params": transformer.QformerAligner.parameters(), "lr": args.learning_rate},
-        ]
-        params_to_optimize = [transformer_parameters_with_lr] + qformer_parameters
-    else:
-        params_to_optimize = [transformer_parameters_with_lr]
+    params_to_optimize = [transformer_parameters_with_lr]
 
     # Check for DeepSpeed optimizer and scheduler configuration
     use_deepspeed_optimizer = (
@@ -2620,7 +2115,6 @@ def main(args):
                 qk_replace=args.qk_replace,
                 qformer=args.qformer,
                 noise_mix=args.noise_mix,
-                test_prompt_path=args.test_prompt_path,
             )
             video_dataset = VideoDataset(
                 video_instance_root=args.video_instance_root,
@@ -2631,6 +2125,7 @@ def main(args):
                 seen_validation=args.seen_validation,
                 joint_train=args.joint_train,
                 image_dataset_len=len(image_dataset),
+                video_count=args.video_count,
             )
             # SHOULD ALSO UPDATE COMBINED_DATASET-> We do not need prob samp video iside the dataset, as we have it inside custom batch sampler
             train_dataset = CombinedDataset(video_dataset, image_dataset, args.prob_sample_video) #FIXME - add argument for prob_sample_video
@@ -2712,7 +2207,6 @@ def main(args):
                 qk_replace=args.qk_replace,
                 qformer=args.qformer,
                 noise_mix=args.noise_mix,
-                test_prompt_path=args.test_prompt_path,
             )
             def collate_fn(examples):
                 videos = [example["instance_video"] for example in examples]
@@ -3208,166 +2702,44 @@ def main(args):
                 # for validation_prompt in validation_prompts:
                 if args.seen_validation:
                     args.validation_reference_image = "../seen_samples/omini_right/"
-                resizing = True
-                if args.sampling_for_quali:
-                    if args.wo_background_in_inf_sampling:
-                        args.validation_reference_image = os.path.join(args.validation_reference_image, 'processed_white_720x480')
-                        resizing = False
-                    else:
-                        args.validation_reference_image = os.path.join(args.validation_reference_image, 'processed_bg_720x720')
-                        resizing = True
                 val_len = len(os.listdir(args.validation_reference_image))
-                assert not (args.temporal_eval == True and args.id_eval == True) # cannot do both temporal and id eval
-                if args.temporal_eval:
-                    args.output_dir = os.path.join(args.temporal_eval_save_dir, args.temporal_eval_type)
-                    resizing=False
-                    meta_path = args.temporal_eval_prompt_path
-                    meta_list = []
-                    with open(meta_path, 'r') as f:
-                        for line in f:
-                            try:
-                                meta_list.append(json.loads(line))
-                            except:
-                                print('Error in loading json')
-                    # make dictionary to parse the video id : the other info
-                    meta_dict = {}
-                    for meta in meta_list:
-                        vid_id = str(meta['video_latent_path'].split('/')[-1].split('.')[0])
-                        meta_dict[vid_id] = meta
-                    input_image_path = args.temporal_eval_first_frame # prepend 'small', 'medium', 'large'
-                    input_image_list = sorted(os.listdir(input_image_path))
-                    # for i in range(args.temporal_eval_use_amount):
-                    shard_amount = args.temporal_eval_use_amount // 4
-                    for i in range(args.temporal_eval_shard * shard_amount, (args.temporal_eval_shard + 1) * shard_amount):
-                        input_image = os.path.join(input_image_path, input_image_list[i])
-                        vid_id = str(input_image_list[i].split('.')[0])
-                        # if os.path.exists(os.path.join(args.output_dir, 'video_frames', vid_id)):
-                        #     print('Already exists: ', os.path.join(args.output_dir, 'video_frames', vid_id))
-                        #     continue
-                        if vid_id in meta_dict.keys():
-                            validation_prompt = meta_dict[vid_id]['prompt']
-                        else:
-                            print('No prompt found for video id: ', vid_id)
-                            break
-                        pipeline_args = {
-                            "prompt": validation_prompt,
-                            "guidance_scale": args.guidance_scale,
-                            "use_dynamic_cfg": args.use_dynamic_cfg,
-                            "validation_reference_image": input_image,
-                            "height": 480,
-                            "width": 720,
-                            "eval" : True,
-                            "concatenated_all" : concatenated_all,
-                            "reduce_token" : reduce_token,
-                            "add_token": args.add_token,
-                            'zero_conv_add': args.zero_conv_add,
-                            'vae_add' : args.vae_add,
-                            'pos_embed' : args.pos_embed if args.second_stage is not True else True,
-                            'cross_attend' : args.cross_attend,
-                            'cross_attend_text' : args.cross_attend_text,
-                            'input_noise_fix' : args.input_noise_fix,
-                            'output_dir' : args.temporal_eval_save_dir,
-                            'save_every_timestep' : args.save_every_timestep,
-                            'layernorm_fix': args.layernorm_fix if args.second_stage is not True else True,
-                            'text_only_norm_final': args.text_only_norm_final,
-                            'non_shared_pos_embed': args.non_shared_pos_embed,
-                        }
-                        ckpt_step = int(os.path.basename(args.resume_from_checkpoint).split('-')[1])
-                        validation_outputs = log_validation(
-                                    pipe=pipe,
-                                    args=args,
-                                    accelerator=accelerator,
-                                    pipeline_args=pipeline_args,
-                                    epoch=epoch,
-                                    ckpt_step=ckpt_step,
-                                    phase_name=args.phase_name,
-                                    resizing=resizing,
-                                    vid_id=vid_id,
-                                    t2v_eval=args.t2v_eval,
-                        )
-                        
-                elif args.id_eval:
-                    pass
-                else:
-                    if args.sampling_for_quali:
-                        for i in range(val_len):
-                            for cnt in range(args.num_of_prompts):
-                                validation_ref_img = os.path.join(args.validation_reference_image, os.listdir(args.validation_reference_image)[i])
-                                vid_id = os.listdir(args.validation_reference_image)[i].split('.')[0]
-                                validation_prompt = train_dataset.val_instance_prompt_dict[vid_id][cnt]
-                                pipeline_args = {
-                                    "prompt": validation_prompt,
-                                    "guidance_scale": args.guidance_scale,
-                                    "use_dynamic_cfg": args.use_dynamic_cfg,
-                                    "validation_reference_image": validation_ref_img,
-                                    "height": 480,
-                                    "width": 720,
-                                    "eval" : True,
-                                    "concatenated_all" : concatenated_all,
-                                    "reduce_token" : reduce_token,
-                                    "add_token": args.add_token,
-                                    'zero_conv_add': args.zero_conv_add,
-                                    'vae_add' : args.vae_add,
-                                    'pos_embed' : args.pos_embed if args.second_stage is not True else True,
-                                    'cross_attend' : args.cross_attend,
-                                    'cross_attend_text' : args.cross_attend_text,
-                                    'input_noise_fix' : args.input_noise_fix,
-                                    'output_dir' : args.output_dir,
-                                    'save_every_timestep' : args.save_every_timestep,
-                                    'layernorm_fix': args.layernorm_fix if args.second_stage is not True else True,
-                                    'text_only_norm_final': args.text_only_norm_final,
-                                    'non_shared_pos_embed': args.non_shared_pos_embed,
-                                }
-                                ckpt_step = int(os.path.basename(args.resume_from_checkpoint).split('-')[1])
-                                validation_outputs = log_validation(
-                                    pipe=pipe,
-                                    args=args,
-                                    accelerator=accelerator,
-                                    pipeline_args=pipeline_args,
-                                    epoch=epoch,
-                                    ckpt_step=ckpt_step,
-                                    phase_name=args.phase_name,
-                                    resizing=resizing,
-                                    vid_id=vid_id,
-                                )
-                    else:
-                        for i in range(val_len):
-                            validation_ref_img = os.path.join(args.validation_reference_image, os.listdir(args.validation_reference_image)[i])
-                            vid_id = os.listdir(args.validation_reference_image)[i].split('.')[0]
-                            validation_prompt = train_dataset.val_instance_prompt_dict[vid_id]
-                            pipeline_args = {
-                                "prompt": validation_prompt,
-                                "guidance_scale": args.guidance_scale,
-                                "use_dynamic_cfg": args.use_dynamic_cfg,
-                                "validation_reference_image": validation_ref_img,
-                                "height": 480,
-                                "width": 720,
-                                "eval" : True,
-                                "concatenated_all" : concatenated_all,
-                                "reduce_token" : reduce_token,
-                                "add_token": args.add_token,
-                                'zero_conv_add': args.zero_conv_add,
-                                'vae_add' : args.vae_add,
-                                'pos_embed' : args.pos_embed if args.second_stage is not True else True,
-                                'cross_attend' : args.cross_attend,
-                                'cross_attend_text' : args.cross_attend_text,
-                                'input_noise_fix' : args.input_noise_fix,
-                                'output_dir' : args.output_dir,
-                                'save_every_timestep' : args.save_every_timestep,
-                                'layernorm_fix': args.layernorm_fix if args.second_stage is not True else True,
-                                'text_only_norm_final': args.text_only_norm_final,
-                                'non_shared_pos_embed': args.non_shared_pos_embed,
-                            }
-                            ckpt_step = int(os.path.basename(args.resume_from_checkpoint).split('-')[1])
-                            validation_outputs = log_validation(
-                                pipe=pipe,
-                                args=args,
-                                accelerator=accelerator,
-                                pipeline_args=pipeline_args,
-                                epoch=epoch,
-                                ckpt_step=ckpt_step,
-                                phase_name=args.phase_name,
-                            )
+                for i in range(val_len):
+                    validation_ref_img = os.path.join(args.validation_reference_image, os.listdir(args.validation_reference_image)[i])
+                    vid_id = os.listdir(args.validation_reference_image)[i].split('.')[0]
+                    validation_prompt = train_dataset.val_instance_prompt_dict[vid_id]
+                    pipeline_args = {
+                        "prompt": validation_prompt,
+                        "guidance_scale": args.guidance_scale,
+                        "use_dynamic_cfg": args.use_dynamic_cfg,
+                        "validation_reference_image": validation_ref_img,
+                        "height": 480,
+                        "width": 720,
+                        "eval" : True,
+                        "concatenated_all" : concatenated_all,
+                        "reduce_token" : reduce_token,
+                        "add_token": args.add_token,
+                        'zero_conv_add': args.zero_conv_add,
+                        'vae_add' : args.vae_add,
+                        'pos_embed' : args.pos_embed if args.second_stage is not True else True,
+                        'cross_attend' : args.cross_attend,
+                        'cross_attend_text' : args.cross_attend_text,
+                        'input_noise_fix' : args.input_noise_fix,
+                        'output_dir' : args.output_dir,
+                        'save_every_timestep' : args.save_every_timestep,
+                        'layernorm_fix': args.layernorm_fix if args.second_stage is not True else True,
+                        'text_only_norm_final': args.text_only_norm_final,
+                        'non_shared_pos_embed': args.non_shared_pos_embed,
+                    }
+                    ckpt_step = int(os.path.basename(args.resume_from_checkpoint).split('-')[1])
+                    validation_outputs = log_validation(
+                        pipe=pipe,
+                        args=args,
+                        accelerator=accelerator,
+                        pipeline_args=pipeline_args,
+                        epoch=epoch,
+                        ckpt_step=ckpt_step,
+                        phase_name=args.phase_name,
+                    )
         if args.inference: # do inference_only, so no training
             break
     if args.inference:
@@ -3398,15 +2770,6 @@ def main(args):
             transformer_lora_layers=transformer_lora_layers,
         )
 
-        # Save projection layers and vision encoder separately
-        torch.save(transformer.T5ProjectionLayer.state_dict(), 
-                os.path.join(args.output_dir, "T5ProjectionLayer.safetensors"))
-        torch.save(transformer.CLIPTextProjectionLayer.state_dict(), 
-                os.path.join(args.output_dir, "CLIPTextProjectionLayer.safetensors"))
-        torch.save(transformer.CLIPVisionProjectionLayer.state_dict(), 
-                os.path.join(args.output_dir, "CLIPVisionProjectionLayer.safetensors"))
-        torch.save(transformer.reference_vision_encoder.state_dict(), 
-                os.path.join(args.output_dir, "reference_vision_encoder.safetensors"))
 
         # Final test inference
         pipe = CustomCogVideoXPipeline.from_pretrained(
@@ -3428,15 +2791,6 @@ def main(args):
         pipe.load_lora_weights(args.output_dir, adapter_name="cogvideox-lora")
         pipe.set_adapters(["cogvideox-lora"], [lora_scaling])
 
-        # Load additional components
-        pipe.transformer.T5ProjectionLayer.load_state_dict(
-            torch.load(os.path.join(args.output_dir, "T5ProjectionLayer.pth")))
-        pipe.transformer.CLIPTextProjectionLayer.load_state_dict(
-            torch.load(os.path.join(args.output_dir, "CLIPTextProjectionLayer.pth")))
-        pipe.transformer.CLIPVisionProjectionLayer.load_state_dict(
-            torch.load(os.path.join(args.output_dir, "CLIPVisionProjectionLayer.pth")))
-        pipe.transformer.reference_vision_encoder.load_state_dict(
-            torch.load(os.path.join(args.output_dir, "reference_vision_encoder.pth")))
 
         # Run inference
         validation_outputs = []

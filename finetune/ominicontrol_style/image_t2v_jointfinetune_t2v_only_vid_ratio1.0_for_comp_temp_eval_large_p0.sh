@@ -74,6 +74,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --temporal_eval_save_dir $TEMPORAL_EVAL_SAVE_DIR \
   --temporal_eval_use_amount 300 \
   --temporal_eval_type large \
-  --temporal_eval_shard 0
+  --temporal_eval_shard 0 \
+  --t2v_eval \  
   # --inference 
   # --resume_from_checkpoint /mnt/carpedkm_data/result250215/special_tk_layernorm_fix_pos_embed_fix_40_16_non_shared_random_fix/checkpoint-3000 
