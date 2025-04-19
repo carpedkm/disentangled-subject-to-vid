@@ -1653,7 +1653,7 @@ def log_validation(
                 'width': args.width_val,
                 'num_frames': args.inference_num_frames, #args.max_num_frames,
                 'eval': True,
-                't2v_eval'
+                't2v_eval': t2v_eval,
             }
             current_pipeline_args.update(inference_args)
             
