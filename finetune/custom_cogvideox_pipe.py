@@ -291,6 +291,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         layernorm_fix: bool = False,
         text_only_norm_final: bool = False,
         non_shared_pos_embed: bool = False,
+        t2v_eval: bool = False,
     ) -> Union[CogVideoXPipelineOutput, Tuple]:
         if num_frames > 49:
             raise ValueError(
@@ -456,6 +457,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     cross_attend_text=cross_attend_text,
                     layernorm_fix=layernorm_fix,
                     text_only_norm_final=text_only_norm_final,
+                    t2v_eval=t2v_eval,
                 )[0]
                 noise_pred = noise_pred.float()
 
