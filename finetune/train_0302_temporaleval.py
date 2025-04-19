@@ -3234,9 +3234,9 @@ def main(args):
                     for i in range(args.temporal_eval_shard * shard_amount, (args.temporal_eval_shard + 1) * shard_amount):
                         input_image = os.path.join(input_image_path, input_image_list[i])
                         vid_id = str(input_image_list[i].split('.')[0])
-                        if os.path.exists(os.path.join(args.output_dir, 'video_frames', vid_id)):
-                            print('Already exists: ', os.path.join(args.output_dir, 'video_frames', vid_id))
-                            continue
+                        # if os.path.exists(os.path.join(args.output_dir, 'video_frames', vid_id)):
+                        #     print('Already exists: ', os.path.join(args.output_dir, 'video_frames', vid_id))
+                        #     continue
                         if vid_id in meta_dict.keys():
                             validation_prompt = meta_dict[vid_id]['prompt']
                         else:
