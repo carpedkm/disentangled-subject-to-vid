@@ -12,7 +12,7 @@ export WANDB_API_KEY=b524799f98b5a09033fe24848862dcb2a68af571
 
 export TEMPORAL_EVAL_PROMPT_PATH="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/large/metadata.jsonl"
 export TEMPORAL_EVAL_FIRST_FRAME="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-25-50_sample500/large/first_frame"
-export TEMPORAL_EVAL_SAVE_DIR="/mnt/carpedkm_data/temporal_eval_result/vid_finetune_orig_comp_ckpt1000_fix_0419"
+export TEMPORAL_EVAL_SAVE_DIR="/mnt/carpedkm_data/temporal_eval_result/vid_finetune_orig_comp_ckpt2000_fix_0419"
 
 accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   ../train_0302_temporaleval.py \
@@ -64,7 +64,7 @@ accelerate launch --config_file ../accelerate_config_machine_single_inf.yaml \
   --latent_data_root /mnt/carpedkm_data/pexels_4k_updatd_vae_latents\
   --report_to wandb \
   --inference \
-  --resume_from_checkpoint checkpoint-1000 \
+  --resume_from_checkpoint checkpoint-2000 \
   --sampling_for_quali \
   --num_of_prompts 4 \
   --temporal_eval \
