@@ -7,11 +7,11 @@ Path_to_Benchmark="/mnt/carpedkm_data/image_gen_ds/Pexels_subset_100K_fps8_flow-
 # Path_to_Synthesized_Video="/mnt/carpedkm_data/temporal_eval_result/original_0.2"
 # Path_to_Synthesized_Video="/mnt/carpedkm_data/temporal_eval_result/t2v_vanilla_final"
 # Path_to_Synthesized_Video="/mnt/carpedkm_data/temporal_eval_result/only_image_training_ckpt3000"
-Path_to_Synthesized_Video="/mnt/carpedkm_data/temporal_eval_result/vid_finetune_orig_comp_ckpt1000_fix_0419"
+Path_to_Synthesized_Video="/mnt/carpedkm_data/temporal_eval_result/vid_finetune_orig_comp_ckpt4000_fix_0419"
 Save_Path="t2v_pexels_finetune"
 
 # Loop through dataset sizes
-for TARGET in medium large; do
+for TARGET in large; do
     video_path_GT="${Path_to_Benchmark}/${TARGET}/video_frames"  # Path to real video dataset
     video_path_pred="${Path_to_Synthesized_Video}/${TARGET}/video_frames"  # Path to generated samples
     save_path="./Results/${Save_Path}/${TARGET}/"  # Path to save results
