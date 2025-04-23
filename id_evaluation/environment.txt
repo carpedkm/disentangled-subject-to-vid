@@ -1,4 +1,0 @@
-conda create -n pt2v_eval python=3.10
-conda activate pt2v_eval
-pip install torch==2.4.0 torchvision --index-url https://download.pytorch.org/whl/cu121
-pip install git+https://github.com/Vchitect/VBench.git
