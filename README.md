@@ -1,5 +1,7 @@
 # [Official Implementation] Subject-driven Video Generation via Disentangled Identity and Motion
 ---
+![demo](./assets/s2v_teaser.gif)
+---
 ## <span style="color:red"><strong> Currently Code is under maintenance -- It would be made available this week. Stay tuned!</strong></span>
 ---
 
