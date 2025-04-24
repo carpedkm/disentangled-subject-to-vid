@@ -263,7 +263,6 @@ def main(args):
     )
     print('Inference completed')
 
-
 if __name__ == "__main__":
     print('Code executed')
     args = get_args()
