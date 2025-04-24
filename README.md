@@ -1,7 +1,8 @@
 # [Official Implementation] Subject-driven Video Generation via Disentangled Identity and Motion
 ---
-**[Daneul Kim](https://carpedkm.github.io/)**, **[Jingxu Zhang](#)**, **[Wonjoon Jin](https://jinwonjoon.github.io/)**, **[Sunghyun Cho](https://www.scho.pe.kr/)**, **[Qi Dai](https://daiqi1989.github.io/)**, **[Jaesik Park](https://jaesik.info)**, **[Chong Luo](https://www.microsoft.com/en-us/research/people/cluo/)**
+## <span style="color:red"><strong> Currently Code is under maintenance -- It would be made available this week. Stay tuned!</strong></span>
 ---
+
 This repository provides the code for the paper "Subject-driven Video Generation via Disentangled Identity and Motion." The method enables the generation of high-quality videos based on a subject image and a text prompt, without requiring large annotated video datasets. By leveraging an image customization dataset and a small set of unannotated videos, this approach achieves robust subject consistency and temporal coherence in a zero-shot setting.
 
 **Note:** This repository currently only includes the inference code. Fine-tuning code is not provided at this time but is planned for a future release.
@@ -105,3 +106,16 @@ The pre-trained model checkpoint is available for download from [Google Drive Li
 - [ ] Update the codebase to be compatible with the latest diffusers and CogVideoX repositories.
 - [ ] Release fine-tuning code.
 - [ ] Add more features and improvements.
+
+---
+## Authors
+### **[Daneul Kim](https://carpedkm.github.io/)**, **[Jingxu Zhang](#)**, **[Wonjoon Jin](https://jinwonjoon.github.io/)**, **[Sunghyun Cho](https://www.scho.pe.kr/)**, **[Qi Dai](https://daiqi1989.github.io/)**, **[Jaesik Park](https://jaesik.info)**, **[Chong Luo](https://www.microsoft.com/en-us/research/people/cluo/)**
+
+## BibTex
+<pre><code>@article{kim2025subject,
+  author    = {Kim, Daneul and Zhang, Jingxu and Jin, Wonjoon and Cho, Sunghyun and Dai, Qi and Park, Jaesik and Luo, Chong},
+  title     = {Subject-driven Video Generation via Disentangled Identity and Motion},
+  journal   = {arXiv},
+  year      = {2025},
+}
+</code></pre>
