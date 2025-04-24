@@ -3,6 +3,7 @@
 <p align="center">
   <img src="./assets/s2v_teaser.gif" width="500"/>
 </p>
+
 ---
 ## <span style="color:red"><strong> Currently Code is under maintenance -- It would be made available this week. Stay tuned!</strong></span>
 ---
