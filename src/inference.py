@@ -253,13 +253,8 @@ def main(args):
         "height": 480,
         "width": 720,
         "eval" : True,
-        "concatenated_all" : concatenated_all,
-        "reduce_token" : reduce_token,
         'vae_add' : args.vae_add,
-        'pos_embed' : args.pos_embed,
         'output_dir' : args.output_dir,
-        'layernorm_fix': args.layernorm_fix,
-        'non_shared_pos_embed': args.non_shared_pos_embed,
     }
     inference(
         pipe=pipe,

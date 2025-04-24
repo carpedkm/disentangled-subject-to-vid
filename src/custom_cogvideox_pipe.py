@@ -147,23 +147,8 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         callback_on_step_end: Optional[Callable[[int, int, Dict], None]] = None,
         callback_on_step_end_tensor_inputs: List[str] = ["latents"],
         max_sequence_length: int = 226,
-        eval: bool = False,
-        t5_first: bool = True,
-        concatenated_all: bool = False,
-        reduce_token: bool = False,
-        add_token: bool = False,
-        zero_conv_add: bool = False,
-        vae_add: bool = False,
         pos_embed: bool = False,
-        cross_attend: bool = False,
-        cross_attend_text: bool = False,
         input_noise_fix: bool = False,
-        output_dir : str = None,
-        save_every_timestep : bool = False, 
-        layernorm_fix: bool = False,
-        text_only_norm_final: bool = False,
-        non_shared_pos_embed: bool = False,
-        t2v_eval: bool = False,
     ) -> Union[CogVideoXPipelineOutput, Tuple]:
         if num_frames > 49:
             raise ValueError(
@@ -186,8 +171,6 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
 
         # 2. Default call parameters
         device = self._execution_device
-        print('>> PROMPT: ', prompt)
-        print('>> PROMPT TYPE: ', type(prompt))
         # Determine batch size
         if prompt is not None and isinstance(prompt, str):
             batch_size = 1

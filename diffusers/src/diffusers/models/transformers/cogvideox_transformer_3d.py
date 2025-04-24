@@ -133,29 +133,18 @@ class CogVideoXBlock(nn.Module):
         timestep: Optional[int] = None,
         layer : Optional[int] = None,
         ref_image_rotary_emb : Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
-        joint_train: bool = False,
     ) -> torch.Tensor:
         text_seq_length = encoder_hidden_states.size(1)
 
         # norm & modulate
-        if enc_hidden_states1 is not None:
-            norm_hidden_states, norm_encoder_hidden_states, norm_cond_hidden_states, gate_msa, enc_gate_msa, cond_gate_msa = self.norm1(
-                hidden_states=hidden_states, 
-                encoder_hidden_states=encoder_hidden_states, 
-                cond_hidden_states=enc_hidden_states1,
-                temb=temb,
-            )
-        else:
-            norm_cond_hidden_states = None
-            norm_hidden_states, norm_encoder_hidden_states, _, gate_msa, enc_gate_msa, _ = self.norm1(
-                hidden_states=hidden_states, 
-                encoder_hidden_states=encoder_hidden_states, 
-                cond_hidden_states=None,
-                temb=temb,
-            )
+        norm_hidden_states, norm_encoder_hidden_states, norm_cond_hidden_states, gate_msa, enc_gate_msa, cond_gate_msa = self.norm1(
+            hidden_states=hidden_states, 
+            encoder_hidden_states=encoder_hidden_states, 
+            cond_hidden_states=enc_hidden_states1,
+            temb=temb,
+        )
         
-        if norm_cond_hidden_states is not None:
-            norm_encoder_hidden_states = torch.cat([norm_encoder_hidden_states, norm_cond_hidden_states], dim=1)
+        norm_encoder_hidden_states = torch.cat([norm_encoder_hidden_states, norm_cond_hidden_states], dim=1)
         # attention
         attn_hidden_states, attn_encoder_hidden_states = self.attn1(
             hidden_states=norm_hidden_states,
@@ -169,53 +158,32 @@ class CogVideoXBlock(nn.Module):
             layer=layer,
             ref_image_rotary_emb=ref_image_rotary_emb,
         )
-        if enc_hidden_states1 is not None:
-            attn_cond_hidden_states = attn_encoder_hidden_states[:,text_seq_length:]
-            attn_encoder_hidden_states = attn_encoder_hidden_states[:,:text_seq_length]
+
+        attn_cond_hidden_states = attn_encoder_hidden_states[:,text_seq_length:]
+        attn_encoder_hidden_states = attn_encoder_hidden_states[:,:text_seq_length]
             
         hidden_states = hidden_states + gate_msa * attn_hidden_states
         encoder_hidden_states = encoder_hidden_states + enc_gate_msa * attn_encoder_hidden_states
-        if enc_hidden_states1 is not None:
-            enc_hidden_states1 = enc_hidden_states1 + cond_gate_msa * attn_cond_hidden_states
+        enc_hidden_states1 = enc_hidden_states1 + cond_gate_msa * attn_cond_hidden_states
 
         # norm & modulate
-        if enc_hidden_states1 is not None:
-            norm_hidden_states, norm_encoder_hidden_states, norm_cond_hidden_states, gate_ff, enc_gate_ff, cond_gate_ff = self.norm2(
-                hidden_states=hidden_states, 
-                encoder_hidden_states=encoder_hidden_states, 
-                cond_hidden_states=enc_hidden_states1,
-                temb=temb,
-            )
-        else:
-            norm_cond_hidden_states = None
-            norm_hidden_states, norm_encoder_hidden_states, _, gate_ff, enc_gate_ff, _ = self.norm2(
-                hidden_states=hidden_states, 
-                encoder_hidden_states=encoder_hidden_states, 
-                cond_hidden_states=None,
-                temb=temb,
-            )
-            
+        norm_hidden_states, norm_encoder_hidden_states, norm_cond_hidden_states, gate_ff, enc_gate_ff, cond_gate_ff = self.norm2(
+            hidden_states=hidden_states, 
+            encoder_hidden_states=encoder_hidden_states, 
+            cond_hidden_states=enc_hidden_states1,
+            temb=temb,
+        )
 
-        if norm_cond_hidden_states is not None:
-            seq_len_temp = torch.cat([norm_encoder_hidden_states, norm_cond_hidden_states], dim=1).shape[1]
-            # feed-forward
-            norm_hidden_states = torch.cat([norm_encoder_hidden_states, norm_cond_hidden_states, norm_hidden_states], dim=1)
-        else:
-            norm_hidden_states = torch.cat([norm_encoder_hidden_states, norm_hidden_states], dim=1)
+        seq_len_temp = torch.cat([norm_encoder_hidden_states, norm_cond_hidden_states], dim=1).shape[1]
+        # feed-forward
+        norm_hidden_states = torch.cat([norm_encoder_hidden_states, norm_cond_hidden_states, norm_hidden_states], dim=1)
         ff_output = self.ff(norm_hidden_states)
 
-        if norm_cond_hidden_states is not None:
-            hidden_states = hidden_states + gate_ff * ff_output[:, seq_len_temp:]
-            encoder_hidden_states = encoder_hidden_states + enc_gate_ff * ff_output[:, :text_seq_length]
-            enc_hidden_states1 = enc_hidden_states1 + cond_gate_ff * ff_output[:, text_seq_length:seq_len_temp]
-            # print(hidden_states.shape, encoder_hidden_states.shape, enc_hidden_states1.shape)
-            return hidden_states, encoder_hidden_states, enc_hidden_states1
-        else:
-            hidden_states = hidden_states + gate_ff * ff_output[:, text_seq_length:]
-            encoder_hidden_states = encoder_hidden_states + enc_gate_ff * ff_output[:, :text_seq_length]
-            if joint_train is True:
-                return hidden_states, encoder_hidden_states, None
-            return hidden_states, encoder_hidden_states
+        hidden_states = hidden_states + gate_ff * ff_output[:, seq_len_temp:]
+        encoder_hidden_states = encoder_hidden_states + enc_gate_ff * ff_output[:, :text_seq_length]
+        enc_hidden_states1 = enc_hidden_states1 + cond_gate_ff * ff_output[:, text_seq_length:seq_len_temp]
+        # print(hidden_states.shape, encoder_hidden_states.shape, enc_hidden_states1.shape)
+        return hidden_states, encoder_hidden_states, enc_hidden_states1
         
 def get_sinusoidal_positional_embeddings(seq_length, embed_dim, device):
     position = torch.arange(seq_length, dtype=torch.bfloat16, device=device).unsqueeze(1)
@@ -224,16 +192,6 @@ def get_sinusoidal_positional_embeddings(seq_length, embed_dim, device):
     pos_embedding[:, 0::2] = torch.sin(position * div_term)
     pos_embedding[:, 1::2] = torch.cos(position * div_term)
     return pos_embedding
-
-class ProjectionLayer(nn.Module):
-    def __init__(self, in_features, out_features):
-        super(ProjectionLayer, self).__init__()
-        self.linear = nn.Linear(in_features, out_features)
-
-    def forward(self, x):
-        return self.linear(x)
-    
-
 
 class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
     """
@@ -319,26 +277,7 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         temporal_interpolation_scale: float = 1.0,
         use_rotary_positional_embeddings: bool = False,
         use_learned_positional_embeddings: bool = False,
-        customization: bool = False,
-        concatenated_all: bool = False,
-        reduce_token: bool = False,
-        zero_conv_add : bool = False,
-        vae_add: bool = False,
-        cross_attend : bool = False,
-        cross_attend_text: bool = False,
-        cross_attn_interval: int = 1,
-        local_reference_scale: float = 1.,
-        cross_attn_dim_head: int = 128,
-        cross_attn_num_heads: int = 16,
-        qk_replace: bool = False,
-        qformer: bool = False,
-        second_stage: bool = False,
-        # cross_attn_kv_dim: int = 2048,
     ):
-        
-        self.qk_replace = qk_replace
-        self.qformer = qformer
-        self.second_stage = second_stage
         super().__init__()
         inner_dim = num_attention_heads * attention_head_dim
 
@@ -348,40 +287,6 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
                 "embeddings. If you're using a custom model and/or believe this should be supported, please open an "
                 "issue at https://github.com/huggingface/diffusers/issues."
             )
-        # if customization:
-        clip_vision_config = None # CLIPVisionConfig.from_pretrained("openai/clip-vit-base-patch16")
-        if not self.second_stage:
-            if not vae_add and not cross_attend and not qformer:
-                if zero_conv_add:
-                    self.text_sequence_aligner = None
-                    self.vision_sequence_aligner = None
-                    self.CLIPTextProjectionLayer2 = None
-                    self.CLIPVisionProjectionLayer2 = None
-                    # self.alpha = None
-                    # self.beta = None
-                if concatenated_all is not True:
-                    self.reference_vision_encoder = None # CLIPVisionModel(clip_vision_config)
-                    self.T5ProjectionLayer = None # ProjectionLayer(in_features=4096, out_features=4096).to(dtype=torch.bfloat16)
-                    self.CLIPTextProjectionLayer = None # ProjectionLayer(in_features=512, out_features=4096).to(dtype=torch.bfloat16)
-                    self.CLIPVisionProjectionLayer = None # ProjectionLayer(in_features=768, out_features=4096).to(dtype=torch.bfloat16)
-                else:
-                    self.reference_vision_encoder = None
-                    self.T5ProjectionLayer = None
-            elif qformer:
-                self.QformerAligner = None
-            else:
-                pass
-        else:
-            print("SECOND STAGE TRAINING - TRANSFORMER INITIALIZATION")
-
-
-            
-    
-            # all should be trainable # requires grad = True
-            # self.reference_vision_encoder.requires_grad = True
-            # self.T5ProjectionLayer.requires_grad = True
-            # self.CLIPTextProjectionLayer.requires_grad = True
-            # self.CLIPVisionProjectionLayer.requires_grad = True 
     
         # 1. Patch embedding
         self.patch_embed = CogVideoXPatchEmbed(
@@ -436,19 +341,8 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         self.proj_out = nn.Linear(inner_dim, patch_size * patch_size * out_channels)
 
         self.gradient_checkpointing = False
-        self.cross_attend = cross_attend
-        self.cross_attend_text = cross_attend_text
-        # self.num_cross_att
-        if self.cross_attend:
-            self.perceiver_cross_attention = None
-        if self.cross_attend_text:
-            self.perceiver_cross_attention_text = None
         self.num_layers = num_layers
-        # Define modality embeddings
-        # num_modalities = 3  # T5, CLIP text, CLIP vision
-        # embed_dim = text_embed_dim  # Should match the embedding dimension
-        # self.modality_embeddings = nn.Embedding(num_modalities, embed_dim)
-        # nn.init.normal_(self.modality_embeddings.weight, mean=0.0, std=0.02)  # Initialize embeddings
+
 
     def _set_gradient_checkpointing(self, module, value=False):
         self.gradient_checkpointing = value
@@ -565,69 +459,11 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         ref_image_rotary_emb: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
         attention_kwargs: Optional[Dict[str, Any]] = None,
         return_dict: bool = True,
-        customization: bool = False,
-        t5_first: bool = True,
         eval: bool = False,
-        concatenated_all: bool = False,
-        reduce_token: bool = False,
-        add_token: bool = False,
-        zero_conv_add: bool = False,
-        vae_add: bool = False,
-        pos_embed: bool = False,
-        cross_attend: bool = False,
-        cross_attend_text: bool = False,
-        layernorm_fix: bool = False,
-        text_only_norm_final: bool = False, 
-        second_stage_ref_image: bool = False,
-        joint_train: bool = False,
-        random_drop_full: bool = False,
-        random_drop_prob: float = 0.5,
-        random_pad_zero: bool = False,
         frame_weighted_loss: bool = False,
-        i2v_drop_scheduled: bool = False, 
-        t2v_eval: bool = False,
-        # add_noise_mix: bool = False,
-        # qk_replace: bool = False,
     ):  
-        i2v_set = False # default
-        qk_replace = self.qk_replace
-        qformer = self.qformer
-        # add_noise_mix = self.add_noise_mix
-        if eval:
-            self.second_stage = False
-            if t2v_eval is True:
-                self.second_stage = True
-                customization = False
-                      
-        if joint_train is True:
-            self.second_stage = False
-            if random_drop_full is True and hidden_states.shape[1] != 1 and eval is False: 
-                i2v_set = True
-                # for video training part in joint train, directly concat text with video noisy latent
-                p_drop = random.random() 
-                if p_drop <= random_drop_prob:
-                    self.second_stage = True
-                    enc_hidden_states1 = None
-                    i2v_set = False
-            elif random_pad_zero is True and hidden_states.shape[1] != 1 and eval is False:
-                i2v_set = True
-                p_drop = random.random()
-                if p_drop <= random_drop_prob:
-                    self.second_stage = True
-                    i2v_set = False
-        else:
-            if second_stage_ref_image is True:
-                self.second_stage = False
-        if self.second_stage:
-            encoder_hidden_states = encoder_hidden_states
-        else:
-            if customization:
-                    enc_hidden_states0 = encoder_hidden_states
-                    enc_hidden_states1 = ref_img_states
-                    
-            else:
-                # encoder_hidden_states = self.T5ProjectionLayer(encoder_hidden_states)
-                pass
+        enc_hidden_states0 = encoder_hidden_states
+        enc_hidden_states1 = ref_img_states
 
         if attention_kwargs is not None:
             attention_kwargs = attention_kwargs.copy()
@@ -656,222 +492,53 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         t_emb = t_emb.to(dtype=hidden_states.dtype)
         emb = self.time_embedding(t_emb, timestep_cond)
 
+        # 2. Patch Embedding
+        enc_hidden_states0 = self.patch_embed.text_proj(enc_hidden_states0)
 
+        b_1, nf_1, c_1, h_1, w_1 = enc_hidden_states1.shape
+        enc_hidden_states1 = enc_hidden_states1.reshape(-1, c_1, h_1, w_1)
+        enc_hidden_states1 = self.patch_embed.proj(enc_hidden_states1)
+        enc_hidden_states1 = enc_hidden_states1.view(b_1, nf_1, *enc_hidden_states1.shape[1:])
+        enc_hidden_states1 = enc_hidden_states1.flatten(3).transpose(2, 3)  # [batch, num_frames, height x width, channels]
+        enc_hidden_states1 = enc_hidden_states1.flatten(1, 2)  # [batch, num_frames x height x width, channels]
         
-        # 2. Patch embedding
-        # if not cross_attend: # ADDME
-        if self.second_stage:
-            pass
-        else:
-            if vae_add :
-                enc_hidden_states0 = self.patch_embed.text_proj(enc_hidden_states0)
-                # text_seq_length = enc_hidden_states0.shape[1]
-                b_1, nf_1, c_1, h_1, w_1 = enc_hidden_states1.shape
-                enc_hidden_states1 = enc_hidden_states1.reshape(-1, c_1, h_1, w_1)
-                enc_hidden_states1 = self.patch_embed.proj(enc_hidden_states1)
-                enc_hidden_states1 = enc_hidden_states1.view(b_1, nf_1, *enc_hidden_states1.shape[1:])
-                enc_hidden_states1 = enc_hidden_states1.flatten(3).transpose(2, 3)  # [batch, num_frames, height x width, channels]
-                enc_hidden_states1 = enc_hidden_states1.flatten(1, 2)  # [batch, num_frames x height x width, channels]
-                if eval:
-                    enc_hidden_states1 = torch.cat([enc_hidden_states1, enc_hidden_states1], dim=0)
-                if layernorm_fix:
-                    pass # pass through separate layers
-                else:
-                    encoder_hidden_states_temp = torch.cat([enc_hidden_states1, enc_hidden_states0], dim=1)
-            else:
-                pass
-            
-            
+        if eval:
+            enc_hidden_states1 = torch.cat([enc_hidden_states1, enc_hidden_states1], dim=0)
+
         hidden_states = self.patch_embed(encoder_hidden_states, hidden_states)
-        if self.second_stage:
-            encoder_hidden_states = hidden_states[:, :encoder_hidden_states.shape[1]]
-            hidden_states = hidden_states[:, encoder_hidden_states.shape[1]:]
-            # pad the encoder_hidden_states with zeros at the end - to match the dimension of 1350 in number of tokens after the embedding  
-            if random_drop_full is not True and random_pad_zero is True and p_drop <= random_drop_prob:
-                encoder_hidden_states = F.pad(encoder_hidden_states, (0, 0, 0, 1350 - 226))
-            text_seq_length = encoder_hidden_states.shape[1]
         hidden_states = self.embedding_dropout(hidden_states)
-        
-        if self.second_stage:
-            embed_ref_img = False
-            ref_img_seq_start = 0
-            ref_img_seq_end = 0
-            position_delta = 0
-        else:
-            if vae_add is True and pos_embed is True:
-                embed_ref_img = True
-                ref_img_seq_start = enc_hidden_states0.shape[1]
-                ref_img_seq_end = enc_hidden_states0.shape[1] + enc_hidden_states1.shape[1]
-                position_delta = 0
-            else:
-                embed_ref_img = False
-                ref_img_seq_start = 0
-                ref_img_seq_end = 0
-                position_delta = 0
-            
-        if self.second_stage:
-            pass
-        else:
-            if vae_add is False:
-                text_seq_length = encoder_hidden_states.shape[1]
-                encoder_hidden_states = hidden_states[:, :text_seq_length]
-            else:
-                text_seq_length = encoder_hidden_states.shape[1] # to handle the hidden_states after
-                if layernorm_fix:
-                    pass
-                else:
-                    text_seq_length_temp = encoder_hidden_states_temp.shape[1]
-                    encoder_hidden_states = encoder_hidden_states_temp # replace the encoder_hidden_states with the concatenated tensor
-        
-        if self.second_stage:
-            enc_hidden_states0 = encoder_hidden_states
-            enc_hidden_states1 = None
-            pass
-        else:
-            if vae_add:
-                hidden_states = hidden_states[:, text_seq_length:]
-                if layernorm_fix:
-                    pass
-                else:
-                    text_seq_length = text_seq_length_temp
-        ### CHECK
-        if hidden_states.shape[1] != 1350:
-            print('hidden_states shape is ', hidden_states.shape)
-            # print('random_drop_full is ', random_drop_full, ' and enc_hidden_states1 is', enc_hidden_states1.shape)
-            print('random_drop_full is ', random_drop_full, ' and hidden_states shape is ', hidden_states.shape)
-        if random_drop_full and self.second_stage is True:
-            enc_hidden_states0 = encoder_hidden_states
+
+
+        embed_ref_img = True
+        ref_img_seq_start = enc_hidden_states0.shape[1]
+        ref_img_seq_end = enc_hidden_states0.shape[1] + enc_hidden_states1.shape[1]
+        position_delta = 0
+
+        text_seq_length = encoder_hidden_states.shape[1] # to handle the hidden_states after
+        hidden_states = hidden_states[:, text_seq_length:]
+
         # 3. Transformer blocks
-        ca_idx = 0
         for i, block in enumerate(self.transformer_blocks):
-            # if qk_replace is True and i % 2 == 1: # v2
-            # if qk_replace is True and i >= 21: # v1
-            if qk_replace is True and i < 21: # v3
-                encoder_hidden_states = enc_hidden_states1
-                embed_ref_img = True
-                # print('QK CHECK 1')
-            # elif qk_replace is True and i % 2 == 0:
-            # elif qk_replace is True and i < 21:
-            elif qk_replace is True and i >= 21:
-                encoder_hidden_states = enc_hidden_states0
-                embed_ref_img = False
-            #     print('QK CHECK 0')
-            # print('ENCODER HIDDEN_STATES shape', encoder_hidden_states.shape)
-            
-            if self.training and self.gradient_checkpointing:
-                # print('JOINT TRAIN IS ', joint_train)
-                # def create_custom_forward(module):
-                #     def custom_forward(*inputs):
-                #         return module(*inputs)
-                # return custom_forward
-                def create_custom_forward(module):
-                    def custom_forward(hidden_states, encoder_hidden_states, temb, enc_hidden_states1=None,
-                                    image_rotary_emb=None, embed_ref_img=False, ref_img_seq_start=0,
-                                    ref_img_seq_end=0, position_delta=0, ref_image_rotary_emb=None, joint_train=False):
-                        return module(hidden_states=hidden_states, encoder_hidden_states=encoder_hidden_states, temb=temb, 
-                                      enc_hidden_states1=enc_hidden_states1, image_rotary_emb=image_rotary_emb, embed_ref_img=embed_ref_img,
-                                      ref_img_seq_start=ref_img_seq_start, ref_img_seq_end=ref_img_seq_end, position_delta=position_delta,
-                                      ref_image_rotary_emb=ref_image_rotary_emb, joint_train=joint_train)
-                    return custom_forward
-                def create_custom_forward_wo_enc_hidden_states1(module):
-                    def custom_forward(hidden_states, encoder_hidden_states, temb,
-                                    image_rotary_emb=None, embed_ref_img=False, ref_img_seq_start=0,
-                                    ref_img_seq_end=0, position_delta=0, ref_image_rotary_emb=None, joint_train=False):
-                        return module(hidden_states=hidden_states, encoder_hidden_states=encoder_hidden_states, temb=temb, 
-                                      image_rotary_emb=image_rotary_emb, embed_ref_img=embed_ref_img,
-                                      ref_img_seq_start=ref_img_seq_start, ref_img_seq_end=ref_img_seq_end, position_delta=position_delta,
-                                      ref_image_rotary_emb=ref_image_rotary_emb, joint_train=joint_train)
-                    return custom_forward
+            hidden_states, enc_hidden_states0, enc_hidden_states1 = block(
+                hidden_states=hidden_states,
+                encoder_hidden_states=enc_hidden_states0,
+                temb=emb,
+                enc_hidden_states1=enc_hidden_states1,
+                image_rotary_emb=image_rotary_emb,
+                embed_ref_img=embed_ref_img,
+                ref_img_seq_start=ref_img_seq_start,
+                ref_img_seq_end=ref_img_seq_end,
+                position_delta=position_delta,
+                timestep=timestep,
+                ref_image_rotary_emb=ref_image_rotary_emb,
+                layer=i,
+            )
 
-                if layernorm_fix:
-                    ckpt_kwargs: Dict[str, Any] = {"use_reentrant": False} if is_torch_version(">=", "1.11.0") else {}
-                    hidden_states, enc_hidden_states0, enc_hidden_states1 = torch.utils.checkpoint.checkpoint(
-                        create_custom_forward(block),
-                        hidden_states, enc_hidden_states0, emb, enc_hidden_states1,  
-                        image_rotary_emb, embed_ref_img, ref_img_seq_start,
-                        ref_img_seq_end, position_delta, ref_image_rotary_emb, joint_train,
-                        **ckpt_kwargs,
-                    )
-                else:
-                    ckpt_kwargs: Dict[str, Any] = {"use_reentrant": False} if is_torch_version(">=", "1.11.0") else {}
-                    hidden_states, encoder_hidden_states = torch.utils.checkpoint.checkpoint(
-                        create_custom_forward_wo_enc_hidden_states1(block),
-                        hidden_states, encoder_hidden_states, emb,  
-                        image_rotary_emb, embed_ref_img, ref_img_seq_start,
-                        ref_img_seq_end, position_delta, ref_image_rotary_emb, joint_train,
-                        **ckpt_kwargs,
-                    )
-            else:
-                if layernorm_fix:
-                    hidden_states, enc_hidden_states0, enc_hidden_states1 = block(
-                        hidden_states=hidden_states,
-                        encoder_hidden_states=enc_hidden_states0,
-                        temb=emb,
-                        enc_hidden_states1=enc_hidden_states1,
-                        image_rotary_emb=image_rotary_emb,
-                        embed_ref_img=embed_ref_img,
-                        ref_img_seq_start=ref_img_seq_start,
-                        ref_img_seq_end=ref_img_seq_end,
-                        position_delta=position_delta,
-                        timestep=timestep,
-                        ref_image_rotary_emb=ref_image_rotary_emb,
-                        layer=i,
-                        joint_train=joint_train,
-                    )
-                else:
-                    hidden_states, encoder_hidden_states = block(
-                        hidden_states=hidden_states,
-                        encoder_hidden_states=encoder_hidden_states,
-                        temb=emb,
-                        image_rotary_emb=image_rotary_emb,
-                        ref_image_rotary_emb=ref_image_rotary_emb,
-                        embed_ref_img=embed_ref_img,
-                        ref_img_seq_start=ref_img_seq_start,
-                        ref_img_seq_end=ref_img_seq_end,
-                        position_delta=position_delta,
-                        timestep=timestep,
-                        layer=i,
-                        joint_train=joint_train,
-                    )
-            if self.cross_attend or self.cross_attend_text:
-                if ca_idx % self.cross_attn_interval == 0 and ca_idx <= self.num_layers:
-                    if self.cross_attend_text:
-                        encoder_hidden_states = encoder_hidden_states + self.local_reference_scale * self.perceiver_cross_attention_text[ca_idx](
-                            ref_img_emb, encoder_hidden_states
-                        )
-                    if self.cross_attend:
-                        hidden_states = hidden_states + self.local_reference_scale * self.perceiver_cross_attention[ca_idx](
-                            ref_img_emb, hidden_states
-                        )
-                    ca_idx += 1
-
-        if not self.config.use_rotary_positional_embeddings:
-            # CogVideoX-2B
-            hidden_states = self.norm_final(hidden_states)
-        else:
-            # CogVideoX-5B
-            if layernorm_fix:
-                if text_only_norm_final is True:
-                    hidden_states = torch.cat([enc_hidden_states0, hidden_states], dim=1)
-                    hidden_states = self.norm_final(hidden_states)
-                    text_seq_length = enc_hidden_states0.shape[1]
-                    hidden_states = hidden_states[:, text_seq_length:]
-                else:
-                    if joint_train is True and self.second_stage is True:
-                        hidden_states = torch.cat([enc_hidden_states0, hidden_states], dim=1)
-                        hidden_states = self.norm_final(hidden_states)
-                        text_seq_length = enc_hidden_states0.shape[1]
-                        hidden_states = hidden_states[:, text_seq_length:]
-                    else:
-                        hidden_states = torch.cat([enc_hidden_states0, enc_hidden_states1, hidden_states], dim=1)
-                        hidden_states = self.norm_final(hidden_states)
-                        text_seq_length = enc_hidden_states0.shape[1] + enc_hidden_states1.shape[1]
-                        hidden_states = hidden_states[:, text_seq_length:]
-            else:
-                hidden_states = torch.cat([encoder_hidden_states, hidden_states], dim=1)
-                hidden_states = self.norm_final(hidden_states)
-                text_seq_length = encoder_hidden_states.shape[1]
-                hidden_states = hidden_states[:, text_seq_length:]
+        # CogVideoX-5B
+        hidden_states = torch.cat([enc_hidden_states0, hidden_states], dim=1)
+        hidden_states = self.norm_final(hidden_states)
+        text_seq_length = enc_hidden_states0.shape[1]
+        hidden_states = hidden_states[:, text_seq_length:]
 
         # 4. Final block
         hidden_states = self.norm_out(hidden_states, temb=emb)
@@ -884,14 +551,12 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         p = self.config.patch_size
         output = hidden_states.reshape(batch_size, num_frames, height // p, width // p, -1, p, p)
         output = output.permute(0, 1, 4, 2, 5, 3, 6).flatten(5, 6).flatten(3, 4)
-
+        
         if USE_PEFT_BACKEND:
             # remove `lora_scale` from each PEFT layer
             unscale_lora_layers(self, lora_scale)
-
+            
         if not return_dict:
-            if frame_weighted_loss is False:
-                return (output,)
-            else:
-                return (output, i2v_set)
+            return (output,)
+
         return Transformer2DModelOutput(sample=output)
