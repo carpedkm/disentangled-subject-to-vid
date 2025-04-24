@@ -290,11 +290,9 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     image_rotary_emb=image_rotary_emb,
                     ref_image_rotary_emb=ref_image_rotary_emb,
                     attention_kwargs=attention_kwargs,
-                    customization=self.customization,
                     return_dict=False,
                     eval=True, # vae_add is True
                     pos_embed=pos_embed,
-                    layernorm_fix=layernorm_fix,
                 )[0]
                 noise_pred = noise_pred.float()
 
