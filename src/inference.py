@@ -158,52 +158,6 @@ def encode_prompt(
     return prompt_embeds
 
 
-def compute_prompt_embeddings(
-    tokenizer, text_encoder, clip_tokenizer, clip_text_encoder, prompt, max_sequence_length, device, dtype, requires_grad: bool = False
-):
-    with torch.no_grad():
-        prompt_embeds = encode_prompt(
-            tokenizer,
-            text_encoder,
-            clip_tokenizer,
-            clip_text_encoder,
-            prompt,
-            num_videos_per_prompt=1,
-            max_sequence_length=max_sequence_length,
-            device=device,
-            dtype=dtype,
-        )
-
-    return prompt_embeds
-
-def prepare_rotary_positional_embeddings(
-    height: int,
-    width: int,
-    num_frames: int,
-    vae_scale_factor_spatial: int = 8,
-    patch_size: int = 2,
-    attention_head_dim: int = 64,
-    device: Optional[torch.device] = None,
-    base_height: int = 480,
-    base_width: int = 720,
-) -> Tuple[torch.Tensor, torch.Tensor]:
-    grid_height = height // (vae_scale_factor_spatial * patch_size)
-    grid_width = width // (vae_scale_factor_spatial * patch_size)
-    base_size_width = base_width // (vae_scale_factor_spatial * patch_size)
-    base_size_height = base_height // (vae_scale_factor_spatial * patch_size)
-
-    grid_crops_coords = get_resize_crop_region_for_grid((grid_height, grid_width), base_size_width, base_size_height)
-    freqs_cos, freqs_sin = get_3d_rotary_pos_embed(
-        embed_dim=attention_head_dim,
-        crops_coords=grid_crops_coords,
-        grid_size=(grid_height, grid_width),
-        temporal_size=num_frames,
-    )
-
-    freqs_cos = freqs_cos.to(device=device)
-    freqs_sin = freqs_sin.to(device=device)
-    return freqs_cos, freqs_sin
-
 
 def main(args):
     print('Start')
