@@ -39,7 +39,7 @@ To set up the environment and install dependencies, follow these steps:
 ## Usage
 - **Run the inference script:**
    ```bash
-   python inference.py \
+   python src/inference.py \
      --reference_image_path <REFERENCE IMAGE PATH>
      --output_dir "./test_output.mp4" \
      --checkpoint_path "./ckpts_best_ours" \
@@ -48,7 +48,7 @@ To set up the environment and install dependencies, follow these steps:
 
 Alternatively, you can use the provided shell script for quick demo:
 ```bash
-bash s2v_inference.sh
+bash src/s2v_inference.sh
 ```
 
 ## TODOs
