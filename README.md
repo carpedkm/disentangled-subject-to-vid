@@ -61,6 +61,7 @@ bash src/s2v_inference.sh
 ---
 ## Authors
 **[Daneul Kim](https://carpedkm.github.io/)**<sup>§</sup>, **[Jingxu Zhang](#)**, **[Wonjoon Jin](https://jinwonjoon.github.io/)**, **[Sunghyun Cho](https://www.scho.pe.kr/)**, **[Qi Dai](https://daiqi1989.github.io/)**, **[Jaesik Park](https://jaesik.info)**, **[Chong Luo](https://www.microsoft.com/en-us/research/people/cluo/)**
+
 §: This work was done while at Microsoft Research Asia.
 
 ---
