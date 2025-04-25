@@ -1,10 +1,14 @@
 # [Official Implementation] Subject-driven Video Generation via Disentangled Identity and Motion
----
+
 <p align="center">
-  <img src="./assets/s2v_teaser.gif" width="500"/>
+  <img src="./assets/s2v_teaser.gif" width="700"/>
 </p>
 
----
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/ArXiv_To_Be_Released-Disentangled_S2V-red"></a>
+  <a href="https://carpedkm.github.io/projects/disentangled_sub/"><img src="https://img.shields.io/badge/Project%20Page-Disentangled_S2V-blue"></a> 
+</p>
+
 ## <span style="color:red"><strong> Currently Code is under maintenance -- It would be made available this week. Stay tuned!</strong></span>
 ---
 
@@ -12,7 +16,7 @@ This repository provides the code for the paper "Subject-driven Video Generation
 
 **Note:** This repository currently only includes the inference code. Fine-tuning code is not provided at this time but is planned for a future release.
 
-## Installation
+## Preparation
 
 To set up the environment and install dependencies, follow these steps:
 
@@ -23,87 +27,33 @@ To set up the environment and install dependencies, follow these steps:
 
 2. **Install other dependencies:**
    ```bash
-   pip install -r requirements.txt
+   pip install huggingface transformers numpy peft
    ```
 
 3. **Install diffusers in editable mode:**
-   ```bash
-   git clone https://github.com/huggingface/diffusers.git
+   ```
    cd diffusers
    pip install -e .
    cd ..
    ```
 
-The `requirements.txt` file includes:
-- transformers
-- numpy
-- Pillow
-- tqdm
-- peft
-
-## Usage
-
-To run inference and generate videos using the provided pre-trained model, follow these steps:
-
-1. **Set environment variables (optional):**
-   ```bash
-   export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-   export CUDA_VISIBLE_DEVICES=0
-   export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
-   ```
-   Adjust `CUDA_VISIBLE_DEVICES` based on your GPU setup.
-
-2. **Download the pre-trained model checkpoint:**
+4. **Download the pre-trained model checkpoint:**
    Download the best checkpoint from [Google Drive Link] and extract it to a directory, e.g., `./ckpts_best_ours`.
 
-3. **Prepare validation reference images and test prompts:**
-   - Place your validation reference images in a directory, e.g., `../zs_samples/`.
-   - Prepare a JSON file with test prompts, e.g., `../zs_prompts_new.json`.
-
-4. **Run the inference script:**
+## Usage
+- **Run the inference script:**
    ```bash
-   python inference.py \
-     --pretrained_model_name_or_path "THUDM/CogVideoX-5b" \
-     --cache_dir "~/.cache" \
-     --enable_tiling \
-     --enable_slicing \
-     --validation_reference_image "../zs_samples/" \
-     --seed 2025 \
-     --rank 128 \
-     --lora_alpha 64 \
-     --output_dir "./test_output" \
+   python src/inference.py \
+     --reference_image_path <REFERENCE IMAGE PATH>
+     --output_dir "./test_output.mp4" \
      --checkpoint_path "./ckpts_best_ours" \
-     --height 480 \
-     --width 720 \
-     --fps 8 \
-     --max_num_frames 49 \
-     --skip_frames_start 0 \
-     --skip_frames_end 0 \
-     --enable_slicing \
-     --enable_tiling \
-     --t5_first \
-     --vae_add \
-     --pos_embed \
-     --pos_embed_inf_match \
-     --non_shared_pos_embed \
-     --add_special \
-     --layernorm_fix \
-     --inference \
-     --resume_from_checkpoint checkpoint-4000 \
-     --phase_name test \
-     --test_prompt_path "../zs_prompts_new.json"
+     --prompt <PROMPT>
    ```
 
-   Ensure that the paths (`validation_reference_image`, `checkpoint_path`, `test_prompt_path`, etc.) are adjusted according to your local setup.
-
-Alternatively, you can use the provided shell script:
+Alternatively, you can use the provided shell script for quick demo:
 ```bash
-bash s2v_inference.sh
+bash src/s2v_inference.sh
 ```
-
-## Model Checkpoint
-
-The pre-trained model checkpoint is available for download from [Google Drive Link]. After downloading, extract it to a directory (e.g., `./ckpts_best_ours`) and specify the path using the `--checkpoint_path` argument in the inference script.
 
 ## TODOs
 
@@ -114,7 +64,9 @@ The pre-trained model checkpoint is available for download from [Google Drive Li
 
 ---
 ## Authors
-### **[Daneul Kim](https://carpedkm.github.io/)**, **[Jingxu Zhang](#)**, **[Wonjoon Jin](https://jinwonjoon.github.io/)**, **[Sunghyun Cho](https://www.scho.pe.kr/)**, **[Qi Dai](https://daiqi1989.github.io/)**, **[Jaesik Park](https://jaesik.info)**, **[Chong Luo](https://www.microsoft.com/en-us/research/people/cluo/)**
+**[Daneul Kim](https://carpedkm.github.io/)**<sup>§</sup>, **[Jingxu Zhang](#)**, **[Wonjoon Jin](https://jinwonjoon.github.io/)**, **[Sunghyun Cho](https://www.scho.pe.kr/)**, **[Qi Dai](https://daiqi1989.github.io/)**, **[Jaesik Park](https://jaesik.info)**, **[Chong Luo](https://www.microsoft.com/en-us/research/people/cluo/)**
+
+§: This work was done while at Microsoft Research Asia.
 
 ---
 ## Acknowledgements
