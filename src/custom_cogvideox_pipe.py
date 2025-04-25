@@ -181,7 +181,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
 
         # Check if guidance is needed
         do_classifier_free_guidance = guidance_scale > 1.0
-        # print('>> PROMPT: ', prompt)
+
         # 3. Encode prompt and CLIP prompt embeddings
         prompt_embeds, negative_prompt_embeds, _, _ = self.encode_prompt( # FIXME Do negative prompt embed
             prompt,

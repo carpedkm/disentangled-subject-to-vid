@@ -44,7 +44,6 @@ def get_args():
     parser.add_argument("--max_num_frames", type=int, default=49, help="Max frames used per input video.")
     parser.add_argument("--skip_frames_start", type=int, default=0, help="Frames to skip at the beginning of each video.")
     parser.add_argument("--skip_frames_end", type=int, default=0, help="Frames to skip at the end of each video.")
-    parser.add_argument("--resume_from_checkpoint", type=str, default=None, help="Resume training from checkpoint path or 'latest'.")
     parser.add_argument("--enable_slicing", default=True, help="Enable VAE slicing for memory efficiency.")
     parser.add_argument("--enable_tiling", default=True, help="Enable VAE tiling for memory efficiency.")
     parser.add_argument("--hub_model_id", type=str, default=None, help="Repository name to sync with `output_dir`.")
@@ -222,7 +221,7 @@ def main(args):
     print(transformer.active_adapters)
 
     
-    checkpoint_dir = os.path.join(args.checkpoint_path, args.resume_from_checkpoint)
+    checkpoint_dir = args.checkpoint_path
     load_model_hook([transformer], checkpoint_dir)
     # Create pipeline
     vae = AutoencoderKLCogVideoX.from_pretrained(
@@ -244,7 +243,7 @@ def main(args):
         vae_add=args.vae_add,
     )
     ref_img = args.ref_img_path
-    validation_prompt = args.prompt
+    validation_prompt = '<cls> ' + args.prompt
     pipeline_args = {
         "prompt": validation_prompt,
         "guidance_scale": args.guidance_scale,
