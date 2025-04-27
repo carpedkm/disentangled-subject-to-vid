@@ -512,8 +512,6 @@ class Attention(nn.Module):
             ref_img_seq_start=ref_img_seq_start,
             ref_img_seq_end=ref_img_seq_end,
             position_delta=position_delta,
-            timestep=timestep,
-            layer=layer,
             ref_image_rotary_emb=ref_image_rotary_emb,
             **cross_attention_kwargs,
         )
@@ -2034,8 +2032,6 @@ class CogVideoXAttnProcessor2_0:
         ref_img_seq_end: Optional[int] = 0,
         position_delta: Optional[torch.Tensor] = None,
         embed_ref_img: Optional[bool] = False,
-        timestep: Optional[int] = 0,
-        layer: Optional[int] = 0,
         ref_image_rotary_emb: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         text_seq_length = encoder_hidden_states.size(1)
@@ -2069,11 +2065,11 @@ class CogVideoXAttnProcessor2_0:
         # Apply RoPE if needed
         if image_rotary_emb is not None:
             from .embeddings import apply_rotary_emb
-            # if embed_ref_img is False:
             query[:, :, text_seq_length:] = apply_rotary_emb(query[:, :, text_seq_length:], image_rotary_emb)
             if not attn.is_cross_attention:
                 key[:, :, text_seq_length:] = apply_rotary_emb(key[:, :, text_seq_length:], image_rotary_emb)
-            # else: # if it is True
+                
+            # APPLY RoPE EMBEDDING TO REFERENCE IMAGE
             if embed_ref_img is True:
                 query[:, :, ref_img_seq_start:ref_img_seq_end] = apply_rotary_emb(
                     query[:, :, ref_img_seq_start:ref_img_seq_end], ref_image_rotary_emb
@@ -2082,15 +2078,6 @@ class CogVideoXAttnProcessor2_0:
                     key[:, :, ref_img_seq_start:ref_img_seq_end] = apply_rotary_emb(
                         key[:, :, ref_img_seq_start:ref_img_seq_end], ref_image_rotary_emb
                     ) + position_delta
-        # ----- extract attention map -----
-        # query_to_save = copy.deepcopy(query).detach().cpu().numpy()
-        # key_to_save = copy.deepcopy(key).detach().cpu().numpy()
-        # # numpy save
-        # if os.path.exists("attention_maps") is False:
-        #     os.makedirs("attention_maps")
-        # np.save(f"attention_maps/query_layer{layer}_timestep{int(timestep.detach().cpu().numpy()[0])}.npy", query_to_save)
-        # np.save(f"attention_maps/key_layer{layer}_timestep{int(timestep.detach().cpu().numpy()[0])}.npy", key_to_save)
-        # ----------------------------------------------
         
 
         hidden_states = F.scaled_dot_product_attention(

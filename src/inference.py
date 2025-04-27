@@ -61,13 +61,15 @@ def load_model_hook(models, input_dir):
         transformer_ = None
         
         # Extract models while emptying the list
-        while len(models) > 0:
-            model = models.pop()
-            # if isinstance(model, type(transformer_)):
-            #     transformer_ = model
-            # else:
-            #     raise ValueError(f"Unexpected save model: {model.__class__}")
-            transformer_ = model
+        # while len(models) > 0:
+        #     model = models.pop()
+        #     if isinstance(model, type(transformer_)):
+        #         transformer_ = model
+        #     else:
+        #         raise ValueError(f"Unexpected save model: {model.__class__}")
+        #     transformer_ = model
+        while models:
+            transformer_ = models.pop()
         
         # Load the combined lora state dict
         lora_state_dict = CogVideoXPipeline.lora_state_dict(input_dir)
@@ -159,7 +161,6 @@ def encode_prompt(
 
 
 def main(args):
-    print('Start')
     reduce_token = False
 
     if args.output_dir is not None:
@@ -213,7 +214,6 @@ def main(args):
     )
     
     transformer.add_adapter(transformer_lora_config)
-    print(transformer.active_adapters)
 
     
     checkpoint_dir = args.checkpoint_path
@@ -237,7 +237,7 @@ def main(args):
         customization=True,
     )
     ref_img = args.ref_img_path
-    validation_prompt = '<cls> ' + args.prompt
+    validation_prompt = args.prompt
     pipeline_args = {
         "prompt": validation_prompt,
         "guidance_scale": args.guidance_scale,
@@ -255,7 +255,5 @@ def main(args):
     print('Inference completed')
 
 if __name__ == "__main__":
-    print('Code executed')
     args = get_args()
-    print('Args:', args)
     main(args)
