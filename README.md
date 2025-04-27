@@ -15,7 +15,17 @@ This repository provides the code for the paper "Subject-driven Video Generation
 **Note:** This repository currently only includes the inference code. 
 Fine-tuning code is not provided at this time but is planned for a future release.
 
-## Preparation
+## 🔥 Latest News
+- Apr 27, 2025 Inference Code Release!
+
+## TODOs
+
+- [x] Release inference code.
+- [ ] Update the codebase to be compatible with the latest diffusers and CogVideoX repositories.
+- [ ] Release fine-tuning code.
+- [ ] Add more features and improvements.
+
+## Quick Start
 
 To set up the environment and install dependencies, 
 first start with:
@@ -50,7 +60,7 @@ Or follow these steps:
    pip install opencv-python imageio ffmpeg imageio-ffmpeg
    ```
 
-## Get Checkpoint
+## Get Checkpoint 
 - **Download the pre-trained model checkpoint:**
    Download the best checkpoint from [Google Drive Link](https://drive.google.com/file/d/190lmjS_tPmutSruDmgGthyg_N5wRF3Nl/view?usp=sharing) and extract it to a directory, e.g., `./disentangled_s2v_ckpt`.
 
@@ -68,20 +78,6 @@ Alternatively, you can use the provided shell script for quick demo:
 ```bash
 bash s2v_inference_demo.sh
 ```
-
-## TODOs
-
-- [x] Release inference code.
-- [ ] Update the codebase to be compatible with the latest diffusers and CogVideoX repositories.
-- [ ] Release fine-tuning code.
-- [ ] Add more features and improvements.
-
-
-## Authors
-**[Daneul Kim](https://carpedkm.github.io/)**<sup>§</sup>, **[Jingxu Zhang](#)**, **[Wonjoon Jin](https://jinwonjoon.github.io/)**, **[Sunghyun Cho](https://www.scho.pe.kr/)**, **[Qi Dai](https://daiqi1989.github.io/)**, **[Jaesik Park](https://jaesik.info)**, **[Chong Luo](https://www.microsoft.com/en-us/research/people/cluo/)**
-
-§: This work was done while at Microsoft Research Asia.
-
 
 ## Acknowledgements
 We built our work based on [CogVideoX](https://github.com/THUDM/CogVideo), with dataset from [OminiControl](https://github.com/Yuanshi9815/OminiControl) and [Pexels](https://huggingface.co/datasets/jovianzm/Pexels-400k).
