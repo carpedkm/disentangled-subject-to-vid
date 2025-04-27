@@ -7,4 +7,4 @@ python src/inference.py \
   --ref_img_path $REF_IMG_PATH \
   --output_dir $OUTPUT_PATH \
   --checkpoint_path $CHECKPOINT_PATH \
-  --prompt "<cls> a man holds the backpack at his two hands at metro, while he sits on the metro's seat. "
+  --prompt "<cls> a man holds the backpack at his two hands at metro, while he sits on the metro's seat."

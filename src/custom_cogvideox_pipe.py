@@ -317,7 +317,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         else:
             video = latents
 
-        # 10. Offload all models
+        # 10. Offload all models 
         self.maybe_free_model_hooks()
 
         if not return_dict:

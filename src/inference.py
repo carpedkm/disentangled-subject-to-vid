@@ -61,10 +61,6 @@ def get_args():
     parser.add_argument('--prompt', type=str, default='', help='Prompt for inference')
     return parser.parse_args()
 
-# vae_add, inference, validation_ref_image, pos_embed, pos_embed_inf_match, non_shared_pos_embed, add_special, add_specific_loc, layernorm_fix
-# wo_shuffle, save_every_timestep, qformer, inference_num_frames, sampling_for_quali, num_of_prompt 
-
-
 def load_model_hook(models, input_dir):
         """Load LoRA weights for transformer and vision models"""
         transformer_ = None
