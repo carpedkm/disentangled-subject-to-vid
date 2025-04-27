@@ -43,7 +43,7 @@ def get_args():
     parser.add_argument('--ref_img_path', type=str, default='', required=True, help='The path of the reference image for validation')
     parser.add_argument("--guidance_scale", type=float, default=6., help="The guidance scale to use while sampling validation videos.")
     parser.add_argument("--use_dynamic_cfg", action="store_true", default=False, help="Use cosine dynamic guidance schedule for validation.")
-    parser.add_argument("--seed", type=int, default=420, help="A seed for reproducible training.")
+    parser.add_argument("--seed", type=int, default=2025, help="A seed for reproducible training.")
     parser.add_argument("--rank", type=int, default=128, help="The dimension of the LoRA update matrices.")
     parser.add_argument("--lora_alpha", type=float, default=64, help="Scaling factor for LoRA update (actual is `lora_alpha / rank`).")
     parser.add_argument("--output_dir", type=str, default="cogvideox-lora", help="Output directory for predictions and checkpoints.")

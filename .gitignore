@@ -81,4 +81,4 @@ benchmark_dataset/
 .github/
 test_output/
 
-./video_edit.py
+video_edit.py

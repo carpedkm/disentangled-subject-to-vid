@@ -12,7 +12,8 @@
 
 This repository provides the code for the paper "Subject-driven Video Generation via Disentangled Identity and Motion." The method enables the generation of high-quality videos based on a subject image and a text prompt, without requiring large annotated video datasets. By leveraging an image customization dataset and a small set of unannotated videos, this approach achieves robust subject consistency and temporal coherence in a zero-shot setting.
 
-**Note:** This repository currently only includes the inference code. Fine-tuning code is not provided at this time but is planned for a future release.
+**Note:** This repository currently only includes the inference code. 
+Fine-tuning code is not provided at this time but is planned for a future release.
 
 ## Preparation
 
