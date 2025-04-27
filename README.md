@@ -17,7 +17,7 @@ This repository provides the code for the paper "Subject-driven Video Generation
 ## Preparation
 
 To set up the environment and install dependencies, 
-First start with:
+first start with:
 
    ```bash
    conda create -n disentangled_s2v python=3.12
