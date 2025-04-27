@@ -147,8 +147,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
         callback_on_step_end: Optional[Callable[[int, int, Dict], None]] = None,
         callback_on_step_end_tensor_inputs: List[str] = ["latents"],
         max_sequence_length: int = 226,
-        pos_embed: bool = False,
-        input_noise_fix: bool = False,
+        eval: bool = True,
     ) -> Union[CogVideoXPipelineOutput, Tuple]:
         if num_frames > 49:
             raise ValueError(
@@ -248,19 +247,7 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     torch.cat([latents] * 2) if do_classifier_free_guidance else latents
                 )
                 
-                if input_noise_fix:
-                    print('latent_model_input: ', latent_model_input.shape)
-                    print('ref_img_states: ', ref_img_states.shape)
-                    # Concatenate latent_model_input and ref_img_states along the batch dimension
-                    concat_input = torch.cat([latent_model_input, ref_img_states], dim=0)
-
-                    # Apply scale_model_input to the concatenated input
-                    scaled_concat_input = self.scheduler.scale_model_input(concat_input, t)
-
-                    # Split back into latent_model_input and noisy_ref_img_states
-                    latent_model_input, noisy_ref_img_states = torch.chunk(scaled_concat_input, chunks=2, dim=0)
-                else:
-                    latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
+                latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
                 # Broadcast timestep
                 timestep = t.expand(latent_model_input.shape[0])
 
@@ -275,7 +262,6 @@ class CustomCogVideoXPipeline(CogVideoXPipeline):
                     attention_kwargs=attention_kwargs,
                     return_dict=False,
                     eval=True, # vae_add is True
-                    pos_embed=pos_embed,
                 )[0]
                 noise_pred = noise_pred.float()
 

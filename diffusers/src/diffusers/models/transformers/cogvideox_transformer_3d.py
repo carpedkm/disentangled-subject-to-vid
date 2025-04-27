@@ -452,7 +452,6 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         hidden_states: torch.Tensor,
         ref_img_states: torch.Tensor,
         encoder_hidden_states: torch.Tensor,
-        clip_prompt_embeds: torch.Tensor,
         timestep: Union[int, float, torch.LongTensor],
         timestep_cond: Optional[torch.Tensor] = None,
         image_rotary_emb: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
@@ -460,7 +459,6 @@ class CogVideoXTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
         attention_kwargs: Optional[Dict[str, Any]] = None,
         return_dict: bool = True,
         eval: bool = False,
-        frame_weighted_loss: bool = False,
     ):  
         enc_hidden_states0 = encoder_hidden_states
         enc_hidden_states1 = ref_img_states

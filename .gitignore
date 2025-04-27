@@ -75,3 +75,8 @@ Pexels_evaluation_small_100K_200_0225_original/
 
 customconcept101/
 benchmark_dataset/
+
+.venv/
+.vscode/
+.github/
+test_output/

@@ -34,7 +34,7 @@ def get_args():
     parser.add_argument('--ref_img_path', type=str, default='', required=True, help='The path of the reference image for validation')
     parser.add_argument("--guidance_scale", type=float, default=6., help="The guidance scale to use while sampling validation videos.")
     parser.add_argument("--use_dynamic_cfg", action="store_true", default=False, help="Use cosine dynamic guidance schedule for validation.")
-    parser.add_argument("--seed", type=int, default=2025, help="A seed for reproducible training.")
+    parser.add_argument("--seed", type=int, default=420, help="A seed for reproducible training.")
     parser.add_argument("--rank", type=int, default=128, help="The dimension of the LoRA update matrices.")
     parser.add_argument("--lora_alpha", type=float, default=64, help="Scaling factor for LoRA update (actual is `lora_alpha / rank`).")
     parser.add_argument("--output_dir", type=str, default="cogvideox-lora", help="Output directory for predictions and checkpoints.")
@@ -47,7 +47,6 @@ def get_args():
     parser.add_argument("--enable_slicing", default=True, help="Enable VAE slicing for memory efficiency.")
     parser.add_argument("--enable_tiling", default=True, help="Enable VAE tiling for memory efficiency.")
     parser.add_argument("--hub_model_id", type=str, default=None, help="Repository name to sync with `output_dir`.")
-    parser.add_argument('--t5_first', default=True, help='Concatenate T5 encoder prompt before CLIP.')
     parser.add_argument('--local_reference_scale', type=float, default=1.)
     parser.add_argument('--checkpoint_path', type=str, default=None, help='Checkpoint path to load the model')
     parser.add_argument('--prompt', type=str, default='', help='Prompt for inference')
@@ -64,10 +63,11 @@ def load_model_hook(models, input_dir):
         # Extract models while emptying the list
         while len(models) > 0:
             model = models.pop()
-            if isinstance(model, type(transformer)):
-                transformer_ = model
-            else:
-                raise ValueError(f"Unexpected save model: {model.__class__}")
+            # if isinstance(model, type(transformer_)):
+            #     transformer_ = model
+            # else:
+            #     raise ValueError(f"Unexpected save model: {model.__class__}")
+            transformer_ = model
         
         # Load the combined lora state dict
         lora_state_dict = CogVideoXPipeline.lora_state_dict(input_dir)
@@ -160,8 +160,6 @@ def encode_prompt(
 
 def main(args):
     print('Start')
-    t5_first = args.t5_first
-    concatenated_all = args.concatenated_all
     reduce_token = False
 
     if args.output_dir is not None:
@@ -171,15 +169,14 @@ def main(args):
     tokenizer = AutoTokenizer.from_pretrained(
         args.pretrained_model_name_or_path, subfolder="tokenizer",
     )
-    if args.add_special:
-        special_token = {"additional_special_tokens": ["<cls>"]}
-        tokenizer.add_special_tokens(special_token)
+    special_token = {"additional_special_tokens": ["<cls>"]}
+    tokenizer.add_special_tokens(special_token)
 
     text_encoder = T5EncoderModel.from_pretrained(
         args.pretrained_model_name_or_path, subfolder="text_encoder",
     )
-    if args.add_special:
-        text_encoder.resize_token_embeddings(len(tokenizer))
+
+    text_encoder.resize_token_embeddings(len(tokenizer))
     
     load_dtype = torch.bfloat16 if "5b" in args.pretrained_model_name_or_path.lower() else torch.float16
     transformer = CogVideoXTransformer3DModel.from_pretrained( # DECLARE 
@@ -187,9 +184,7 @@ def main(args):
         subfolder="transformer",
         torch_dtype=load_dtype,
         customization=True,
-        concatenated_all=concatenated_all,
         reduce_token=reduce_token,
-        vae_add=args.vae_add,
         local_reference_scale=args.local_reference_scale,
     )
     
@@ -240,7 +235,6 @@ def main(args):
         vae=vae,
         torch_dtype=weight_dtype,
         customization=True,
-        vae_add=args.vae_add,
     )
     ref_img = args.ref_img_path
     validation_prompt = '<cls> ' + args.prompt
@@ -252,8 +246,6 @@ def main(args):
         "height": 480,
         "width": 720,
         "eval" : True,
-        'vae_add' : args.vae_add,
-        'output_dir' : args.output_dir,
     }
     inference(
         pipe=pipe,

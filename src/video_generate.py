@@ -36,7 +36,7 @@ def inference(
     ref_image_latents = ref_image_latents.permute(0, 2, 1, 3, 4)
 
     current_pipeline_args['ref_img_states'] = ref_image_latents
-    current_pipeline_args.pop('referemce_image', None)
+    current_pipeline_args.pop('reference_image', None)
                 
     # Generate the video
     print(f"Generating video with prompt: {pipeline_args['prompt']}")
@@ -47,9 +47,9 @@ def inference(
         'output_type': "np",
         'guidance_scale': args.guidance_scale,
         'use_dynamic_cfg': args.use_dynamic_cfg,
-        'height': args.height_val,
-        'width': args.width_val,
-        'num_frames': args.inference_num_frames, #args.max_num_frames,
+        'height': args.height,
+        'width': args.width,
+        'num_frames': args.max_num_frames, #args.max_num_frames,
         'eval': True
     }
     current_pipeline_args.update(inference_args)
