@@ -63,6 +63,16 @@ Or follow these steps:
 ## Get Checkpoint 
 - **Download the pre-trained model checkpoint:**
    Download the best checkpoint from [Google Drive Link](https://drive.google.com/file/d/190lmjS_tPmutSruDmgGthyg_N5wRF3Nl/view?usp=sharing) and extract it to a directory, e.g., `./disentangled_s2v_ckpt`.
+   
+   Place the ckpt file as follows:
+   ```bash
+   # Directory structure of the checkpoint folder:
+   ./disentangled_s2v_ckpt
+   ├── optimizer.bin
+   ├── pytorch_lora_weights_transformer.safetensors
+   ├── random_states_0.pkl
+   └── scheduler.bin
+   ```
 
 ## Usage
 - **Run the inference script:**

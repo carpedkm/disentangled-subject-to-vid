@@ -1,6 +1,6 @@
 export OUTPUT_PATH="./test_output" 
 export REF_IMG_PATH="./samples/pig.png" 
-export CHECKPOINT_PATH="../disentangled_s2v_ckpt" 
+export CHECKPOINT_PATH="../ckpts_best_ours/checkpoint-4000" 
 export CUDA_VISIBLE_DEVICES=0
 
 python src/inference.py \
