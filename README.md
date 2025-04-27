@@ -17,8 +17,14 @@ This repository provides the code for the paper "Subject-driven Video Generation
 ## Preparation
 
 To set up the environment and install dependencies, 
+First start with:
 
-- You can install all the required packages by:
+   ```bash
+   conda create -n disentangled_s2v python=3.12
+   conda activate disentangled_s2v
+   ```
+
+You can install all the required packages by:
    ```bash
    bash installer.sh
    ```
@@ -39,7 +45,7 @@ Or follow these steps:
 
 3. **Install other dependencies:**
    ```bash
-   pip install sentencepiece huggingface peft transformers numpy accelerate
+   pip install sentencepiece huggingface peft transformers accelerate
    pip install opencv-python imageio ffmpeg imageio-ffmpeg
    ```
 
@@ -53,13 +59,13 @@ Or follow these steps:
    python src/inference.py \
      --reference_image_path <REFERENCE IMAGE PATH>
      --output_dir "./test_output.mp4" \
-     --checkpoint_path "./ckpts_best_ours" \
+     --checkpoint_path <CHECKPOINT_PATH> \
      --prompt <PROMPT>
    ```
 
 Alternatively, you can use the provided shell script for quick demo:
 ```bash
-bash s2v_inference.sh
+bash s2v_inference_demo.sh
 ```
 
 ## TODOs

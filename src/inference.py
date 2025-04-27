@@ -23,7 +23,16 @@ from diffusers.utils import convert_unet_state_dict_to_peft
 
 from video_generate import inference
 
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
+import random
+
+def seed_everything(seed: int = 0):
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True   # reproducible convs
+    torch.backends.cudnn.benchmark = False      # disable auto-tuner
 
 def get_args():
     parser = argparse.ArgumentParser(description="Simple example of a training script for CogVideoX.")
@@ -256,4 +265,6 @@ def main(args):
 
 if __name__ == "__main__":
     args = get_args()
+    seed_everything(args.seed)
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
     main(args)
