@@ -80,3 +80,5 @@ benchmark_dataset/
 .vscode/
 .github/
 test_output/
+
+./video_edit.py
