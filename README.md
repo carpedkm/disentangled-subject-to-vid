@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="#"><img src="https://img.shields.io/badge/ArXiv_To_Be_Released-Disentangled_S2V-red"></a>
+  <a href="https://arxiv.org/abs/2504.17816"><img src="https://img.shields.io/badge/ArXiv-Disentangled_S2V-red"></a>
   <a href="https://carpedkm.github.io/projects/disentangled_sub/"><img src="https://img.shields.io/badge/Project%20Page-Disentangled_S2V-blue"></a> 
 </p>
 
