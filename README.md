@@ -16,7 +16,7 @@ This repository provides the code for the paper "Subject-driven Video Generation
 Fine-tuning code is not provided at this time but is planned for a future release.
 
 ## 🔥 Latest News
-- Apr 28, Paper Released to [ArXiv](https://arxiv.org/abs/2504.17816)!
+- Apr 28, 2025 Paper Released to [ArXiv](https://arxiv.org/abs/2504.17816)!
 - Apr 27, 2025 Inference Code Release!
 
 ## TODOs
