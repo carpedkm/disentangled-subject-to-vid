@@ -1,1 +1,1 @@
-# Subject-driven Video Generation via Disentangled Identity and Motion
+# Disentangled-subject-to-vid - under maintenance
