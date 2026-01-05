@@ -16,12 +16,14 @@ This repository provides the code for the paper "Subject-driven Video Generation
 Fine-tuning code is not provided at this time but is planned for a future release.
 
 ## 🔥 Latest News
+- Updated version of Disentangled Subject-driven Video Generation coming SOON!
 - Apr 28, 2025 Paper Released to [arXiv](https://arxiv.org/abs/2504.17816)!
 - Apr 27, 2025 Inference Code Release!
 
 ## TODOs
 
 - [x] Release inference code.
+- [ ] Release v2 inference code
 - [ ] Update the codebase to be compatible with the latest diffusers and CogVideoX repositories.
 - [ ] Release fine-tuning code.
 - [ ] Add more features and improvements.
