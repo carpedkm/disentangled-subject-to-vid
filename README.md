@@ -1,4 +1,4 @@
-# [Official Implementation] Subject-driven Video Generation via Disentangled Identity and Motion
+# [(Un)Official Implementation] Subject-driven Video Generation via Disentangled Identity and Motion
 
 <p align="center">
   <img src="./assets/s2v_teaser.gif" width="700"/>
