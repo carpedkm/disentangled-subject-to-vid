@@ -2,10 +2,6 @@
 Previously : Subject-driven Video Generation via Disentangled Identity and Motion
 
 <p align="center">
-  <img src="./assets/s2v_teaser.gif" width="700"/>
-</p>
-
-<p align="center">
   <a href="https://arxiv.org/abs/2504.17816"><img src="https://img.shields.io/badge/ArXiv-Disentangled_S2V-red"></a>
   <a href="https://carpedkm.github.io/projects/disentangled_sub/"><img src="https://img.shields.io/badge/Project%20Page-Disentangled_S2V-blue"></a> 
 </p>
@@ -17,8 +13,9 @@ This repository provides the code for the paper "Learning Zero-Shot Subject-Driv
 Release for version 3 (Including CogVideoX and Wan) Inference checkpoint and Fine-tuning code is not provided at this time but is planned for a future release.
 
 ## 🔥 Latest News
-- May 06, Updated Version (v3) Released to [arXiv](https://arxiv.org/abs/2504.17816)!
-- Apr 28, 2025 Paper Released to [arXiv](https://arxiv.org/abs/2504.17816)!
+- May 06, 2026 Updated Version (v3) Released to [arXiv](https://arxiv.org/abs/2504.17816v3)!
+- Jan 10, 2026 Updated Version (v2) Released to [arXiv](https://arxiv.org/abs/2504.17816v2)!
+- Apr 28, 2025 Initial Version (v1) Released to [arXiv](https://arxiv.org/abs/2504.17816v1)!
 - Apr 27, 2025 Inference Code Release!
 
 ## TODOs
