@@ -1,5 +1,4 @@
 # Learning Zero-Shot Subject-Driven Video Generation Using 1\% Compute
-Previously : Subject-driven Video Generation via Disentangled Identity and Motion
 
 <p align="center">
   <a href="https://arxiv.org/abs/2504.17816"><img src="https://img.shields.io/badge/ArXiv-Disentangled_S2V-red"></a>
