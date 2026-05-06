@@ -1,4 +1,5 @@
-# [(Un)Official Implementation] Subject-driven Video Generation via Disentangled Identity and Motion
+# Learning Zero-Shot Subject-Driven Video Generation Using 1\% Compute
+Previously : Subject-driven Video Generation via Disentangled Identity and Motion
 
 <p align="center">
   <img src="./assets/s2v_teaser.gif" width="700"/>
@@ -10,21 +11,22 @@
 </p>
 
 
-This repository provides the code for the paper "Subject-driven Video Generation via Disentangled Identity and Motion." The method enables the generation of high-quality videos based on a subject image and a text prompt, without requiring large annotated video datasets. By leveraging an image customization dataset and a small set of unannotated videos, this approach achieves robust subject consistency and temporal coherence in a zero-shot setting.
+This repository provides the code for the paper "Learning Zero-Shot Subject-Driven Video Generation Using 1\% Compute". The method enables the generation of high-quality videos based on a subject image and a text prompt, without requiring large annotated video datasets. By leveraging an image customization dataset and a small set of unannotated videos, this approach achieves robust subject consistency and temporal coherence in a zero-shot setting.
 
-**Note:** This repository currently only includes the inference code. 
-Fine-tuning code is not provided at this time but is planned for a future release.
+**Note:** This repository currently only includes the inference code for version 1 release.
+Release for version 3 (Including CogVideoX and Wan) Inference checkpoint and Fine-tuning code is not provided at this time but is planned for a future release.
 
 ## 🔥 Latest News
-- Updated version of Disentangled Subject-driven Video Generation coming SOON!
+- May 06, Updated Version (v3) Released to [arXiv](https://arxiv.org/abs/2504.17816)!
 - Apr 28, 2025 Paper Released to [arXiv](https://arxiv.org/abs/2504.17816)!
 - Apr 27, 2025 Inference Code Release!
 
 ## TODOs
 
 - [x] Release inference code.
-- [ ] Release v2 inference code
-- [ ] Update the codebase to be compatible with the latest diffusers and CogVideoX repositories.
+- [x] Release v2 arXiv release
+- [x] Release v3 arXiv Release
+- [ ] Release v3 inference code with Wan and CogVideoX
 - [ ] Release fine-tuning code.
 - [ ] Add more features and improvements.
 
