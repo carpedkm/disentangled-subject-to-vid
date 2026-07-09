@@ -12,6 +12,7 @@ This repository provides the code for the paper "Learning Zero-Shot Subject-Driv
 Release for version 3 (Including CogVideoX and Wan) Inference checkpoint and Fine-tuning code is not provided at this time but is planned for a future release.
 
 ## 🔥 Latest News
+- Jun 18, 2026 Our paper has been accepted to ECCV 2026! Details will be released doon!
 - May 06, 2026 Updated Version (v3) Released to [arXiv](https://arxiv.org/abs/2504.17816v3)!
 - Jan 10, 2026 Updated Version (v2) Released to [arXiv](https://arxiv.org/abs/2504.17816v2)!
 - Apr 28, 2025 Initial Version (v1) Released to [arXiv](https://arxiv.org/abs/2504.17816v1)!
